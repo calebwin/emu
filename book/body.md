@@ -10,8 +10,9 @@ The body of a kernel function consists of a series of statements. The general st
 - Call operator `()`
 - Unary operators - `*` for dereferencing, `!` for negating booleans, `-` for negating numbers
 - Binary operators - `+`, `-`, `*`, `/`, `%`, `&&`, `||`, `&`, `|`, `^`, `>>`, `<<`, `>`, `<`, `>=`, `<=`, `==`, `!=`
+
 The following is a list of features that are yet to be introduced to the Emu language.
 - Precision conversion (type casting)
 - SI units conversion
-- Support for vectors, images
+- Support for constants, vectors, images
 - Support for better error reports
