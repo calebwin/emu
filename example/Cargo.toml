@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 emu = { path = "../../emu" }
+ocl = "0.19.2"

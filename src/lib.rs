@@ -5,7 +5,7 @@ extern crate syn;
 extern crate quote;
 
 // used for containing macro input
-use proc_macro::TokenStream;
+use proc_macro::{TokenStream, Span};
 
 // used for parsing macro input
 use syn::parse::{Parse, ParseStream};
@@ -19,16 +19,38 @@ use syn::{
     Type, UnOp,
 };
 
-/// Represents Emu program
+/// Represents an Emu program
 struct EmuProgram {
+    kernels: Vec<EmuKernel>,
+}
+
+/// Implementation of parser for Emu programs 
+impl Parse for EmuProgram {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let mut kernels: Vec<EmuKernel> = Vec::new();
+
+        while !input.is_empty() && input.lookahead1().peek(Ident) {
+            let new_kernel = input.call(EmuKernel::parse)?;
+            kernels.push(new_kernel);
+        }
+
+        // return new Emu program
+        Ok(EmuProgram {
+            kernels: kernels,
+        })
+    }
+}
+
+/// Represents an Emu kerenl within an Emu program
+struct EmuKernel {
     name: Ident,
     params: Vec<Expr>,
     stmts: Vec<Stmt>,
     generated_code: String,
 }
 
-/// Implementation of parser for Emu program
-impl Parse for EmuProgram {
+/// Implementation of parser for Emu kernels
+impl Parse for EmuKernel {
     fn parse(input: ParseStream) -> Result<Self> {
         // discard documentation comments
         let _ = input.call(Attribute::parse_outer)?;
@@ -58,7 +80,7 @@ impl Parse for EmuProgram {
         let statements = content_block.call(Block::parse_within)?;
 
         // return name and statements
-        Ok(EmuProgram {
+        Ok(EmuKernel {
             name: name,
             params: parameters,
             stmts: statements,
@@ -67,8 +89,8 @@ impl Parse for EmuProgram {
     }
 }
 
-/// Implementation of visitor for AST of Emu program
-impl<'a> Visit<'a> for EmuProgram {
+/// Implementation of visitor for AST of Emu kernels
+impl<'a> Visit<'a> for EmuKernel {
     fn visit_block(&mut self, b: &Block) {
         // visit each statement in block
         for statement in &b.stmts {
@@ -306,32 +328,104 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
     // parse program
     let mut program = parse_macro_input!(tokens as EmuProgram);
 
-    // traverse AST of each statement of parsed program
-    // then, generate OpenCL code for body of kernel function from statements
-    let program_statements = program.stmts.clone();
-    for statement in program_statements {
-        program.visit_stmt(&statement)
-    }
+    // iterate through kernels and generate code
+    let mut generated_code = String::new();
 
-    // get generated body code from program
-    let generated_body_code = program.generated_code;
-    let mut generated_code =
-        String::from(String::from("__kernel void ") + &program.name.to_string());
+    for mut kernel in program.kernels {
+        generated_code += "__kernel void ";
+        generated_code += &kernel.name.to_string();
+        generated_code += " (";
 
-    // TODO append parameters to generated code
-    generated_code.push_str("(");
+        // get information about parameters of kernel function
+        // then, generate code for parameters of kernel
+        for parameter in kernel.params.clone() {
+            // default values for parameterp properties
+            let mut parameter_name = String::from("");
+            let mut parameter_address_space = String::from("");
+            let mut parameter_type = String::from("");
 
-    // get parameter information from AST
-    let program_parameters = program.params.clone();
-    for parameter in program_parameters {
-        // default values for parameterp properties
-        let mut parameter_name = String::from("");
-        let mut parameter_address_space = String::from("__private");
-        let mut parameter_type = String::from("float");
+            // handle parameter with GLOBAL or LOCAL specified
+            if let Expr::Type(parameter_qualifier_expr) = parameter.clone() {
+                // parse parameter qualifier type
+                if let Expr::Cast(parameter_qualifier_type_cast_expr) = *parameter_qualifier_expr.expr {
+                    // parse parameter name
+                    if let Expr::Path(parameter_qualifier_name_path_expr) =
+                        *parameter_qualifier_type_cast_expr.expr
+                    {
+                        parameter_name = parameter_qualifier_name_path_expr.path.segments[0]
+                            .ident
+                            .to_string();
+                    }
 
-        if let Expr::Type(parameter_qualifier_expr) = parameter {
-            // parse parameter qualifier type
-            if let Expr::Cast(parameter_qualifier_type_cast_expr) = *parameter_qualifier_expr.expr {
+                    // parse parameter type
+                    match *parameter_qualifier_type_cast_expr.ty {
+                        Type::Path(parameter_qualifier_type_cast_path_expr) => {
+                            parameter_type = match parameter_qualifier_type_cast_path_expr.path.segments
+                                [0]
+                            .ident
+                            .to_string()
+                            .as_ref()
+                            {
+                                "bool" => String::from("bool"),
+                                "f32" => String::from("float"),
+                                "i8" => String::from("char"),
+                                "i16" => String::from("short"),
+                                "i32" => String::from("int"),
+                                "i64" => String::from("long"),
+                                "u8" => String::from("uchar"),
+                                "u16" => String::from("ushort"),
+                                "u32" => String::from("uint"),
+                                "u64" => String::from("ulong"),
+                                _ => String::from("float"),
+                            }
+                        }
+                        Type::Slice(parameter_qualifier_type_cast_array_expr) => {
+                            if let Type::Path(parameter_qualifier_type_cast_array_type_expr) =
+                                *parameter_qualifier_type_cast_array_expr.elem
+                            {
+                                parameter_type =
+                                    match parameter_qualifier_type_cast_array_type_expr.path.segments[0]
+                                        .ident
+                                        .to_string()
+                                        .as_ref()
+                                    {
+                                        "bool" => String::from("bool*"),
+                                        "f32" => String::from("float*"),
+                                        "i8" => String::from("char*"),
+                                        "i16" => String::from("short*"),
+                                        "i32" => String::from("int*"),
+                                        "i64" => String::from("long*"),
+                                        "u8" => String::from("uchar*"),
+                                        "u16" => String::from("ushort*"),
+                                        "u32" => String::from("uint*"),
+                                        "u64" => String::from("ulong*"),
+                                        _ => String::from("float*"),
+                                    }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+
+                // parse parameter qualifier address space
+                if let Type::Path(parameter_qualifier_address_space_path_expr) =
+                    *parameter_qualifier_expr.ty
+                {
+                    parameter_address_space =
+                        match parameter_qualifier_address_space_path_expr.path.segments[0]
+                            .ident
+                            .to_string()
+                            .as_ref()
+                        {
+                            "GLOBAL" => String::from("__global"),
+                            "LOCAL" => String::from("__local"),
+                            _ => String::from("__private"),
+                        }
+                }
+            }
+
+            // handle parameter without GLOBAL or LOCAL specified
+            if let Expr::Cast(parameter_qualifier_type_cast_expr) = parameter.clone() {
                 // parse parameter name
                 if let Expr::Path(parameter_qualifier_name_path_expr) =
                     *parameter_qualifier_type_cast_expr.expr
@@ -373,17 +467,17 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
                                     .to_string()
                                     .as_ref()
                                 {
-                                    "bool" => String::from("bool"),
-                                    "f32" => String::from("*float"),
-                                    "i8" => String::from("*char"),
-                                    "i16" => String::from("*short"),
-                                    "i32" => String::from("*int"),
-                                    "i64" => String::from("*long"),
-                                    "u8" => String::from("*uchar"),
-                                    "u16" => String::from("*ushort"),
-                                    "u32" => String::from("*uint"),
-                                    "u64" => String::from("*ulong"),
-                                    _ => String::from("*float"),
+                                    "bool" => String::from("bool*"),
+                                    "f32" => String::from("float*"),
+                                    "i8" => String::from("char*"),
+                                    "i16" => String::from("short*"),
+                                    "i32" => String::from("int*"),
+                                    "i64" => String::from("long*"),
+                                    "u8" => String::from("uchar*"),
+                                    "u16" => String::from("ushort*"),
+                                    "u32" => String::from("uint*"),
+                                    "u64" => String::from("ulong*"),
+                                    _ => String::from("float*"),
                                 }
                         }
                     }
@@ -391,49 +485,34 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
                 }
             }
 
-            // parse parameter qualifier address space
-            if let Type::Path(parameter_qualifier_address_space_path_expr) =
-                *parameter_qualifier_expr.ty
-            {
-                parameter_address_space =
-                    match parameter_qualifier_address_space_path_expr.path.segments[0]
-                        .ident
-                        .to_string()
-                        .as_ref()
-                    {
-                        "GLOBAL" => String::from("__global"),
-                        "LOCAL" => String::from("__local"),
-                        _ => String::from("__private"),
-                    }
-            }
+            // append parameter details to generated code
+            generated_code.push_str(&parameter_address_space);
+            generated_code.push_str(" ");
+            generated_code.push_str(&parameter_type);
+            generated_code.push_str(" ");
+            generated_code.push_str(&parameter_name);
+            generated_code.push_str(", ");
         }
 
-        // append parameter details to generated code
-        generated_code.push_str(&parameter_address_space);
-        generated_code.push_str(" ");
-        generated_code.push_str(&parameter_type);
-        generated_code.push_str(" ");
-        generated_code.push_str(&parameter_name);
-        generated_code.push_str(", ");
+        // remove last comma if one was appended
+        if generated_code.ends_with(", ") {
+            generated_code.truncate(generated_code.len() - 2)
+        }
+        generated_code += ") {";
+
+        // traverse AST of each statement of parsed kernel
+        // then, generate OpenCL code for body of kernel function from statements        
+        let kernel_statements = kernel.stmts.clone();
+        for statement in kernel_statements {
+            kernel.visit_stmt(&statement);
+        }
+
+        generated_code += "}";
     }
-
-    // remove last comma if one was appended
-    if generated_code.ends_with(", ") {
-        generated_code.truncate(generated_code.len() - 2)
-    }
-
-    generated_code.push_str(")");
-
-    // append body code
-    generated_code.push_str("{");
-    generated_code.push_str(&generated_body_code);
-    generated_code.push_str("}");
-
-    println!("{:?}", generated_code);
 
     // generate output Rust code
     let output = quote! {
-        static program: &'static str = #generated_code;
+        const EMU : &'static str = #generated_code;
     };
 
     // return output converted to token stream
