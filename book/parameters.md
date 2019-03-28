@@ -6,8 +6,9 @@ There are 3 parts of every kernel function defined in the Emu language - (1) the
 
 The first thing you should notice is that the parameters are seperated by commas. Each parameter has 3 parts - (1) the name, (2) the type, and (3) the location any value passed in as the parameter must come from. The name is pretty straightforward - it can be any typical identifier you would noramlly see in Rust. The type is just that, the type of the parameter. It can be one of the following-
 
-| f32  | A 32-bit floating point number           |
+| Type  | Description           |
 | ---- | ---------------------------------------- |
+| f32  | A 32-bit floating point number           |
 | i8   | A character or an 8-bit integer          |
 | i16  | A 16-bit integer                         |
 | i32  | A 32-bit integer                         |
