@@ -41,10 +41,82 @@ impl Parse for EmuProgram {
     }
 }
 
+#[derive(Clone)]
+struct EmuParameter {
+    name: String,
+    address_space: String,
+    ty: String,
+}
+
+impl Parse for EmuParameter {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let mut name = String::from("buffer");
+        let mut address_space = String::from("__global");
+        let mut ty = String::from("float*");
+
+        // get name of parameter
+        let name_token: Ident = input.parse()?;
+        name = name_token.to_string();
+
+        // get address space of parameter
+        if name.starts_with("global_") {
+            address_space = String::from("__global");
+        } else if name.starts_with("local_") {
+            address_space = String::from("__local");
+        } else {
+            address_space = String::from("__private");
+        }
+
+        // get type of parameter
+        let ty_token: Type = input.parse()?;
+        ty = match ty_token {
+            Type::Slice(ty_type) => {
+                if let Type::Path(ty_type_path) = *ty_type.elem {
+                    String::from(match ty_type_path.path.segments[0].ident.to_string().as_ref() {
+                        "bool" => "bool",
+                        "f32" => "float",
+                        "i8" => "char",
+                        "i16" => "short",
+                        "i32" => "int",
+                        "i64" => "long",
+                        "u8" => "uchar",
+                        "u16" => "ushort",
+                        "u32" => "uint",
+                        "u64" => "ulong",
+                        _ => "float",
+                    }) + "*"
+                } else { String::new() }
+            }
+            Type::Path(ty_type_path) => {
+                String::from(match ty_type_path.path.segments[0].ident.to_string().as_ref() {
+                    "bool" => "bool",
+                    "f32" => "float",
+                    "i8" => "char",
+                    "i16" => "short",
+                    "i32" => "int",
+                    "i64" => "long",
+                    "u8" => "uchar",
+                    "u16" => "ushort",
+                    "u32" => "uint",
+                    "u64" => "ulong",
+                    _ => "float",
+                })
+            }
+            _ => { String::new() }
+        };
+
+        Ok(EmuParameter{
+            name: name,
+            address_space: address_space,
+            ty: ty,
+        })
+    }
+}
+
 /// Represents an Emu kerenl within an Emu program
 struct EmuKernel {
     name: Ident,
-    params: Vec<Expr>,
+    params: Vec<EmuParameter>,
     stmts: Vec<Stmt>,
     generated_code: String,
 }
@@ -61,15 +133,15 @@ impl Parse for EmuKernel {
         // get punctuated parmeters
         let content_kernel;
         let _ = parenthesized!(content_kernel in input);
-        let punctuated_parameters: Punctuated<Expr, Token![,]> =
-            content_kernel.parse_terminated(Expr::parse)?;
+        let punctuated_parameters: Punctuated<EmuParameter, Token![,]> =
+            content_kernel.parse_terminated(EmuParameter::parse)?;
         let punctuated_parameters_iter = punctuated_parameters.pairs();
 
         // get parameters
-        let parameters: Vec<Expr> = punctuated_parameters_iter
+        let parameters: Vec<EmuParameter> = punctuated_parameters_iter
             .map(|parameter_pair| parameter_pair.into_value())
             .cloned()
-            .collect::<Vec<Expr>>();
+            .collect::<Vec<EmuParameter>>();
 
         // discard braces and documentation comments
         let content_block;
@@ -338,160 +410,169 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
 
         // get information about parameters of kernel function
         // then, generate code for parameters of kernel
+        // for parameter in kernel.params.clone() {
+        //     // default values for parameterp properties
+        //     let mut parameter_name = String::from("");
+        //     let mut parameter_address_space = String::from("");
+        //     let mut parameter_type = String::from("");
+
+        //     // handle parameter with GLOBAL or LOCAL specified
+        //     if let Expr::Type(parameter_qualifier_expr) = parameter.clone() {
+        //         // parse parameter qualifier type
+        //         if let Expr::Cast(parameter_qualifier_type_cast_expr) = *parameter_qualifier_expr.expr {
+        //             // parse parameter name
+        //             if let Expr::Path(parameter_qualifier_name_path_expr) =
+        //                 *parameter_qualifier_type_cast_expr.expr
+        //             {
+        //                 parameter_name = parameter_qualifier_name_path_expr.path.segments[0]
+        //                     .ident
+        //                     .to_string();
+        //             }
+
+        //             // parse parameter type
+        //             match *parameter_qualifier_type_cast_expr.ty {
+        //                 Type::Path(parameter_qualifier_type_cast_path_expr) => {
+        //                     parameter_type = match parameter_qualifier_type_cast_path_expr.path.segments
+        //                         [0]
+        //                     .ident
+        //                     .to_string()
+        //                     .as_ref()
+        //                     {
+        //                         "bool" => String::from("bool"),
+        //                         "f32" => String::from("float"),
+        //                         "i8" => String::from("char"),
+        //                         "i16" => String::from("short"),
+        //                         "i32" => String::from("int"),
+        //                         "i64" => String::from("long"),
+        //                         "u8" => String::from("uchar"),
+        //                         "u16" => String::from("ushort"),
+        //                         "u32" => String::from("uint"),
+        //                         "u64" => String::from("ulong"),
+        //                         _ => String::from("float"),
+        //                     }
+        //                 }
+        //                 Type::Slice(parameter_qualifier_type_cast_array_expr) => {
+        //                     if let Type::Path(parameter_qualifier_type_cast_array_type_expr) =
+        //                         *parameter_qualifier_type_cast_array_expr.elem
+        //                     {
+        //                         parameter_type =
+        //                             match parameter_qualifier_type_cast_array_type_expr.path.segments[0]
+        //                                 .ident
+        //                                 .to_string()
+        //                                 .as_ref()
+        //                             {
+        //                                 "bool" => String::from("bool*"),
+        //                                 "f32" => String::from("float*"),
+        //                                 "i8" => String::from("char*"),
+        //                                 "i16" => String::from("short*"),
+        //                                 "i32" => String::from("int*"),
+        //                                 "i64" => String::from("long*"),
+        //                                 "u8" => String::from("uchar*"),
+        //                                 "u16" => String::from("ushort*"),
+        //                                 "u32" => String::from("uint*"),
+        //                                 "u64" => String::from("ulong*"),
+        //                                 _ => String::from("float*"),
+        //                             }
+        //                     }
+        //                 }
+        //                 _ => {}
+        //             }
+        //         }
+
+        //         // parse parameter qualifier address space
+        //         if let Type::Path(parameter_qualifier_address_space_path_expr) =
+        //             *parameter_qualifier_expr.ty
+        //         {
+        //             parameter_address_space =
+        //                 match parameter_qualifier_address_space_path_expr.path.segments[0]
+        //                     .ident
+        //                     .to_string()
+        //                     .as_ref()
+        //                 {
+        //                     "GLOBAL" => String::from("__global"),
+        //                     "LOCAL" => String::from("__local"),
+        //                     _ => String::from("__private"),
+        //                 }
+        //         }
+        //     }
+
+        //     // handle parameter without GLOBAL or LOCAL specified
+        //     if let Expr::Cast(parameter_qualifier_type_cast_expr) = parameter.clone() {
+        //         // parse parameter name
+        //         if let Expr::Path(parameter_qualifier_name_path_expr) =
+        //             *parameter_qualifier_type_cast_expr.expr
+        //         {
+        //             parameter_name = parameter_qualifier_name_path_expr.path.segments[0]
+        //                 .ident
+        //                 .to_string();
+        //         }
+
+        //         // parse parameter type
+        //         match *parameter_qualifier_type_cast_expr.ty {
+        //             Type::Path(parameter_qualifier_type_cast_path_expr) => {
+        //                 parameter_type = match parameter_qualifier_type_cast_path_expr.path.segments
+        //                     [0]
+        //                 .ident
+        //                 .to_string()
+        //                 .as_ref()
+        //                 {
+        //                     "bool" => String::from("bool"),
+        //                     "f32" => String::from("float"),
+        //                     "i8" => String::from("char"),
+        //                     "i16" => String::from("short"),
+        //                     "i32" => String::from("int"),
+        //                     "i64" => String::from("long"),
+        //                     "u8" => String::from("uchar"),
+        //                     "u16" => String::from("ushort"),
+        //                     "u32" => String::from("uint"),
+        //                     "u64" => String::from("ulong"),
+        //                     _ => String::from("float"),
+        //                 }
+        //             }
+        //             Type::Slice(parameter_qualifier_type_cast_array_expr) => {
+        //                 if let Type::Path(parameter_qualifier_type_cast_array_type_expr) =
+        //                     *parameter_qualifier_type_cast_array_expr.elem
+        //                 {
+        //                     parameter_type =
+        //                         match parameter_qualifier_type_cast_array_type_expr.path.segments[0]
+        //                             .ident
+        //                             .to_string()
+        //                             .as_ref()
+        //                         {
+        //                             "bool" => String::from("bool*"),
+        //                             "f32" => String::from("float*"),
+        //                             "i8" => String::from("char*"),
+        //                             "i16" => String::from("short*"),
+        //                             "i32" => String::from("int*"),
+        //                             "i64" => String::from("long*"),
+        //                             "u8" => String::from("uchar*"),
+        //                             "u16" => String::from("ushort*"),
+        //                             "u32" => String::from("uint*"),
+        //                             "u64" => String::from("ulong*"),
+        //                             _ => String::from("float*"),
+        //                         }
+        //                 }
+        //             }
+        //             _ => {}
+        //         }
+        //     }
+
+        //     // append parameter details to generated code
+        //     generated_code.push_str(&parameter_address_space);
+        //     generated_code.push_str(" ");
+        //     generated_code.push_str(&parameter_type);
+        //     generated_code.push_str(" ");
+        //     generated_code.push_str(&parameter_name);
+        //     generated_code.push_str(", ");
+        // }
+
         for parameter in kernel.params.clone() {
-            // default values for parameterp properties
-            let mut parameter_name = String::from("");
-            let mut parameter_address_space = String::from("");
-            let mut parameter_type = String::from("");
-
-            // handle parameter with GLOBAL or LOCAL specified
-            if let Expr::Type(parameter_qualifier_expr) = parameter.clone() {
-                // parse parameter qualifier type
-                if let Expr::Cast(parameter_qualifier_type_cast_expr) = *parameter_qualifier_expr.expr {
-                    // parse parameter name
-                    if let Expr::Path(parameter_qualifier_name_path_expr) =
-                        *parameter_qualifier_type_cast_expr.expr
-                    {
-                        parameter_name = parameter_qualifier_name_path_expr.path.segments[0]
-                            .ident
-                            .to_string();
-                    }
-
-                    // parse parameter type
-                    match *parameter_qualifier_type_cast_expr.ty {
-                        Type::Path(parameter_qualifier_type_cast_path_expr) => {
-                            parameter_type = match parameter_qualifier_type_cast_path_expr.path.segments
-                                [0]
-                            .ident
-                            .to_string()
-                            .as_ref()
-                            {
-                                "bool" => String::from("bool"),
-                                "f32" => String::from("float"),
-                                "i8" => String::from("char"),
-                                "i16" => String::from("short"),
-                                "i32" => String::from("int"),
-                                "i64" => String::from("long"),
-                                "u8" => String::from("uchar"),
-                                "u16" => String::from("ushort"),
-                                "u32" => String::from("uint"),
-                                "u64" => String::from("ulong"),
-                                _ => String::from("float"),
-                            }
-                        }
-                        Type::Slice(parameter_qualifier_type_cast_array_expr) => {
-                            if let Type::Path(parameter_qualifier_type_cast_array_type_expr) =
-                                *parameter_qualifier_type_cast_array_expr.elem
-                            {
-                                parameter_type =
-                                    match parameter_qualifier_type_cast_array_type_expr.path.segments[0]
-                                        .ident
-                                        .to_string()
-                                        .as_ref()
-                                    {
-                                        "bool" => String::from("bool*"),
-                                        "f32" => String::from("float*"),
-                                        "i8" => String::from("char*"),
-                                        "i16" => String::from("short*"),
-                                        "i32" => String::from("int*"),
-                                        "i64" => String::from("long*"),
-                                        "u8" => String::from("uchar*"),
-                                        "u16" => String::from("ushort*"),
-                                        "u32" => String::from("uint*"),
-                                        "u64" => String::from("ulong*"),
-                                        _ => String::from("float*"),
-                                    }
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-
-                // parse parameter qualifier address space
-                if let Type::Path(parameter_qualifier_address_space_path_expr) =
-                    *parameter_qualifier_expr.ty
-                {
-                    parameter_address_space =
-                        match parameter_qualifier_address_space_path_expr.path.segments[0]
-                            .ident
-                            .to_string()
-                            .as_ref()
-                        {
-                            "GLOBAL" => String::from("__global"),
-                            "LOCAL" => String::from("__local"),
-                            _ => String::from("__private"),
-                        }
-                }
-            }
-
-            // handle parameter without GLOBAL or LOCAL specified
-            if let Expr::Cast(parameter_qualifier_type_cast_expr) = parameter.clone() {
-                // parse parameter name
-                if let Expr::Path(parameter_qualifier_name_path_expr) =
-                    *parameter_qualifier_type_cast_expr.expr
-                {
-                    parameter_name = parameter_qualifier_name_path_expr.path.segments[0]
-                        .ident
-                        .to_string();
-                }
-
-                // parse parameter type
-                match *parameter_qualifier_type_cast_expr.ty {
-                    Type::Path(parameter_qualifier_type_cast_path_expr) => {
-                        parameter_type = match parameter_qualifier_type_cast_path_expr.path.segments
-                            [0]
-                        .ident
-                        .to_string()
-                        .as_ref()
-                        {
-                            "bool" => String::from("bool"),
-                            "f32" => String::from("float"),
-                            "i8" => String::from("char"),
-                            "i16" => String::from("short"),
-                            "i32" => String::from("int"),
-                            "i64" => String::from("long"),
-                            "u8" => String::from("uchar"),
-                            "u16" => String::from("ushort"),
-                            "u32" => String::from("uint"),
-                            "u64" => String::from("ulong"),
-                            _ => String::from("float"),
-                        }
-                    }
-                    Type::Slice(parameter_qualifier_type_cast_array_expr) => {
-                        if let Type::Path(parameter_qualifier_type_cast_array_type_expr) =
-                            *parameter_qualifier_type_cast_array_expr.elem
-                        {
-                            parameter_type =
-                                match parameter_qualifier_type_cast_array_type_expr.path.segments[0]
-                                    .ident
-                                    .to_string()
-                                    .as_ref()
-                                {
-                                    "bool" => String::from("bool*"),
-                                    "f32" => String::from("float*"),
-                                    "i8" => String::from("char*"),
-                                    "i16" => String::from("short*"),
-                                    "i32" => String::from("int*"),
-                                    "i64" => String::from("long*"),
-                                    "u8" => String::from("uchar*"),
-                                    "u16" => String::from("ushort*"),
-                                    "u32" => String::from("uint*"),
-                                    "u64" => String::from("ulong*"),
-                                    _ => String::from("float*"),
-                                }
-                        }
-                    }
-                    _ => {}
-                }
-            }
-
-            // append parameter details to generated code
-            generated_code.push_str(&parameter_address_space);
-            generated_code.push_str(" ");
-            generated_code.push_str(&parameter_type);
-            generated_code.push_str(" ");
-            generated_code.push_str(&parameter_name);
-            generated_code.push_str(", ");
+            generated_code += &parameter.address_space;
+            generated_code += " ";
+            generated_code += &parameter.ty;
+            generated_code += " ";
+            generated_code += &parameter.name;
+            generated_code += ", ";
         }
 
         // remove last comma if one was appended
@@ -509,6 +590,8 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
 
         generated_code += "}";
     }
+
+    println!("{:?}", generated_code);
 
     // generate output Rust code
     let output = quote! {
