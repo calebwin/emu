@@ -18,7 +18,7 @@ The first thing you should notice is that the parameters are seperated by commas
 | u32  | An unsigned 32-bit integer               |
 | u64  | An unsigned 64-bit integer               |         
 
-You likely noticed that two of the parameters in the above example have names prefixed by `global_`. What does that mean? Every parameter of a kernel function defined in Emu [belongs to a certain address space](https://www.khronos.org/registry/OpenCL/sdk/1.1/docs/man/xhtml/qualifiers.html). By default, all parameters belong to the `__private__` address space. You can make a parameter belong to the global or local address spaces by prefixing the name of the parameter with `__global__` or `__local__`. 
+You likely noticed that two of the parameters in the above example have names prefixed by `global_`. What does that mean? Every parameter of a kernel function defined in Emu [belongs to a certain address space](https://www.khronos.org/registry/OpenCL/sdk/1.1/docs/man/xhtml/qualifiers.html). By default, all parameters belong to the `__private__` address space. You can make a parameter belong to the global or local address spaces by prefixing the name of the parameter with `global_` or `local_`. 
 
 This may seem like it flies in the face of the ["Explicit better than implicit" philosophy](https://www.python.org/dev/peps/pep-0020/). However, there are two main reasons for doing this - (1) it's significantly more readable for someone reading the code and (2) it's a documented feature that someone who is actually modifying the code should be aware of.
 
