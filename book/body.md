@@ -12,7 +12,7 @@ The body of a kernel function consists of a series of statements. The general st
 - Binary operators - `+`, `-`, `*`, `/`, `%`, `&&`, `||`, `&`, `|`, `^`, `>>`, `<<`, `>`, `<`, `>=`, `<=`, `==`, `!=`
 
 The following is a list of features that are yet to be introduced to the Emu language.
-- [ ] Converting Precision
+- [ ] Converting precision
 - [ ] Converting units of measurement
 - [ ] Defining artificial neurons
 - [ ] Defining transformations
