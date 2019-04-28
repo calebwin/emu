@@ -12,7 +12,7 @@ emu! {
 		global_buffer[get_global_id(0)] *= scalar;
 	}
 
-	// multiply 2 matrices
+	// multiplies 2 matrices
 	// n is the dimension of the matrices
 	// a and b are the matrices to be multiplied, c is the result
 	multiply_matrices(n i32, global_a [f32], global_b [f32], global_c [f32]) {
