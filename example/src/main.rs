@@ -81,5 +81,5 @@ fn trivial() -> ocl::Result<()> {
 
 
 fn main() {
-    trivial().unwrap();
+    // trivial().unwrap();
 }

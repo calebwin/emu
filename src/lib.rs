@@ -408,164 +408,6 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
         generated_code += &kernel.name.to_string();
         generated_code += " (";
 
-        // get information about parameters of kernel function
-        // then, generate code for parameters of kernel
-        // for parameter in kernel.params.clone() {
-        //     // default values for parameterp properties
-        //     let mut parameter_name = String::from("");
-        //     let mut parameter_address_space = String::from("");
-        //     let mut parameter_type = String::from("");
-
-        //     // handle parameter with GLOBAL or LOCAL specified
-        //     if let Expr::Type(parameter_qualifier_expr) = parameter.clone() {
-        //         // parse parameter qualifier type
-        //         if let Expr::Cast(parameter_qualifier_type_cast_expr) = *parameter_qualifier_expr.expr {
-        //             // parse parameter name
-        //             if let Expr::Path(parameter_qualifier_name_path_expr) =
-        //                 *parameter_qualifier_type_cast_expr.expr
-        //             {
-        //                 parameter_name = parameter_qualifier_name_path_expr.path.segments[0]
-        //                     .ident
-        //                     .to_string();
-        //             }
-
-        //             // parse parameter type
-        //             match *parameter_qualifier_type_cast_expr.ty {
-        //                 Type::Path(parameter_qualifier_type_cast_path_expr) => {
-        //                     parameter_type = match parameter_qualifier_type_cast_path_expr.path.segments
-        //                         [0]
-        //                     .ident
-        //                     .to_string()
-        //                     .as_ref()
-        //                     {
-        //                         "bool" => String::from("bool"),
-        //                         "f32" => String::from("float"),
-        //                         "i8" => String::from("char"),
-        //                         "i16" => String::from("short"),
-        //                         "i32" => String::from("int"),
-        //                         "i64" => String::from("long"),
-        //                         "u8" => String::from("uchar"),
-        //                         "u16" => String::from("ushort"),
-        //                         "u32" => String::from("uint"),
-        //                         "u64" => String::from("ulong"),
-        //                         _ => String::from("float"),
-        //                     }
-        //                 }
-        //                 Type::Slice(parameter_qualifier_type_cast_array_expr) => {
-        //                     if let Type::Path(parameter_qualifier_type_cast_array_type_expr) =
-        //                         *parameter_qualifier_type_cast_array_expr.elem
-        //                     {
-        //                         parameter_type =
-        //                             match parameter_qualifier_type_cast_array_type_expr.path.segments[0]
-        //                                 .ident
-        //                                 .to_string()
-        //                                 .as_ref()
-        //                             {
-        //                                 "bool" => String::from("bool*"),
-        //                                 "f32" => String::from("float*"),
-        //                                 "i8" => String::from("char*"),
-        //                                 "i16" => String::from("short*"),
-        //                                 "i32" => String::from("int*"),
-        //                                 "i64" => String::from("long*"),
-        //                                 "u8" => String::from("uchar*"),
-        //                                 "u16" => String::from("ushort*"),
-        //                                 "u32" => String::from("uint*"),
-        //                                 "u64" => String::from("ulong*"),
-        //                                 _ => String::from("float*"),
-        //                             }
-        //                     }
-        //                 }
-        //                 _ => {}
-        //             }
-        //         }
-
-        //         // parse parameter qualifier address space
-        //         if let Type::Path(parameter_qualifier_address_space_path_expr) =
-        //             *parameter_qualifier_expr.ty
-        //         {
-        //             parameter_address_space =
-        //                 match parameter_qualifier_address_space_path_expr.path.segments[0]
-        //                     .ident
-        //                     .to_string()
-        //                     .as_ref()
-        //                 {
-        //                     "GLOBAL" => String::from("__global"),
-        //                     "LOCAL" => String::from("__local"),
-        //                     _ => String::from("__private"),
-        //                 }
-        //         }
-        //     }
-
-        //     // handle parameter without GLOBAL or LOCAL specified
-        //     if let Expr::Cast(parameter_qualifier_type_cast_expr) = parameter.clone() {
-        //         // parse parameter name
-        //         if let Expr::Path(parameter_qualifier_name_path_expr) =
-        //             *parameter_qualifier_type_cast_expr.expr
-        //         {
-        //             parameter_name = parameter_qualifier_name_path_expr.path.segments[0]
-        //                 .ident
-        //                 .to_string();
-        //         }
-
-        //         // parse parameter type
-        //         match *parameter_qualifier_type_cast_expr.ty {
-        //             Type::Path(parameter_qualifier_type_cast_path_expr) => {
-        //                 parameter_type = match parameter_qualifier_type_cast_path_expr.path.segments
-        //                     [0]
-        //                 .ident
-        //                 .to_string()
-        //                 .as_ref()
-        //                 {
-        //                     "bool" => String::from("bool"),
-        //                     "f32" => String::from("float"),
-        //                     "i8" => String::from("char"),
-        //                     "i16" => String::from("short"),
-        //                     "i32" => String::from("int"),
-        //                     "i64" => String::from("long"),
-        //                     "u8" => String::from("uchar"),
-        //                     "u16" => String::from("ushort"),
-        //                     "u32" => String::from("uint"),
-        //                     "u64" => String::from("ulong"),
-        //                     _ => String::from("float"),
-        //                 }
-        //             }
-        //             Type::Slice(parameter_qualifier_type_cast_array_expr) => {
-        //                 if let Type::Path(parameter_qualifier_type_cast_array_type_expr) =
-        //                     *parameter_qualifier_type_cast_array_expr.elem
-        //                 {
-        //                     parameter_type =
-        //                         match parameter_qualifier_type_cast_array_type_expr.path.segments[0]
-        //                             .ident
-        //                             .to_string()
-        //                             .as_ref()
-        //                         {
-        //                             "bool" => String::from("bool*"),
-        //                             "f32" => String::from("float*"),
-        //                             "i8" => String::from("char*"),
-        //                             "i16" => String::from("short*"),
-        //                             "i32" => String::from("int*"),
-        //                             "i64" => String::from("long*"),
-        //                             "u8" => String::from("uchar*"),
-        //                             "u16" => String::from("ushort*"),
-        //                             "u32" => String::from("uint*"),
-        //                             "u64" => String::from("ulong*"),
-        //                             _ => String::from("float*"),
-        //                         }
-        //                 }
-        //             }
-        //             _ => {}
-        //         }
-        //     }
-
-        //     // append parameter details to generated code
-        //     generated_code.push_str(&parameter_address_space);
-        //     generated_code.push_str(" ");
-        //     generated_code.push_str(&parameter_type);
-        //     generated_code.push_str(" ");
-        //     generated_code.push_str(&parameter_name);
-        //     generated_code.push_str(", ");
-        // }
-
         for parameter in kernel.params.clone() {
             generated_code += &parameter.address_space;
             generated_code += " ";
@@ -587,6 +429,7 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
         for statement in kernel_statements {
             kernel.visit_stmt(&statement);
         }
+        generated_code += &kernel.generated_code;
 
         generated_code += "}";
     }
@@ -601,3 +444,8 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
     // return output converted to token stream
     output.into()
 }
+
+// TODO
+// precision conversions => https://www.khronos.org/registry/OpenCL/sdk/1.0/docs/man/xhtml/convert_T.html
+// vectors => https://github.com/rsnemmen/OpenCL-examples/blob/master/RayTraced_Quaternion_Julia-Set_Example/qjulia_kernel.cl
+// ensure identifier don't get mistaken for unsupported OpenCL keywords
