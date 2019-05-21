@@ -1,0 +1,9 @@
+[package]
+name = "mse"
+version = "0.1.0"
+authors = ["calebwin <calebhwin@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+emu = { path = "../../../emu" }
+ocl = "0.19.2"
