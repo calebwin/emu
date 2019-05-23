@@ -434,8 +434,6 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
         generated_code += "}";
     }
 
-    println!("{:?}", generated_code);
-
     // generate output Rust code
     let output = quote! {
         const EMU : &'static str = #generated_code;
