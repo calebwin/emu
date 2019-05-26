@@ -42,6 +42,8 @@ let x_max: f32 = 1 << 8;
 loop {
 	x += dx;
 	if x > x_max { break; }
+	if x > x_max/2 { continue; }
+	x += dx/10;
 }
 ```
 - Assignment statements - `=`, `+=`, `-=`, `*=`, `/=`, `%= `, `&=`, `^= `, `<<=`, `>>=`
