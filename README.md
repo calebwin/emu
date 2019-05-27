@@ -1,5 +1,5 @@
 # Emu
-Emu is a procedural macro for writing scientific computation tasks. Emu compiles your code to clean, compact OpenCL code at compile time and stores the compiled code in the `EMU` global constant. You can then use OpenCL bindings such as `ocl` to run code from your `EMU` on pretty much any GPU or CPU.
+Emu is a procedural macro for writing numerical computation scripts. Emu translates your code to clean, compact OpenCL code at compile time and stores the translated code in the `EMU` global constant. You can then use OpenCL bindings such as [`ocl`](https://github.com/cogciprocate/ocl] to run code from your `EMU` on pretty much any GPU or CPU.
 ```rust
 emu! {
 	// adds a scalar to elements of a buffer
