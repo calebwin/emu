@@ -1,8 +1,8 @@
 // This example has been taken from the OCL crate
 
 // emu for writing OpenCL code
-extern crate emu;
-use emu::emu;
+extern crate em;
+use em::emu;
 
 // ocl for executing OpenCL code
 extern crate ocl;
