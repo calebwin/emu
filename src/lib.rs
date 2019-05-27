@@ -19,6 +19,20 @@ use syn::{
     Type, UnOp,
 };
 
+// The Emu Identifier Prefix is appended to the start of each identifier found in Emu code except
+// for identifiers that reference OpenCL constructs such as get_global_id
+static EMU_IDENTIFIER_SUFFIX: &str = "_emu";
+
+static OPENCL_FUNCTIONS: &'static [&'static str] = &[
+    "get_work_dim",
+    "get_global_size",
+    "get_global_id",
+    "get_local_size",
+    "get_local_id",
+    "get_num_groups()",
+    "get_group_id()"
+];
+
 /// Represents an Emu program
 struct EmuProgram {
     kernels: Vec<EmuKernel>,
@@ -106,7 +120,7 @@ impl Parse for EmuParameter {
         };
 
         Ok(EmuParameter{
-            name: name,
+            name: name + EMU_IDENTIFIER_SUFFIX,
             address_space: address_space,
             ty: ty,
         })
@@ -365,6 +379,39 @@ impl<'a> Visit<'a> for EmuKernel {
                 };
                 self.visit_expr(&e.right);
             }
+            Expr::Cast(e) => {
+                // TODO implement converting precision
+                // TODO implement converting units
+                self.visit_expr(&e.expr);
+                if let Type::Path(ty) = *e.ty.clone() {
+                    if let Some(ty_prefix) = ty.path.segments[0].ident.to_string().chars().next() {
+                        self.generated_code += String::from(match ty_prefix.to_string().as_ref() {
+                            "Y" => "*10000000000",
+                            "Z" => "*1000000000",
+                            "E" => "*100000000",
+                            "P" => "*10000000",
+                            "T" => "*1000000",
+                            "G" => "*100000",
+                            "M" => "*10000",
+                            "k" => "*1000",
+                            "h" => "*100",
+                            "D" => "*10",
+                            "d" => "*0.1",
+                            "c" => "*0.01",
+                            "m" => "*0.001",
+                            "u" => "*0.0001",
+                            "n" => "*0.00001",
+                            "p" => "*0.000001",
+                            "f" => "*0.0000001",
+                            "a" => "*0.00000001",
+                            "z" => "*0.000000001",
+                            "y" => "*0.0000000001",
+                            _ => "*1",
+                        }).as_ref();
+                    }
+                    
+                }
+            }
             Expr::Lit(e) => {
                 let e_lit = e.lit.clone();
                 if let Lit::Str(s) = e_lit {
@@ -378,7 +425,24 @@ impl<'a> Visit<'a> for EmuKernel {
                 }
             }
             Expr::Path(e) => {
-                self.generated_code += &e.path.segments[0].ident.to_string();
+                // get raw name
+                let raw_identifier_name = e.path.segments[0].ident.to_string();
+
+                // determine if this identifier is defined by the user or from OpenCL
+                let mut is_user_defined_identifier = true;
+
+                for OPENCL_FUNCTION in OPENCL_FUNCTIONS {
+                    if &&raw_identifier_name == OPENCL_FUNCTION {
+                        is_user_defined_identifier = false;
+                    }
+                }
+
+                // append suffix to end if identifier is uniquely defined by user
+                if is_user_defined_identifier {
+                    self.generated_code += &(raw_identifier_name + EMU_IDENTIFIER_SUFFIX);
+                } else {
+                    self.generated_code += &raw_identifier_name.to_string();
+                }
             }
             Expr::Break(e) => {
                 self.generated_code += "break";
