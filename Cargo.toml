@@ -4,6 +4,12 @@ version = "0.1.0"
 authors = ["calebwin <calebhwin@gmail.com>"]
 edition = "2018"
 
+homepage = "https://calebwin.github.io/emu/"
+repository = "https://github.com/calebwin/emu"
+
+keywords = ["gpu", "opencl", "science", "math", "language"]
+categories = ["science", "simulation", "hardware-support", "development-tools::ffi", "external-ffi-bindings"]
+
 [dependencies]
 quote = "0.6.11"
 syn = { version = "0.15.29", features = ["full", "visit", "extra-traits"] }
