@@ -27,7 +27,6 @@ emu! {
 	}
 }
 ```
-
 Emu is designed for numerical computation, for working with numbers. Therefore, the following are supported...
 - Numbers from vectors - Numbers can be moved from a Rust `Vec` into an OpenCL kernel
 - Numbers operated on - Numbers can be added, subtracted, multiplied, divided, exponentiated, and more
