@@ -8,6 +8,7 @@ edition = "2018"
 
 homepage = "https://calebwin.github.io/emu/"
 repository = "https://github.com/calebwin/emu"
+readme = "README.md"
 
 keywords = ["gpu", "opencl", "science", "math", "language"]
 categories = ["science", "simulation", "hardware-support", "development-tools::ffi", "external-ffi-bindings"]
