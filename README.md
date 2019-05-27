@@ -31,3 +31,16 @@ Emu is designed for numerical computation, for working with numbers. Therefore, 
 - **Numbers from vectors** - Numbers can be moved from a Rust `Vec` into an OpenCL kernel
 - **Numbers operated on** - Numbers can be added, subtracted, multiplied, divided, exponentiated, and more
 - **Numbers converted to** - Numbers can be implictly converted to consistent units of measurement
+Emu can be used in Rust by changing your `Cargo.toml` file and the file you want to use the `emu!` macro.
+```toml
+[dependencies]
+em = "0.1.0"
+```
+```rust
+extern crate em;
+use em::emu;
+
+emu! {
+	// code here
+}
+```
