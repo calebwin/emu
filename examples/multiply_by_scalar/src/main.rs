@@ -11,6 +11,7 @@ use ocl::{ProQue, Buffer, MemFlags};
 // const EMU: &'static str = r#"
 // 	__kernel void multiply(__global float* buffer, __private float scalar) {
 //         buffer[get_global_id(0)] *= scalar;
+//         buffer[get_global_id(0)] = pi();
 //     }
 // "#;
 

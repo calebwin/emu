@@ -120,7 +120,7 @@ impl Parse for EmuParameter {
         };
 
         Ok(EmuParameter{
-            name: name + EMU_IDENTIFIER_SUFFIX,
+            name: name,
             address_space: address_space,
             ty: ty,
         })
@@ -132,6 +132,7 @@ struct EmuKernel {
     name: Ident,
     params: Vec<EmuParameter>,
     stmts: Vec<Stmt>,
+    generated_return_type: String,
     generated_code: String,
 }
 
@@ -155,7 +156,14 @@ impl Parse for EmuKernel {
         let parameters: Vec<EmuParameter> = punctuated_parameters_iter
             .map(|parameter_pair| parameter_pair.into_value())
             .cloned()
-            .collect::<Vec<EmuParameter>>();
+            .collect::<Vec<EmuParameter>>();            
+
+        // get return type name
+        let mut generated_return_type = String::new();
+        if input.lookahead1().peek(Ident) {
+            let return_type: Ident = input.parse()?;
+            generated_return_type = return_type.to_string();
+        }
 
         // discard braces and documentation comments
         let content_block;
@@ -170,6 +178,7 @@ impl Parse for EmuKernel {
             name: name,
             params: parameters,
             stmts: statements,
+            generated_return_type: generated_return_type,
             generated_code: String::new(),
         })
     }
@@ -343,7 +352,9 @@ impl<'a> Visit<'a> for EmuKernel {
                 self.generated_code += "(";
                 for parameter in e.args.pairs() {
                     self.visit_expr(parameter.into_value());
+                    self.generated_code += ",";
                 }
+                if e.args.pairs().len() > 0 { self.generated_code.truncate(self.generated_code.len() - 1); }
                 self.generated_code += ")";
             }
             Expr::Unary(e) => {
@@ -381,7 +392,6 @@ impl<'a> Visit<'a> for EmuKernel {
             }
             Expr::Cast(e) => {
                 // TODO implement converting precision
-                // TODO implement converting units
                 self.visit_expr(&e.expr);
                 if let Type::Path(ty) = *e.ty.clone() {
                     if let Some(ty_prefix) = ty.path.segments[0].ident.to_string().chars().next() {
@@ -428,21 +438,29 @@ impl<'a> Visit<'a> for EmuKernel {
                 // get raw name
                 let raw_identifier_name = e.path.segments[0].ident.to_string();
 
-                // determine if this identifier is defined by the user or from OpenCL
-                let mut is_user_defined_identifier = true;
+                // TODO remove the below and OPENCL_FUNCTIONS global constant
+                // // determine if this identifier is defined by the user or from OpenCL
+                // let mut is_user_defined_identifier = true;
 
-                for OPENCL_FUNCTION in OPENCL_FUNCTIONS {
-                    if &&raw_identifier_name == OPENCL_FUNCTION {
-                        is_user_defined_identifier = false;
-                    }
-                }
+                // for OPENCL_FUNCTION in OPENCL_FUNCTIONS {
+                //     if &&raw_identifier_name == OPENCL_FUNCTION {
+                //         is_user_defined_identifier = false;
+                //     }
+                // }
 
-                // append suffix to end if identifier is uniquely defined by user
-                if is_user_defined_identifier {
-                    self.generated_code += &(raw_identifier_name + EMU_IDENTIFIER_SUFFIX);
-                } else {
-                    self.generated_code += &raw_identifier_name.to_string();
-                }
+                // // append suffix to end if identifier is uniquely defined by user
+                // if is_user_defined_identifier {
+                //     self.generated_code += &(raw_identifier_name);
+                // } else {
+                // }
+
+                self.generated_code += match raw_identifier_name.to_string().as_ref() {
+                    "PI"  => "3.141592653589793",
+                    "TAU" => "6.283185307179586",
+                    "E"   => "2.718281828459045",
+                    "PHI" => "1.618033988749894",
+                    _     => &raw_identifier_name,
+                };
             }
             Expr::Break(e) => {
                 self.generated_code += "break";
@@ -450,8 +468,16 @@ impl<'a> Visit<'a> for EmuKernel {
             Expr::Continue(e) => {
                 self.generated_code += "continue";
             }
+            Expr::Return(e) => {
+                self.generated_code += "return ";
+                if let Some(return_value) = &e.expr {
+                    self.visit_expr(&*return_value);
+                }
+            }
             Expr::Paren(e) => {
+                self.generated_code += "(";
                 self.visit_expr(&e.expr);
+                self.generated_code += ")";
             }
             _ => {}
         }
@@ -468,7 +494,24 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
     let mut generated_code = String::new();
 
     for mut kernel in program.kernels {
-        generated_code += "__kernel void ";
+        if kernel.generated_return_type == "" {
+            generated_code += "__kernel void ";
+        } else {
+            generated_code += match kernel.generated_return_type.as_str() {
+                "bool" => "bool",
+                "f32" => "float",
+                "i8" => "char",
+                "i16" => "short",
+                "i32" => "int",
+                "i64" => "long",
+                "u8" => "uchar",
+                "u16" => "ushort",
+                "u32" => "uint",
+                "u64" => "ulong",
+                _ => "float",
+            };
+            generated_code += " ";
+        }
         generated_code += &kernel.name.to_string();
         generated_code += " (";
 
@@ -497,6 +540,8 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
 
         generated_code += "}";
     }
+
+    println!("{:?}", generated_code);
 
     // generate output Rust code
     let output = quote! {
