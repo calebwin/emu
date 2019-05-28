@@ -31,3 +31,21 @@ The following are all supported unit prefixes-
 - `y` - `10^-24`
 
 Using the form - `x as y` will convert `x` to be in terms of `y` using the prefix of `y` from the above list to do the conversion.
+
+Some numbers are special - they are constants defined by symbolic formulae. Emu lets you use some of these constants in your functions without having to define them before. Below is an example of usage and a list of currently supported constants...
+```rust
+let num_particles: u64 = 34 * L;
+```
+- `PAU`
+- `TAU`
+- `PI`
+- `E` - Euler's number
+- `PHI` - golden ratio
+- `R` - gas constant
+- `G` - gravitational constant
+- `SG` - standard gravity
+- `C` - speed of light in vacuum
+- `H` - Planck constant
+- `K` - Boltzmann Constant
+- `L` - Avogadro constant
+- `MU0` - magnetic constant permeability of free space vacuum permeability
