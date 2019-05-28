@@ -19,6 +19,8 @@ emu! {
 	// multiplies elements of a buffer by a scalar
 	multiply(global_buffer [f32], scalar f32) {
 		global_buffer[get_global_id(0)] *= scalar;
+		global_buffer[get_global_id(0)] += G;
+		let x: u64 = 42 * L;
 	}
 }
 
