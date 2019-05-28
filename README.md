@@ -1,4 +1,4 @@
-![an emu](https://cdn1.vectorstock.com/i/thumb-large/34/45/engraving-ostrich-emu-vector-11493445.jpg)
+![an emu](https://i.imgur.com/jraDjSK.jpg)
 
 Emu is a language for numerical computation embedded in Rust. Emu provides a single procedural macro for writing numerical computation scripts which get automatically translated to clean, compact OpenCL code at compile time and stored in the `EMU` global constant. To run the compile code, you can use any binding to OpenCL such as [`ocl`](https://github.com/cogciprocate/ocl) or [`rust-opencl`](https://github.com/luqmana/rust-opencl).
 ```rust
