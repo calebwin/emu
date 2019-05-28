@@ -1,5 +1,5 @@
 # Emu
-Emu is a procedural macro for writing numerical computation scripts. Emu translates your code to clean, compact OpenCL code at compile time and stores the translated code in the `EMU` global constant. You can then use OpenCL bindings such as [`ocl`](https://github.com/cogciprocate/ocl) or [`rust-opencl`](https://github.com/luqmana/rust-opencl) to run code from your `EMU` on pretty much any GPU or CPU.
+Emu is a language for numerical computation embedded in Rust. Emu provides a single procedural macro for writing numerical computation scripts which get automatically translated to clean, compact OpenCL code at compile time and stored in the `EMU` global constant. To run the compile code, you can use any binding to OpenCL such as [`ocl`](https://github.com/cogciprocate/ocl) or [`rust-opencl`](https://github.com/luqmana/rust-opencl). More details can be found in [the book](https://github.com/calebwin/emu/tree/master/book), [the examples](https://github.com/calebwin/emu/tree/master/examples).
 ```rust
 emu! {
 	// adds a scalar to elements of a buffer
@@ -25,5 +25,23 @@ emu! {
 			global_c[i * n + j] += global_a[i * n + k] * global_b[k * n + j];
 		}
 	}
+}
+```
+Emu is designed for numerical computation, for working with numbers. Therefore, the following are supported...
+- **Numbers from vectors** - Numbers can be moved from a Rust `Vec` into an Emu kernel
+- **Numbers operated on** - Numbers can be added, subtracted, multiplied, divided, exponentiated, and more
+- **Numbers converted to** - Numbers can be implictly converted to consistent units of measurement
+
+Emu can be used in Rust by changing your `Cargo.toml` file and the file you want to use the `emu!` macro.
+```toml
+[dependencies]
+em = "0.1.0"
+```
+```rust
+extern crate em;
+use em::emu;
+
+emu! {
+	// code here
 }
 ```
