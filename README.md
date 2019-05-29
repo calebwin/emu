@@ -2,7 +2,7 @@
 
 Emu is a language for numerical, GPGPU or CPU-based computation embedded in Rust. Emu provides a single procedural macro for writing functions that do numerical computation. As of now, these functions get automatically translated to clean, compact OpenCL code at compile time and stored in the `EMU` global constant, which can then be run using any binding to OpenCL such as [`ocl`](https://github.com/cogciprocate/ocl) or [`rust-opencl`](https://github.com/luqmana/rust-opencl).
 
-Ultimately, however, Emu is being designed as a language for generally writing numerical computation at a high-level. Your Emu code is then compiled into a lower-level code, stored in `EMU`, and then run by different back-ends ultimately executing on GPU or CPU. Therefore, Emu is focused more on that first part, providing useful features specifically for doing numerical (and scientific) computation such as built-in mathematical and physical constants, unit annotation and implicit conversion.
+Ultimately, however, Emu is being designed as a language for generally writing numerical computation at a high-level. Your Emu code is compiled by a procedural macro into a lower-level code, stored in `EMU`, and then run by different back-ends ultimately executing on GPU or CPU. Therefore, Emu is focused more on that first part, providing useful features specifically for doing numerical (and scientific) computation such as built-in mathematical and physical constants, unit annotation and implicit conversion.
 ```rust
 emu! {
 	// adds a scalar to elements of a buffer
