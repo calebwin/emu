@@ -19,7 +19,7 @@ emu! {
 	
 	// moves particles in circle
 	rotate_particles(global_particles_r [f32]) {
-		global_particles_r [f32] += 7.5 * TAU;
+		global_particles_r += 7.5 * TAU;
 	}
 
 	// multiplies 2 matrices
