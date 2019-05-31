@@ -5,6 +5,11 @@ Emu is a high-level language for numerical, GPGPU or CPU-based computation embed
 As a high-level language for numerical computing, Emu is focused more on that first part, providing useful features specifically for doing numerical (and scientific) computation such as built-in mathematical and physical constants, unit annotation and implicit conversion.
 ```rust
 emu! {
+	// more particles
+	more_particles(num_particles u32, num_moles u32) u32 {
+		return num_particles + num_moles * L;
+	}
+
 	// moves particles
 	move_particles(global_particles_x [f32], global_particles_y f32, global_particles_z f32) {
 		global_particles_z[get_global_id(0)] += 7.3e1 as nm;
