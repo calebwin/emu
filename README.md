@@ -1,9 +1,9 @@
 <!--![a picture of a real-world emu](https://i.imgur.com/jraDjSK.jpg)-->
 ![a picture of a real-world emu](https://i.imgur.com/8CeUiar.jpg)
 
-Emu is a high-level language for numerical, GPGPU or CPU-based computation. Unlike other languages that target GPUs such as OpenCL or Halide which are designed for embedding in C or C++, Emu is designed for embedding in Rust by providing a single procedural macro for writing functions. <!--(As of now, these functions get automatically translated to clean, compact OpenCL code at compile time and stored in the `EMU` global constant, which can then be run using any binding to OpenCL such as [`ocl`](https://github.com/cogciprocate/ocl) or [`rust-opencl`](https://github.com/luqmana/rust-opencl).--> These functions are translated into a lower-level code at compile time, stored in `EMU`, and then run by different back-ends ultimately executing on GPU or CPU.
+Emu is a high-level language for programming GPUs. Unlike other languages such as OpenCL or Halide that are designed for embedding in C or C++, Emu is designed for embedding in Rust. It provides a single procedural macro for writing functions. <!--(As of now, these functions get automatically translated to clean, compact OpenCL code at compile time and stored in the `EMU` global constant, which can then be run using any binding to OpenCL such as [`ocl`](https://github.com/cogciprocate/ocl) or [`rust-opencl`](https://github.com/luqmana/rust-opencl).--> The macro translates the functions at compile time into lower-level code so that they can be run on the GPU.
 
-As a high-level language for numerical computing, Emu is focused on providing useful features specifically for doing numerical (and scientific) computation such as built-in mathematical and physical constants, unit annotation and implicit conversion.
+<!--As a high-level language for numerical computing, Emu is focused on providing useful features specifically for doing numerical (and scientific) computation such as built-in mathematical and physical constants, unit annotation and implicit conversion.--->
 ```rust
 emu! {
 	// more particles
