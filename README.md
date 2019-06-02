@@ -4,6 +4,7 @@
 Emu is a high-level language for programming GPUs. Unlike other languages such as OpenCL or Halide that are designed for embedding in C or C++, Emu is designed for embedding in Rust. It provides a single procedural macro for writing functions. <!--(As of now, these functions get automatically translated to clean, compact OpenCL code at compile time and stored in the `EMU` global constant, which can then be run using any binding to OpenCL such as [`ocl`](https://github.com/cogciprocate/ocl) or [`rust-opencl`](https://github.com/luqmana/rust-opencl).--> The macro translates the functions at compile time into lower-level code so that they can be run on the GPU.
 
 <!--As a high-level language for numerical computing, Emu is focused on providing useful features specifically for doing numerical (and scientific) computation such as built-in mathematical and physical constants, unit annotation and implicit conversion.--->
+Emu also provides several features that aim to make programming GPUs more accessible such as built-in mathematical and physical constants, unit annotation and implicit conversion. Here are some example functions...
 ```rust
 emu! {
 	// more particles
@@ -38,4 +39,4 @@ emu! {
 	}
 }
 ```
- More details can be found in [**the book**](https://github.com/calebwin/emu/tree/master/book) and [**the examples**](https://github.com/calebwin/emu/tree/master/examples) and [**the crate**](https://crates.io/crates/em).
+ To start programming GPUs with Emu, check out [**the book**](https://github.com/calebwin/emu/tree/master/book), [**the examples**](https://github.com/calebwin/emu/tree/master/examples), and [**the crate**](https://crates.io/crates/em) itself.
