@@ -1,16 +1,27 @@
-![an emu](https://i.imgur.com/jraDjSK.jpg)
+<!--![a picture of a real-world emu](https://i.imgur.com/jraDjSK.jpg)-->
+![a picture of a real-world emu](https://i.imgur.com/8CeUiar.jpg)
 
-Emu is a language for numerical computation embedded in Rust. Emu provides a single procedural macro for writing numerical computation scripts which get automatically translated to clean, compact OpenCL code at compile time and stored in the `EMU` global constant. To run the compile code, you can use any binding to OpenCL such as [`ocl`](https://github.com/cogciprocate/ocl) or [`rust-opencl`](https://github.com/luqmana/rust-opencl).
+Emu is a high-level language for programming GPUs. Unlike other languages such as OpenCL or Halide that are designed for embedding in C or C++, Emu is designed for embedding in Rust. It provides a single procedural macro for writing functions. <!--(As of now, these functions get automatically translated to clean, compact OpenCL code at compile time and stored in the `EMU` global constant, which can then be run using any binding to OpenCL such as [`ocl`](https://github.com/cogciprocate/ocl) or [`rust-opencl`](https://github.com/luqmana/rust-opencl).--> The macro translates the functions at compile time into lower-level code so that they can be run on the GPU.
+
+<!--As a high-level language for numerical computing, Emu is focused on providing useful features specifically for doing numerical (and scientific) computation such as built-in mathematical and physical constants, unit annotation and implicit conversion.--->
+Emu also provides several features that aim to make programming GPUs more accessible such as built-in mathematical and physical constants, unit annotation and implicit conversion. Here are some example functions...
 ```rust
 emu! {
-	// adds a scalar to elements of a buffer
-	add(global_buffer [f32], scalar f32) {
-		global_buffer[get_global_id(0)] += scalar;
+	// more particles
+	more_particles(num_particles u32, num_moles u32) u32 {
+		return num_particles + num_moles * L;
 	}
 
-	// multiplies elements of a buffer by a scalar
-	multiply(global_buffer [f32], scalar f32) {
-		global_buffer[get_global_id(0)] *= scalar;
+	// moves particles
+	move_particles(global_particles_x [f32], global_particles_y f32, global_particles_z f32) {
+		global_particles_z[get_global_id(0)] += 7.3e1 as nm;
+		global_particles_x[get_global_id(0)] += 2 as cm;
+		global_particles_y[get_global_id(0)] += 6 as cm;
+	}
+	
+	// moves particles in circle
+	rotate_particles(global_particles_r [f32]) {
+		global_particles_r[get_global_id(0)] += 7.5 * TAU;
 	}
 
 	// multiplies 2 matrices
@@ -28,4 +39,4 @@ emu! {
 	}
 }
 ```
- More details can be found in [**the book**](https://github.com/calebwin/emu/tree/master/book) and [**the examples**](https://github.com/calebwin/emu/tree/master/examples).
+ To get started programming GPUs with Emu, check out [**the book**](https://github.com/calebwin/emu/tree/master/book), [**the examples**](https://github.com/calebwin/emu/tree/master/examples), and [**the crate**](https://crates.io/crates/em) itself.
