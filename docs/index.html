@@ -11,21 +11,31 @@
  	<h1 class="title">emu</h1>
 
 	<p>
-		Emu is a language for hardware-accelerated numerical computation embedded in Rust. Emu provides the <code class="prettyprint">emu!</code> macro for writing code. Emu will then translate your code to OpenCL source code at compile time and store it in the <code class="prettyprint">EMU</code> global constant. You can then run your code using a binding to OpenCL such as <a href="https://github.com/cogciprocate/ocl">ocl</a> or <a href="https://github.com/luqmana/rust-opencl">rust-opencl</a>
+		Emu is a language for programming GPUs from Rust. Emu provides the <code class="prettyprint">emu!</code> macro for writing code. Emu will then translate your code to OpenCL source code at compile time and store it in the <code class="prettyprint">EMU</code> global constant. You can then run your code using a binding to OpenCL such as <a href="https://github.com/cogciprocate/ocl">ocl</a> or <a href="https://github.com/luqmana/rust-opencl">rust-opencl</a>
 	</p>
 
-	<pre class="prettyprint">emu! {
-	// adds a scalar to elements of a buffer
-	add(global_buffer [f32], scalar f32) {
-		global_buffer[get_global_id(0)] += scalar;
+	<pre class="prettyprint">extern crate em;
+use em::emu;
+
+emu! {
+	// more particles
+	more_particles(num_particles u32, num_moles u32) u32 {
+		return num_particles + num_moles * L;
 	}
 
-	// multiplies elements of a buffer by a scalar
-	multiply(global_buffer [f32], scalar f32) {
-		global_buffer[get_global_id(0)] *= scalar;
+	// moves particles
+	move_particles(global_particles_x [f32], global_particles_y f32, global_particles_z f32) {
+		global_particles_z[get_global_id(0)] += 7.3e1 as nm;
+		global_particles_x[get_global_id(0)] += 2 as cm;
+		global_particles_y[get_global_id(0)] += 6 as cm;
+	}
+	
+	// moves particles in circle
+	rotate_particles(global_particles_r [f32]) {
+		global_particles_r[get_global_id(0)] += 7.5 * TAU;
 	}
 
-	// multiply 2 matrices
+	// multiplies 2 matrices
 	// n is the dimension of the matrices
 	// a and b are the matrices to be multiplied, c is the result
 	multiply_matrices(n i32, global_a [f32], global_b [f32], global_c [f32]) {
@@ -41,7 +51,7 @@
 }</pre>
 
 	<p>
-		To start writing Emu kernels embedded in your Rust code, simply add the following to your <code>Cargo.toml</code> file.
+		To start writing Emu kernels embedded in your Rust code, simply add the following to your <code>Cargo.toml</code> file and import the macro as shown above.
 	</p>
 
 	<pre class="prettyprint">[dependencies]

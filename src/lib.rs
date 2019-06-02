@@ -562,6 +562,10 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
     output.into()
 }
 
+// macro_rules! emu {
+//     ($x:expr) => (5 * $x);
+// }
+
 // TODO
 // precision conversions => https://www.khronos.org/registry/OpenCL/sdk/1.0/docs/man/xhtml/convert_T.html
 // vectors => https://github.com/rsnemmen/OpenCL-examples/blob/master/RayTraced_Quaternion_Julia-Set_Example/qjulia_kernel.cl
