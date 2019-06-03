@@ -16,7 +16,7 @@ fn main() {
         let my_vector = vec![0.0, 9.8, 2.5, 9.2, 4.6];
 }
 ```
-Wouldn't it be really great if you could just write the following?
+Wouldn't it be nice if you could just write the following?
 ```rust
 fn main() {
         let my_vector = vec![0.0, 9.8, 2.5, 9.2, 4.6];
