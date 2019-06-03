@@ -16,7 +16,7 @@ fn main() {
         let my_vector = vec![0.0, 9.8, 2.5, 9.2, 4.6];
 }
 ```
-Wouldn't it be really great if I could just write the following?
+Wouldn't it be really great if you could just write the following?
 ```rust
 fn main() {
         let my_vector = vec![0.0, 9.8, 2.5, 9.2, 4.6];
@@ -24,7 +24,7 @@ fn main() {
         let my_vector_scaled = multiply(my_vector, 3.0);
 }
 ```
-What if I told you you could do that with Emu? All you need is a way of auto-generating a `multiply()` function that can take the code stored in the `EMU` global constant by the `emu!` macro and run it on the GPU. And this possible - you just need to make a call to the `build!` macro to generate that code for you, a macro that comes nicely packaged in the `em` crate you are already using.
+You can do this with Emu. All you need is a way of auto-generating a `multiply()` function that can take the code stored in the `EMU` global constant by the `emu!` macro and run it on the GPU. And this is possible - you just need to make a call to the `build!` macro to generate that code for you, a macro that comes nicely packaged in the `em` crate you are already using.
 ```rust
 use em::build;
 
