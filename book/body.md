@@ -46,6 +46,10 @@ loop {
 	x += dx/10;
 }
 ```
+- Return statements
+```rust
+return 0;
+```
 - Assignment statements - `=`, `+=`, `-=`, `*=`, `/=`, `%= `, `&=`, `^= `, `<<=`, `>>=`
 - Index operator `[]`
 - Call operator `()`
