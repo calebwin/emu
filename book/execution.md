@@ -40,5 +40,5 @@ fn main() {
         let my_vector_scaled = multiply(my_vector, 3.0);
 }
 ```
-And if we run this, what happens is the `multiply()` function we wrote in Emu will get called for each element of its first parameter (in this case, `my_vector`). An important thing to note is that if you want to, it is entirely possible to just take the code in `EMU` and use a binding to OpenCL to run it yourself. This is possible and what the `emu!` macro was initially developed for.
+And if we run this, what happens is the `multiply()` function we wrote in Emu will get called for each element of its first parameter (in this case, `my_vector`). An important thing to note is that if you want to, it is entirely possible to just take the code in `EMU` and use a binding to OpenCL to run it yourself. This is possible and what the `emu!` macro was actually initially developed for.
 
