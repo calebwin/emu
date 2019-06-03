@@ -1,3 +1,11 @@
+# The Emu Book
+- Chapter 0 - [Introduction](https://github.com/calebwin/emu/blob/master/book/introduction.md#the-emu-book)
+- Chapter 1 - [The Body](https://github.com/calebwin/emu/blob/master/book/body.md#the-emu-book)
+- Chapter 2 - [The Parameters](https://github.com/calebwin/emu/blob/master/book/parameters.md#the-emu-book)
+- Chapter 3 - [The Functions](https://github.com/calebwin/emu/blob/master/book/functions.md#the-emu-book)
+- Chapter 4 - [The Numbers](https://github.com/calebwin/emu/blob/master/book/numbers.md#the-emu-book)
+- Chapter 5 - [The Execution](https://github.com/calebwin/emu/blob/master/book/execution.md#the-emu-book)
+
 # Numbers
 Emu has a couple of cool little features that make working with numbers a bit easier. They are inspired by problems I (Caleb, the developer of this language) has encountered in other languages and wished I had especially when doing "scientific" programming. Numbers can be converted to be in terms of different units.
 ```rust

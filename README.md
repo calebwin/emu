@@ -13,7 +13,7 @@ emu! {
 	}
 
 	// moves particles
-	move_particles(global_particles_x [f32], global_particles_y f32, global_particles_z f32) {
+	move_particles(global_particles_x [f32], global_particles_y [f32], global_particles_z [f32]) {
 		global_particles_z[get_global_id(0)] += 7.3e1 as nm;
 		global_particles_x[get_global_id(0)] += 2 as cm;
 		global_particles_y[get_global_id(0)] += 6 as cm;
