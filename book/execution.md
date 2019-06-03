@@ -30,10 +30,10 @@ use em::build;
 
 extern crate ocl;
 use ocl::{flags, Platform, Device, Context, Queue, Program, Buffer, Kernel};
+
+build! { multiply [f32] f32 }
 ```
 ```rust
-build! { multiply [f32] f32 }
-
 fn main() {
         let my_vector = vec![0.0, 9.8, 2.5, 9.2, 4.6];
         
