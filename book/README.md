@@ -6,4 +6,4 @@
 - Chapter 4 - [The Numbers](https://github.com/calebwin/emu/blob/master/book/numbers.md#the-emu-book)
 - Chapter 5 - [The Execution](https://github.com/calebwin/emu/blob/master/book/execution.md#the-emu-book)
 
-More chapters coming soon...
+If you want to get up and running as fast as possible, I would recommend starting in chapter 0 and then skipping over to chapter 5. The examples providd in the [`/examples`](https://github.com/calebwin/emu/edit/master/examples) directory can be helpful.
