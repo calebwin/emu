@@ -1,6 +1,6 @@
 # Introduction
 
-Emu is a language for programming GPUs from Rust. Particularly, it provides 2 procedural macros -  `emu!` for compiling functions in the Emu language to intermediate code (currently that is OpenCL) stored it in a `const` `&'static str` global constant called `EMU` and `build` for generating Rust functions that interpret the intermediate code found in `EMU`.
+Emu is a language for programming GPUs from Rust. Particularly, it provides 2 procedural macros -  `emu!` for compiling functions in the Emu language to intermediate code (currently that is OpenCL) stored it in a `const` `&'static str` global constant called `EMU` and `build!` for generating Rust functions that interpret the intermediate code found in `EMU`.
 
 You can get started by adding the following to your `Cargo.toml` file.
 
@@ -55,4 +55,4 @@ emu! {
 }
 ```
 
-Now you're probably wondering - how do I actually run these functions? This question is answered in the chapter on execution. The next few chapters will also go into more details on what you can have in the parameters and in the body of a function in the Emu language.
+Now you're probably wondering - how do I actually run these functions? This question is answered in [the chapter on execution](https://github.com/calebwin/emu/blob/master/book/execution.md). The next few chapters will also go into more details on what you can have in the parameters and in the body of a function in the Emu language.
