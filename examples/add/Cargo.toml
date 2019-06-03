@@ -1,0 +1,10 @@
+[package]
+name = "add"
+version = "0.1.0"
+authors = ["calebwin <calebhwin@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+# em = "0.1.0"
+em   = { path = "../../../emu" }
+ocl  = "0.19.2"

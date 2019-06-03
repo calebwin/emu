@@ -1,3 +1,5 @@
+#![recursion_limit="256"]
+
 // crates for parsing
 extern crate proc_macro;
 extern crate syn;
@@ -551,7 +553,7 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
         generated_code += "}";
     }
 
-    println!("{:?}", generated_code);
+    // println!("{:?}", generated_code);
 
     // generate output Rust code
     let output = quote! {
@@ -562,9 +564,163 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
     output.into()
 }
 
-// macro_rules! emu {
-//     ($x:expr) => (5 * $x);
-// }
+/// Represents a parameter with three Strings; the coded name (e.g. - param_0 or param_1), the type, and whether or not it is a vector
+struct Parameter(String, String, bool);
+
+#[proc_macro]
+pub fn build(tokens: TokenStream) -> TokenStream {
+    let raw_input = tokens.to_string();
+    let input = raw_input.split_whitespace().collect::<Vec<&str>>();
+
+    // get name
+    let kernel_name = input[0];
+    let kernel_name_identifier = Ident::new(kernel_name, syn::export::Span::call_site());
+
+    let mut parameters: Vec<Parameter> = vec![];
+    let mut token_index = 0;
+    let mut token_vector_index = 0;
+    for token in &input {
+        if token_index > 0 && input[token_index] != "[" && input[token_index] != "]" {
+            if input[token_index - 1] == "[" {
+                parameters.push(Parameter("param_".to_owned() + &token_vector_index.to_string(), input[token_index].to_string(), true))
+            } else {
+                parameters.push(Parameter("param_".to_owned() + &token_vector_index.to_string(), input[token_index].to_string(), false))
+            }
+            token_vector_index += 1;
+        }
+
+        token_index += 1;
+    }
+
+    let mut params = vec![];
+
+    let mut params_index = 0;
+    let mut new_param_index = 0;
+    let mut result_param = "";
+    let mut result_param_name = String::new();
+    for param_type in &input {
+        if params_index > 1 && input[params_index] != "[" && input[params_index] != "]" {
+            if input[params_index - 1] == "[" {
+                result_param = input[params_index];
+                result_param_name = String::from("param_");
+                result_param_name += &new_param_index.to_string();
+
+                // parameter is vector
+                let new_param_name = Ident::new((String::from("param_") + &new_param_index.to_string()).as_str(), syn::export::Span::call_site());
+                let new_param_type = Ident::new(input[params_index], syn::export::Span::call_site());
+                params.push(quote! { #new_param_name : Vec< #new_param_type > })
+            } else {
+                // parameter is scalar
+                let new_param_name = Ident::new((String::from("param_") + &new_param_index.to_string()).as_str(), syn::export::Span::call_site());
+                let new_param_type = Ident::new(input[params_index], syn::export::Span::call_site());
+                params.push(quote! { #new_param_name : #new_param_type })
+            }
+            new_param_index += 1;
+        }
+
+        params_index += 1;
+    }
+
+    let result_param_type = Ident::new(result_param, syn::export::Span::call_site());
+    let result_param_identifier = Ident::new(&result_param_name, syn::export::Span::call_site());
+
+    let mut params_for_kernel_builder = vec![];
+    let mut param_for_kernel_builder_index = 0;
+    for parameter in &parameters {
+        let mut param_for_kernel_builder = String::from(parameter.0.as_str());
+        if parameter.2 {
+            param_for_kernel_builder += "_buffer";
+        }
+        let param_for_kernel_builder_index_identifier = Ident::new(&param_for_kernel_builder, syn::export::Span::call_site());
+        params_for_kernel_builder.push(quote! { .arg(& #param_for_kernel_builder_index_identifier ) });
+        param_for_kernel_builder_index += 1;
+    }
+
+    let mut buffers = vec![];
+    let mut result_buffer_name = String::new();
+    for parameter in &parameters {
+        if parameter.2 {
+            let mut buffer_name = String::from(parameter.0.as_str());
+            buffer_name += "_buffer";
+            if result_buffer_name == "" { result_buffer_name = buffer_name.clone() }
+            let buffer_type = String::from(parameter.1.as_str());
+            let buffer_source = String::from(parameter.0.as_str());
+            let buffer_name_identifier = Ident::new(&buffer_name, syn::export::Span::call_site());
+            let buffer_type_identifier = Ident::new(&buffer_type, syn::export::Span::call_site());
+            let buffer_source_identifier = Ident::new(&buffer_source, syn::export::Span::call_site());
+            buffers.push(quote! {
+                let #buffer_name_identifier = Buffer::< #buffer_type_identifier >::builder()
+                    .queue(queue.clone())
+                    .flags(flags::MEM_READ_WRITE)
+                    .len(#buffer_source_identifier .len())
+                    .copy_host_slice(& #buffer_source_identifier)
+                    .build()?;
+            })
+        }
+    }
+    let result_buffer = Ident::new(&result_buffer_name, syn::export::Span::call_site());
+
+    // generate output Rust code
+    let output = quote! {
+        fn #kernel_name_identifier ( #(#params),* ) -> ocl::Result<Vec< #result_param_type >>  {
+            // (1) Define which platform and device(s) to use. Create a context,
+            // queue, and program then define some dims (compare to step 1 above).
+            let platform = Platform::default();
+            let device = Device::first(platform)?;
+            let context = Context::builder()
+                .platform(platform)
+                .devices(device.clone())
+                .build()?;
+            let program = Program::builder()
+                .devices(device)
+                .src(EMU)
+                .build(&context)?;
+            let queue = Queue::new(&context, device, None)?;
+            let dims = #result_param_identifier .len();
+            // [NOTE]: At this point we could manually assemble a ProQue by calling:
+            // `ProQue::new(context, queue, program, Some(dims))`. One might want to
+            // do this when only one program and queue are all that's needed. Wrapping
+            // it up into a single struct makes passing it around simpler.
+
+            // (2) Create a `Buffer`:
+            #(#buffers)*
+
+            // (3) Create a kernel with arguments matching those in the source above:
+            let kernel = Kernel::builder()
+                .program(&program)
+                .name(#kernel_name)
+                .queue(queue.clone())
+                .global_work_size(dims)
+                #(#params_for_kernel_builder)*
+                .build()?;
+
+            // (4) Run the kernel (default parameters shown for demonstration purposes):
+            unsafe {
+                kernel.cmd()
+                    .queue(&queue)
+                    .global_work_offset(kernel.default_global_work_offset())
+                    .global_work_size(dims)
+                    .local_work_size(kernel.default_local_work_size())
+                    .enq()?;
+            }
+
+            // (5) Read results from the device into a vector (`::block` not shown):
+            let mut vec = vec![0 as #result_param_type; dims as usize];
+            #result_buffer .cmd()
+                .queue(&queue)
+                .offset(0)
+                .read(&mut vec)
+                .enq()?;
+
+            Ok(vec)
+        }
+    };
+
+    // println!("{:?}", output.to_string());
+
+    // return output converted to token stream
+    output.into()
+}
 
 // TODO
 // precision conversions => https://www.khronos.org/registry/OpenCL/sdk/1.0/docs/man/xhtml/convert_T.html
