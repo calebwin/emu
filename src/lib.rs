@@ -129,7 +129,7 @@ impl Parse for EmuParameter {
     }
 }
 
-/// Represents an Emu kerenl within an Emu program
+/// Represents an Emu kernel within an Emu program
 struct EmuKernel {
     name: Ident,
     params: Vec<EmuParameter>,

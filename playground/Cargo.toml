@@ -1,0 +1,9 @@
+[package]
+name = "playground"
+version = "0.1.0"
+authors = ["calebwin <calebhwin@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+em = "0.1.3"
+ocl  = "0.19.2"
