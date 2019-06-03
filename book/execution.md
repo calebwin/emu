@@ -30,7 +30,8 @@ use em::build;
 
 extern crate ocl;
 use ocl::{flags, Platform, Device, Context, Queue, Program, Buffer, Kernel};
-
+```
+```rust
 build! { multiply [f32] f32 }
 
 fn main() {
