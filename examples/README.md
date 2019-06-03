@@ -1,2 +1,3 @@
 Here are some quick links to example source code...
-- [`multiply_by_scalar/src/main.rs`](https://github.com/calebwin/emu/blob/master/examples/multiply_by_scalar/src/main.rs)
+- [`multiply/src/main.rs`](https://github.com/calebwin/emu/blob/master/examples/multiply/src/main.rs)
+- [`add/src/main.rs`](https://github.com/calebwin/emu/blob/master/examples/add/src/main.rs)
