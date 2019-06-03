@@ -1,5 +1,5 @@
 # Numbers
-Numbers can be converted to be in terms of different units. Here's an example...
+Emu has a couple of cool little features that make working with numbers a bit easier. They are inspired by problems I (Caleb, the developer of this language) has encountered in other languages and wished I had especially when doing "scientific" programming. Numbers can be converted to be in terms of different units.
 ```rust
 let distance: f32 = 19.2;
 
@@ -32,7 +32,7 @@ The following are all supported unit prefixes-
 
 Using the form - `x as y` will convert `x` to be in terms of `y` using the prefix of `y` from the above list to do the conversion.
 
-Some numbers are special - they are constants defined by symbolic formulae. Emu lets you use some of these constants in your functions without having to define them before. Below is an example of usage and a list of currently supported constants...
+Some numbers are special - they are constants defined by symbolic formulae. Emu lets you use some of these constants in your functions without having to define them before. Below is an example of usage and a list of currently supported constants.
 ```rust
 let num_particles: u64 = 34 * L;
 ```
