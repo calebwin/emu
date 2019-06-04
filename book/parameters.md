@@ -12,7 +12,7 @@ There are 3 parts of every function defined in the Emu language - (1) the name, 
 (coeff f32, global_num [f32], global_res [f32])
 ```
 
-The first thing you should notice is that the parameters are seperated by commas. Each parameter has 2 parts - (1) the name and (2) the type. The name is pretty straightforward - it can be any typical identifier you would noramlly see in Rust. The type is just that, the type of the parameter. It can be one of the following-
+The first thing you should notice is that the parameters are seperated by commas. Each parameter has 2 parts - (1) the name and (2) the type. The name is pretty straightforward - it can be any typical identifier you would normally see in Rust. The type is just that, the type of the parameter. It can be one of the following-
 
 | Type  | Description           |
 | ---- | ---------------------------------------- |
