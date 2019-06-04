@@ -67,7 +67,7 @@ fn multiply(global_buffer: Vec<f32>, coeff: f32) -> ocl::Result<Vec<f32>> {
         kernel.cmd()
             .queue(&queue)
             .global_work_offset(kernel.default_global_work_offset())
-            .global_work_size(dims)
+            .global_work_size([dims, 0, 0])
             .local_work_size(kernel.default_local_work_size())
             .enq()?;
     }
@@ -89,7 +89,7 @@ fn main() {
 	let initial_data = vec![3.7, 4.5, 9.0, 1.2, 8.9];
 
 	// call the multiply function written in Emu on the vector of data
-	let final_data = multiply(initial_data, 3.0).unwrap();
+	let mut final_data = multiply(initial_data, 3.0).unwrap();
 
 	// print the results to the console
 	println!("{:?}", final_data);

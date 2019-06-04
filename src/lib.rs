@@ -393,33 +393,60 @@ impl<'a> Visit<'a> for EmuKernel {
                 self.visit_expr(&e.right);
             }
             Expr::Cast(e) => {
-                // TODO implement converting precision
+                // cast can be either conversion of precision or units
+                let mut is_precision_conversion = false;
+
+                // convert precision
+                if let Type::Path(ty) = *e.ty.clone() {
+                    let precision_conversion_prefix = String::from(match ty.path.segments[0].ident.to_string().as_ref() {
+                        "bool" => "(bool)",
+                        "f32" => "(float)",
+                        "i8" => "(char)",
+                        "i16" => "(short)",
+                        "i32" => "(int)",
+                        "i64" => "(long)",
+                        "u8" => "(uchar)",
+                        "u16" => "(ushort)",
+                        "u32" => "(uint)",
+                        "u64" => "(ulong)",
+                        _ => "",
+                    });
+
+                    is_precision_conversion = precision_conversion_prefix != "";
+                    
+                    self.generated_code += precision_conversion_prefix.as_ref();
+                }
+
                 self.visit_expr(&e.expr);
+                
+                // convert units
                 if let Type::Path(ty) = *e.ty.clone() {
                     if let Some(ty_prefix) = ty.path.segments[0].ident.to_string().chars().next() {
-                        self.generated_code += String::from(match ty_prefix.to_string().as_ref() {
-                            "Y" => "*10000000000",
-                            "Z" => "*1000000000",
-                            "E" => "*100000000",
-                            "P" => "*10000000",
-                            "T" => "*1000000",
-                            "G" => "*100000",
-                            "M" => "*10000",
-                            "k" => "*1000",
-                            "h" => "*100",
-                            "D" => "*10",
-                            "d" => "*0.1",
-                            "c" => "*0.01",
-                            "m" => "*0.001",
-                            "u" => "*0.0001",
-                            "n" => "*0.00001",
-                            "p" => "*0.000001",
-                            "f" => "*0.0000001",
-                            "a" => "*0.00000001",
-                            "z" => "*0.000000001",
-                            "y" => "*0.0000000001",
-                            _ => "*1",
-                        }).as_ref();
+                        if !is_precision_conversion {
+                            self.generated_code += String::from(match ty_prefix.to_string().as_ref() {
+                                "Y" => "*10000000000",
+                                "Z" => "*1000000000",
+                                "E" => "*100000000",
+                                "P" => "*10000000",
+                                "T" => "*1000000",
+                                "G" => "*100000",
+                                "M" => "*10000",
+                                "k" => "*1000",
+                                "h" => "*100",
+                                "D" => "*10",
+                                "d" => "*0.1",
+                                "c" => "*0.01",
+                                "m" => "*0.001",
+                                "u" => "*0.0001",
+                                "n" => "*0.00001",
+                                "p" => "*0.000001",
+                                "f" => "*0.0000001",
+                                "a" => "*0.00000001",
+                                "z" => "*0.000000001",
+                                "y" => "*0.0000000001",
+                                _ => "*1",
+                            }).as_ref();
+                        }
                     }
                     
                 }
