@@ -32,7 +32,7 @@ fn main() {
         let my_vector_scaled = multiply(my_vector, 3.0);
 }
 ```
-You can do this with Emu. All you need is a way of auto-generating a `multiply()` function that can take the code stored in the `EMU` global constant by the `emu!` macro and run it on the GPU. And this is possible - you just need to make a call to the `build!` macro to generate that code for you, a macro that comes nicely packaged in the `em` crate you are already using.
+You can do this with Emu. All you need is a way of auto-generating a `multiply()` function that can take the code stored in the `EMU` global constant by the `emu!` macro and run it on the GPU. And this is possible - you just need to make a call to the `build!` macro to generate that code for you, a macro that comes nicely packaged in the `em` crate you are already using. (With the current implementation of the `build!` macro, you also need to [have OpenCL installed](https://www.eriksmistad.no/getting-started-with-opencl-and-gpu-computing/) on your computer in such a way that the `ocl  = "0.19.2"` binding to OpenCL can work.)
 ```rust
 use em::build;
 
@@ -49,4 +49,3 @@ fn main() {
 }
 ```
 And if we run this, what happens is the `multiply()` function we wrote in Emu will get called for each element of its first parameter (in this case, `my_vector`). An important thing to note is that if you want to, it is entirely possible to just take the code in `EMU` and use a binding to OpenCL to run it yourself. This is possible and what the `emu!` macro was actually initially developed for.
-
