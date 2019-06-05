@@ -39,4 +39,4 @@ emu! {
 	}
 }
 ```
- To get started programming GPUs with Emu, check out [**the book**](https://github.com/calebwin/emu/tree/master/book), [**the examples**](https://github.com/calebwin/emu/tree/master/examples), and [**the crate**](https://crates.io/crates/em) itself.
+ To get started programming GPUs with Emu, check out [**the book**](https://github.com/calebwin/emu/tree/master/book#the-emu-book), [**the examples**](https://github.com/calebwin/emu/tree/master/examples), and [**the crate**](https://crates.io/crates/em) itself.
