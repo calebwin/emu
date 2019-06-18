@@ -1,193 +1,99 @@
 #![recursion_limit="256"]
 
-// crates for parsing
-extern crate proc_macro;
-extern crate syn;
+// for generating Rust
 #[macro_use]
 extern crate quote;
 
-// used for containing macro input
-use proc_macro::{TokenStream, Span};
+// for procedural macros
+extern crate proc_macro;
+use proc_macro::{TokenStream};
 
-// used for parsing macro input
+// for parsing Rust
+extern crate syn;
 use syn::parse::{Parse, ParseStream};
 use syn::parse_macro_input;
-
-// used for traversing AST
+use syn::export::Span;
 use syn::punctuated::Punctuated;
 use syn::visit::Visit;
 use syn::{
     braced, parenthesized, Attribute, BinOp, Block, Expr, Ident, Lit, Pat, Result, Stmt, Token,
-    Type, UnOp,
+    Type, UnOp, ForeignItemFn, FnDecl, Visibility, FnArg, GenericArgument,
+    PathArguments
 };
 
-// The Emu Identifier Prefix is appended to the start of each identifier found in Emu code except
-// for identifiers that reference OpenCL constructs such as get_global_id
-static EMU_IDENTIFIER_SUFFIX: &str = "_emu";
-
-static OPENCL_FUNCTIONS: &'static [&'static str] = &[
-    "get_work_dim",
-    "get_global_size",
-    "get_global_id",
-    "get_local_size",
-    "get_local_id",
-    "get_num_groups()",
-    "get_group_id()"
-];
-
-/// Represents an Emu program
-struct EmuProgram {
-    kernels: Vec<EmuKernel>,
-}
-
-/// Implementation of parser for Emu programs 
-impl Parse for EmuProgram {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let mut kernels: Vec<EmuKernel> = Vec::new();
-
-        while !input.is_empty() && input.lookahead1().peek(Ident) {
-            let new_kernel = input.call(EmuKernel::parse)?;
-            kernels.push(new_kernel);
-        }
-
-        // return new Emu program
-        Ok(EmuProgram {
-            kernels: kernels,
-        })
-    }
+#[derive(Clone)]
+enum EmuType {
+    Bool,
+    Int8,
+    Int16,
+    Int32,
+    Int64,
+    UInt8,
+    UInt16,
+    UInt32,
+    UInt64,
+    Float32,
+    Null
 }
 
 #[derive(Clone)]
-struct EmuParameter {
+struct EmuFunctionParameter {
     name: String,
-    address_space: String,
-    ty: String,
+    is_vector: bool,
+    ty: EmuType
 }
 
-impl Parse for EmuParameter {
+impl Parse for EmuFunctionParameter {
     fn parse(input: ParseStream) -> Result<Self> {
-        let mut name = String::from("buffer");
-        let mut address_space = String::from("__global");
-        let mut ty = String::from("float*");
+        let mut name = String::new();
+        let mut is_vector = false;
+        let mut ty = EmuType::Null;
 
         // get name of parameter
         let name_token: Ident = input.parse()?;
         name = name_token.to_string();
 
-        // get address space of parameter
-        if name.starts_with("global_") {
-            address_space = String::from("__global");
-        } else if name.starts_with("local_") {
-            address_space = String::from("__local");
-        } else {
-            address_space = String::from("__private");
-        }
-
         // get type of parameter
         let ty_token: Type = input.parse()?;
-        ty = match ty_token {
+        match ty_token {
             Type::Slice(ty_type) => {
+                is_vector = true;
                 if let Type::Path(ty_type_path) = *ty_type.elem {
-                    String::from(match ty_type_path.path.segments[0].ident.to_string().as_ref() {
-                        "bool" => "bool",
-                        "f32" => "float",
-                        "i8" => "char",
-                        "i16" => "short",
-                        "i32" => "int",
-                        "i64" => "long",
-                        "u8" => "uchar",
-                        "u16" => "ushort",
-                        "u32" => "uint",
-                        "u64" => "ulong",
-                        _ => "float",
-                    }) + "*"
-                } else { String::new() }
+                    ty = emu_to_emu_type(&ty_type_path.path.segments[0].ident.to_string());
+                    if let EmuType::Null = ty {
+                        panic!("Invalid type of vector as parameter in Emu function definition");
+                    }
+                } else {
+                    panic!("Invalid type of vector as parameter in Emu function definition");
+                }
             }
             Type::Path(ty_type_path) => {
-                String::from(match ty_type_path.path.segments[0].ident.to_string().as_ref() {
-                    "bool" => "bool",
-                    "f32" => "float",
-                    "i8" => "char",
-                    "i16" => "short",
-                    "i32" => "int",
-                    "i64" => "long",
-                    "u8" => "uchar",
-                    "u16" => "ushort",
-                    "u32" => "uint",
-                    "u64" => "ulong",
-                    _ => "float",
-                })
+                is_vector = false;
+                ty = emu_to_emu_type(&ty_type_path.path.segments[0].ident.to_string());
+                if let EmuType::Null = ty {
+                    panic!("Invalid type of scalar as parameter in Emu function definition");
+                }
             }
-            _ => { String::new() }
+            _ => {
+                panic!("Invalid type of parameter in Emu function definition");
+            }
         };
 
-        Ok(EmuParameter{
+        Ok(EmuFunctionParameter{
             name: name,
-            address_space: address_space,
+            is_vector: is_vector,
             ty: ty,
         })
     }
 }
 
-/// Represents an Emu kernel within an Emu program
-struct EmuKernel {
-    name: Ident,
-    params: Vec<EmuParameter>,
-    stmts: Vec<Stmt>,
-    generated_return_type: String,
+struct EmuFunctionBody {
     generated_code: String,
+    dimensionality_parameters: Vec<String>
 }
 
-/// Implementation of parser for Emu kernels
-impl Parse for EmuKernel {
-    fn parse(input: ParseStream) -> Result<Self> {
-        // discard documentation comments
-        let _ = input.call(Attribute::parse_outer)?;
 
-        // get name of program
-        let name: Ident = input.parse()?;
-
-        // get punctuated parmeters
-        let content_kernel;
-        let _ = parenthesized!(content_kernel in input);
-        let punctuated_parameters: Punctuated<EmuParameter, Token![,]> =
-            content_kernel.parse_terminated(EmuParameter::parse)?;
-        let punctuated_parameters_iter = punctuated_parameters.pairs();
-
-        // get parameters
-        let parameters: Vec<EmuParameter> = punctuated_parameters_iter
-            .map(|parameter_pair| parameter_pair.into_value())
-            .cloned()
-            .collect::<Vec<EmuParameter>>();            
-
-        // get return type name
-        let mut generated_return_type = String::new();
-        if input.lookahead1().peek(Ident) {
-            let return_type: Ident = input.parse()?;
-            generated_return_type = return_type.to_string();
-        }
-
-        // discard braces and documentation comments
-        let content_block;
-        let _ = braced!(content_block in input);
-        let _ = content_block.call(Attribute::parse_inner)?;
-
-        // get statements
-        let statements = content_block.call(Block::parse_within)?;
-
-        // return name and statements
-        Ok(EmuKernel {
-            name: name,
-            params: parameters,
-            stmts: statements,
-            generated_return_type: generated_return_type,
-            generated_code: String::new(),
-        })
-    }
-}
-
-/// Implementation of visitor for AST of Emu kernels
-impl<'a> Visit<'a> for EmuKernel {
+impl<'a> Visit<'a> for EmuFunctionBody {
     fn visit_block(&mut self, b: &Block) {
         // visit each statement in block
         for statement in &b.stmts {
@@ -200,58 +106,59 @@ impl<'a> Visit<'a> for EmuKernel {
             Stmt::Local(l) => {
                 // look at first variable being declared in this let statement
                 for (i, declaration) in l.pats.pairs().enumerate() {
-                    // TODO allow multiple variables to be declared with a single let statement
                     if i > 0 {
-                        break;
+                        panic!("Expected only one identifier on left-hand side of \"let\" statement");
                     }
 
                     // generate code for type of variable being declared
                     if let Some(declaration_type) = l.ty.clone() {
                         if let Type::Path(declaration_type_path) = *declaration_type.1 {
-                            self.generated_code += match declaration_type_path.path.segments[0]
-                                .ident
-                                .to_string()
-                                .as_ref()
-                            {
-                                "bool" => "bool",
-                                "f32" => "float",
-                                "i8" => "char",
-                                "i16" => "short",
-                                "i32" => "int",
-                                "i64" => "long",
-                                "u8" => "uchar",
-                                "u16" => "ushort",
-                                "u32" => "uint",
-                                "u64" => "ulong",
-                                _ => "float",
+                            if declaration_type_path.path.segments.len() != 1 {
+                                panic!("Invalid type on left-hand side of \"let\" statement");
                             }
+
+                            let type_path = declaration_type_path.path.segments[0].ident.to_string();
+                            let opencl_type = emu_to_opencl(&type_path);
+                            match opencl_type.clone() {
+                                "null" => {
+                                    panic!("Invalid type on left-hand side of \"let\" statement");
+                                },
+                                _ => { self.generated_code += opencl_type; }
+                            }
+                        } else {
+                            panic!("Invalid type on left-hand side of \"let\" statement");
                         }
+                    } else {
+                        panic!("Invalid type on left-hand side of \"let\" statement");
                     }
 
                     // generate code for name of variable
                     self.generated_code += " ";
                     if let Pat::Ident(declaration_name_ident) = declaration.into_value() {
                         self.generated_code += &declaration_name_ident.ident.to_string();
+                    } else {
+                        panic!("Expected identifier on left-hand side of \"let\" statement");
                     }
                     self.generated_code += " = ";
 
                     // generate code for expression of initial value
                     if let Some(init) = l.init.clone() {
                         self.visit_expr(&init.1);
+                    } else {
+                        panic!("Expected right-hand side of \"let\" statement");
                     }
+
+                    self.generated_code += ";\n";
                 }
-                self.generated_code += ";";
             }
             Stmt::Semi(e, _) => {
                 // visit all statements with expressions that end in semicolons
                 self.visit_expr(e);
-                self.generated_code += ";";
+                self.generated_code += ";\n";
             }
-            Stmt::Expr(e) => {
-                // visit expressions that don't end in semicolons such as if statements and loops
-                self.visit_expr(e);
+            _ => {
+                panic!("Invalid statement");
             }
-            _ => {}
         }
     }
 
@@ -259,22 +166,24 @@ impl<'a> Visit<'a> for EmuKernel {
         match e {
             Expr::Assign(e) => {
                 self.visit_expr(&e.left);
-                self.generated_code += "=";
+                self.generated_code += " = ";
                 self.visit_expr(&e.right);
             }
             Expr::AssignOp(e) => {
                 self.visit_expr(&e.left);
-                self.generated_code += match e.op {
-                    BinOp::AddEq(_) => " += ",
-                    BinOp::SubEq(_) => " -= ",
-                    BinOp::MulEq(_) => " *= ",
-                    BinOp::DivEq(_) => " /= ",
-                    BinOp::RemEq(_) => " %= ",
-                    BinOp::BitXorEq(_) => " &= ",
-                    BinOp::BitAndEq(_) => " ^= ",
-                    BinOp::ShlEq(_) => " <<= ",
-                    BinOp::ShrEq(_) => " >>= ",
-                    _ => "",
+                match e.op {
+                    BinOp::AddEq(_) => { self.generated_code += " += "; }
+                    BinOp::SubEq(_) => { self.generated_code += " -= "; }
+                    BinOp::MulEq(_) => { self.generated_code += " *= "; }
+                    BinOp::DivEq(_) => { self.generated_code += " /= "; }
+                    BinOp::RemEq(_) => { self.generated_code += " %= "; }
+                    BinOp::BitXorEq(_) => { self.generated_code += " &= "; }
+                    BinOp::BitAndEq(_) => { self.generated_code += " ^= "; }
+                    BinOp::ShlEq(_) => { self.generated_code += " <<= "; }
+                    BinOp::ShrEq(_) => { self.generated_code += " >>= "; }
+                    _ => {
+                        panic!("Invalid binary operator");
+                    }
                 };
                 self.visit_expr(&e.right);
             }
@@ -298,7 +207,7 @@ impl<'a> Visit<'a> for EmuKernel {
                             self.visit_block(&if_else_block.block);
                             self.generated_code += "}";
                         }
-                        _ => {}
+                        _ => {} // this case should never occur
                     }
                 }
             }
@@ -312,6 +221,8 @@ impl<'a> Visit<'a> for EmuKernel {
 
                     self.generated_code += &for_var_ident_pat.ident.to_string();
                     self.generated_code += " = ";
+                } else {
+                    panic!("Expected identifier for variable for iteration");
                 }
                 if let Expr::Range(for_range_expr) = *e.expr.clone() {
                     if let Some(for_range_from_expr) = for_range_expr.from {
@@ -319,13 +230,19 @@ impl<'a> Visit<'a> for EmuKernel {
                         self.generated_code += "; ";
                         self.generated_code += &for_var_name;
                         self.generated_code += " < ";
+                    } else {
+                        panic!("Expected value for start of range of iteration");
                     }
                     if let Some(for_range_to_expr) = for_range_expr.to {
                         self.visit_expr(&for_range_to_expr);
                         self.generated_code += "; ";
                         self.generated_code += &for_var_name;
                         self.generated_code += "++";
+                    } else {
+                        panic!("Expected value for end of range of iteration");
                     }
+                } else {
+                    panic!("Expected range of iteration");
                 }
                 self.generated_code += ") {";
                 self.visit_block(&e.body);
@@ -344,10 +261,45 @@ impl<'a> Visit<'a> for EmuKernel {
                 self.generated_code += "}";
             }
             Expr::Index(e) => {
-                self.visit_expr(&e.expr);
-                self.generated_code += "[";
-                self.visit_expr(&e.index);
-                self.generated_code += "]";
+                if let Expr::Range(range) = *e.index.clone() {
+                    if let Some(_) = range.from {
+                        panic!("Invalid syntax for index");
+                    } else if let Some(_) = range.to {
+                        panic!("Invalid syntax for index");
+                    } else {
+                        if let Expr::Path(vector_identifier) = *e.expr.clone() {
+                            let vector_name = vector_identifier.path.segments[0].ident.to_string();
+                            self.generated_code += &vector_name;
+                            self.generated_code += "[get_global_id(";
+
+                            let mut is_dimensionality_parameter = false;
+                            let mut dimensionality_parameter_index = 0;
+                            for dimensionality_parameter in &self.dimensionality_parameters {
+                                if dimensionality_parameter == &vector_name {
+                                    is_dimensionality_parameter = true;
+                                    self.generated_code += &dimensionality_parameter_index.to_string();
+                                }
+                                dimensionality_parameter_index += 1;
+                            }
+                            if !is_dimensionality_parameter {
+                                self.dimensionality_parameters.push(vector_name);
+                                self.generated_code += &(self.dimensionality_parameters.len() - 1).to_string();
+                                if self.dimensionality_parameters.len() > 3 {
+                                    panic!("Expected number of holes in Emu function to be less than or equal to 3");
+                                }
+                            }
+
+                            self.generated_code += ")]";
+                        } else {
+                            panic!("Expected identifier for array to be indexed");
+                        }
+                    }
+                } else {
+                    self.visit_expr(&e.expr);
+                    self.generated_code += "[";
+                    self.visit_expr(&e.index);
+                    self.generated_code += "]";
+                }
             }
             Expr::Call(e) => {
                 self.visit_expr(&e.func);
@@ -360,35 +312,39 @@ impl<'a> Visit<'a> for EmuKernel {
                 self.generated_code += ")";
             }
             Expr::Unary(e) => {
-                self.generated_code += match e.op {
-                    UnOp::Deref(_) => "*",
-                    UnOp::Not(_) => "!",
-                    UnOp::Neg(_) => "-",
+                match e.op {
+                    UnOp::Not(_) => { self.generated_code += "!"; }
+                    UnOp::Neg(_) => { self.generated_code += "-"; }
+                    _ => {
+                        panic!("Invalid unary operator");
+                    }
                 };
                 self.visit_expr(&e.expr);
             }
             Expr::Binary(e) => {
                 self.visit_expr(&e.left);
-                self.generated_code += match e.op {
-                    BinOp::Add(_) => " + ",
-                    BinOp::Sub(_) => " - ",
-                    BinOp::Mul(_) => " * ",
-                    BinOp::Div(_) => " / ",
-                    BinOp::Rem(_) => " % ",
-                    BinOp::And(_) => " && ",
-                    BinOp::Or(_) => " || ",
-                    BinOp::BitAnd(_) => " & ",
-                    BinOp::BitOr(_) => " | ",
-                    BinOp::BitXor(_) => " ^ ",
-                    BinOp::Shl(_) => " >> ",
-                    BinOp::Shr(_) => " << ",
-                    BinOp::Lt(_) => " < ",
-                    BinOp::Gt(_) => " > ",
-                    BinOp::Le(_) => " <= ",
-                    BinOp::Ge(_) => " >= ",
-                    BinOp::Eq(_) => " == ",
-                    BinOp::Ne(_) => " != ",
-                    _ => "",
+                 match e.op {
+                    BinOp::Add(_) => { self.generated_code += " + " }
+                    BinOp::Sub(_) => { self.generated_code += " - " }
+                    BinOp::Mul(_) => { self.generated_code += " * " }
+                    BinOp::Div(_) => { self.generated_code += " / " }
+                    BinOp::Rem(_) => { self.generated_code += " % " }
+                    BinOp::And(_) => { self.generated_code += " && " }
+                    BinOp::Or(_) => { self.generated_code += " || " }
+                    BinOp::BitAnd(_) => { self.generated_code += " & " }
+                    BinOp::BitOr(_) => { self.generated_code += " | " }
+                    BinOp::BitXor(_) => { self.generated_code += " ^ " }
+                    BinOp::Shl(_) => { self.generated_code += " >> " }
+                    BinOp::Shr(_) => { self.generated_code += " << " }
+                    BinOp::Lt(_) => { self.generated_code += " < " }
+                    BinOp::Gt(_) => { self.generated_code += " > " }
+                    BinOp::Le(_) => { self.generated_code += " <= " }
+                    BinOp::Ge(_) => { self.generated_code += " >= " }
+                    BinOp::Eq(_) => { self.generated_code += " == " }
+                    BinOp::Ne(_) => { self.generated_code += " != " }
+                    _ => {
+                        panic!("Invalid binary operator");
+                    }
                 };
                 self.visit_expr(&e.right);
             }
@@ -398,31 +354,23 @@ impl<'a> Visit<'a> for EmuKernel {
 
                 // convert precision
                 if let Type::Path(ty) = *e.ty.clone() {
-                    let precision_conversion_prefix = String::from(match ty.path.segments[0].ident.to_string().as_ref() {
-                        "bool" => "(bool)",
-                        "f32" => "(float)",
-                        "i8" => "(char)",
-                        "i16" => "(short)",
-                        "i32" => "(int)",
-                        "i64" => "(long)",
-                        "u8" => "(uchar)",
-                        "u16" => "(ushort)",
-                        "u32" => "(uint)",
-                        "u64" => "(ulong)",
-                        _ => "",
-                    });
+                    let mut precision_conversion_prefix = String::from("(");
+                    precision_conversion_prefix += emu_to_opencl(&ty.path.segments[0].ident.to_string());
+                    precision_conversion_prefix += ")";
 
-                    is_precision_conversion = precision_conversion_prefix != "";
+                    is_precision_conversion = precision_conversion_prefix != "(null)";
                     
                     self.generated_code += precision_conversion_prefix.as_ref();
+                } else {
+                    panic!("Invalid type to cast to");
                 }
 
                 self.visit_expr(&e.expr);
                 
                 // convert units
-                if let Type::Path(ty) = *e.ty.clone() {
-                    if let Some(ty_prefix) = ty.path.segments[0].ident.to_string().chars().next() {
-                        if !is_precision_conversion {
+                if !is_precision_conversion {
+                    if let Type::Path(ty) = *e.ty.clone() {
+                        if let Some(ty_prefix) = ty.path.segments[0].ident.to_string().chars().next() {
                             self.generated_code += String::from(match ty_prefix.to_string().as_ref() {
                                 "Y" => "*10000000000",
                                 "Z" => "*1000000000",
@@ -444,28 +392,34 @@ impl<'a> Visit<'a> for EmuKernel {
                                 "a" => "*0.00000001",
                                 "z" => "*0.000000001",
                                 "y" => "*0.0000000001",
+                                "_" => "*1",
                                 _ => "*1",
                             }).as_ref();
+                        } else {
+                            panic!("Expected prefix for unit annotation");
                         }
                     }
-                    
                 }
             }
             Expr::Lit(e) => {
                 let e_lit = e.lit.clone();
-                if let Lit::Str(s) = e_lit {
-                    self.generated_code += &s.value();
-                } else if let Lit::Int(i) = e_lit {
+                if let Lit::Int(i) = e_lit {
                     self.generated_code += &i.value().to_string();
                 } else if let Lit::Float(f) = e_lit {
                     self.generated_code += &f.value().to_string();
                 } else if let Lit::Bool(b) = e_lit {
                     self.generated_code += if b.value { "true" } else { "false" }
+                } else {
+                    panic!("Invalid literal");
                 }
             }
             Expr::Path(e) => {
                 // get raw name
                 let raw_identifier_name = e.path.segments[0].ident.to_string();
+
+                if e.path.segments.len() != 1 {
+                    panic!("Invalid identifier");
+                }
 
                 // TODO remove the below and OPENCL_FUNCTIONS global constant
                 // // determine if this identifier is defined by the user or from OpenCL
@@ -501,10 +455,10 @@ impl<'a> Visit<'a> for EmuKernel {
                     _     => &raw_identifier_name,
                 };
             }
-            Expr::Break(e) => {
+            Expr::Break(_) => {
                 self.generated_code += "break";
             }
-            Expr::Continue(e) => {
+            Expr::Continue(_) => {
                 self.generated_code += "continue";
             }
             Expr::Return(e) => {
@@ -518,238 +472,533 @@ impl<'a> Visit<'a> for EmuKernel {
                 self.visit_expr(&e.expr);
                 self.generated_code += ")";
             }
-            _ => {}
+            _ => {
+                panic!("Invalid expression");
+            }
         }
     }
 }
 
-/// The `emu!` macro allows you to define a kernel in the Emu language that can later be executed by work-items
-#[proc_macro]
-pub fn emu(tokens: TokenStream) -> TokenStream {
-    // parse program
-    let mut program = parse_macro_input!(tokens as EmuProgram);
+struct EmuFunction {
+    name: String,
+    generated_code: String,
+    dimensionality_parameters: Vec<String>
+}
 
-    // iterate through kernels and generate code
-    let mut generated_code = String::new();
-
-    for mut kernel in program.kernels {
-        if kernel.generated_return_type == "" {
-            generated_code += "__kernel void ";
-        } else {
-            generated_code += match kernel.generated_return_type.as_str() {
-                "bool" => "bool",
-                "f32" => "float",
-                "i8" => "char",
-                "i16" => "short",
-                "i32" => "int",
-                "i64" => "long",
-                "u8" => "uchar",
-                "u16" => "ushort",
-                "u32" => "uint",
-                "u64" => "ulong",
-                _ => "float",
-            };
-            generated_code += " ";
+impl Parse for EmuFunction {
+    fn parse(input: ParseStream) -> Result<Self> {
+        // get "function" qualifier
+        let qualifier: Ident = input.parse()?;
+        if qualifier.to_string() != "function" {
+            panic!("Expected \"function\" at Emu function definition");
         }
-        generated_code += &kernel.name.to_string();
+
+        // get name
+        let name: Ident = input.parse()?;
+
+        // get parmeters
+        let content_parameters;
+        let _ = parenthesized!(content_parameters in input);
+        let punctuated_parameters: Punctuated<EmuFunctionParameter, Token![,]> = content_parameters.parse_terminated(EmuFunctionParameter::parse)?;
+        let parameters: Vec<EmuFunctionParameter> = punctuated_parameters
+            .pairs()
+            .map(|parameter_pair| parameter_pair.into_value())
+            .cloned()
+            .collect::<Vec<EmuFunctionParameter>>();
+
+        // get return type
+        let mut return_ty = EmuType::Null;
+        if input.lookahead1().peek(Ident) {
+            let return_literal: Ident = input.parse()?;
+            return_ty = emu_to_emu_type(&return_literal.to_string());
+            if let EmuType::Null = return_ty {
+                panic!("Invalid return type of Emu function");
+            }
+        }
+
+        // discard braces and documentation comments
+        let content_block;
+        let _ = braced!(content_block in input);
+        let _ = content_block.call(Attribute::parse_inner)?;
+
+        // get statements
+        let statements = content_block.call(Block::parse_within)?;
+
+        // get generated code from function
+        let mut generated_code = match return_ty {
+            EmuType::Null => String::from("__kernel "),
+            _ => String::new()
+        };
+
+        // generate return type
+        generated_code += emu_type_to_opencl(&return_ty);
+
+        // generate name
+        generated_code += " ";
+        generated_code += &name.to_string();
+
+        // generate parameters
         generated_code += " (";
-
-        for parameter in kernel.params.clone() {
-            generated_code += &parameter.address_space;
-            generated_code += " ";
-            generated_code += &parameter.ty;
-            generated_code += " ";
+        for parameter in &parameters {
+            generated_code += if parameter.is_vector { "__global " } else { "" };
+            generated_code += emu_type_to_opencl(&parameter.ty);
+            generated_code += if parameter.is_vector { "* " } else { " " };
             generated_code += &parameter.name;
-            generated_code += ", ";
+            generated_code += ",";
         }
-
-        // remove last comma if one was appended
-        if generated_code.ends_with(", ") {
-            generated_code.truncate(generated_code.len() - 2)
+        if !parameters.is_empty() {
+            generated_code.pop();
         }
-        generated_code += ") {";
+        generated_code += ") ";
 
-        // traverse AST of each statement of parsed kernel
-        // then, generate OpenCL code for body of kernel function from statements        
-        let kernel_statements = kernel.stmts.clone();
-        for statement in kernel_statements {
-            kernel.visit_stmt(&statement);
+        // generate body
+        generated_code += "{\n";
+        let mut body = EmuFunctionBody { generated_code: String::new(), dimensionality_parameters: Vec::new() };
+        for statement in statements {
+            body.visit_stmt(&statement);
         }
-        generated_code += &kernel.generated_code;
+        generated_code += &body.generated_code;
+        generated_code += "}\n";
 
-        generated_code += "}";
+        // look at statements to find which parameters contribute to dimensionality
+        let dimensionality_parameters = body.dimensionality_parameters;
+
+        Ok(EmuFunction {
+            name: name.to_string(),
+            generated_code: generated_code,
+            dimensionality_parameters: dimensionality_parameters
+        })
     }
-
-    // println!("{:?}", generated_code);
-
-    // generate output Rust code
-    let output = quote! {
-        const EMU : &'static str = #generated_code;
-    };
-
-    // return output converted to token stream
-    output.into()
 }
 
-/// Represents a parameter with three Strings; the coded name (e.g. - param_0 or param_1), the type, and whether or not it is a vector
-struct Parameter(String, String, bool);
+struct RustFunctionParameter {
+    is_vector: bool,
+    name: String,
+    ty: EmuType
+}
+
+struct RustFunctionDeclaration {
+    documentation: Vec<Attribute>,
+    is_pub: bool,
+    name: String,
+    parameters: Vec<RustFunctionParameter>
+}
+
+impl Parse for RustFunctionDeclaration {
+    fn parse(input: ParseStream) -> Result<Self> {
+        // parse for function documentation
+        let documentation = input.call(Attribute::parse_outer)?;
+
+        // parse for function declaration
+        let function: ForeignItemFn = input.parse()?;
+        let function_declaration: FnDecl = *function.decl;
+
+        // check if public
+        let mut is_pub = false;
+        match function.vis {
+            Visibility::Public(_) => { is_pub = true; },
+            Visibility::Inherited => { is_pub = false; },
+            _ => {
+                panic!("Unexpected qualifier for Rust function declaration");
+            }
+        };
+
+        // get name
+        let name = function.ident.to_string();
+
+        // TODO handle error for name that isn't a defined function
+
+        // ger parameters
+        let args: Vec<FnArg> = function_declaration.inputs.iter().map(|arg| arg.to_owned()).collect();
+        let mut parameters: Vec<RustFunctionParameter> = Vec::new();
+        for arg in args {
+            if let FnArg::Captured(captured_arg) = arg {
+                // get name of parameter
+                let mut name = String::new();
+                if let Pat::Ident(name_literal) = captured_arg.pat {
+                    name = name_literal.ident.to_string();
+                } else {
+                    panic!("Missing valid name of parameter in Rust function declaration");
+                }
+
+                if let Type::Reference(ty_reference) = captured_arg.ty {
+                    if let Some(_) = ty_reference.clone().lifetime {
+                        panic!("Lifetime not expected in parameter in Rust function declaration");
+                    }
+
+                    let is_mut = if let Some(_) = ty_reference.clone().mutability { true } else { false };
+
+                    let mut ty = EmuType::Null;
+                    let mut is_vector = false;
+                    if let Type::Path(ty_literal) = *ty_reference.elem {
+
+                        let raw_segments: Vec<String> = ty_literal.path.segments.iter().map(|segment| segment.ident.to_string()).collect();
+                        let segments: Vec<&str> = raw_segments.iter().map(|segment| segment.as_str()).collect();
+
+                        if segments.len() == 1 {
+                            match segments[0] {
+                                "Vec" => {
+                                    if let PathArguments::AngleBracketed(ty_parameter) = &ty_literal.path.segments[0].arguments {
+                                        if !ty_parameter.colon2_token.is_none() || ty_parameter.args.len() != 1 {
+                                            panic!("Invalid type of parameter in Rust function declaration");
+                                        } else {
+                                            if let GenericArgument::Type(ty_parameter_ty) = ty_parameter.args[0].clone() {
+                                                if let Type::Path(ty_parameter_literal) = ty_parameter_ty {
+                                                    if ty_parameter_literal.path.segments.len() != 1 {
+                                                        panic!("Invalid type of parameter in Rust function declaration");
+                                                    } else {
+                                                        ty = emu_to_emu_type(&ty_parameter_literal.path.segments[0].ident.to_string());
+                                                        if let EmuType::Null = ty {
+                                                            panic!("Invalid type of parameter in Rust function declaration");
+                                                        }
+                                                        is_vector = true;
+                                                    }
+                                                } else {
+                                                    panic!("Invalid type of parameter in Rust function declaration");
+                                                }
+                                            } else {
+                                                panic!("Invalid type of parameter in Rust function declaration");
+                                            }
+                                        }
+                                    } else {
+                                        panic!("Invalid type of parameter in Rust function declaration");
+                                    }
+                                }
+                                _ => {
+                                    is_vector = false;
+                                    ty = emu_to_emu_type(segments[0]);
+
+                                    if let EmuType::Null = ty {
+                                        panic!("Invalid type of parameter in Rust function declaration");
+                                    }
+                                }
+                            }
+                        } else {
+                            panic!("Invalid type of parameter in Rust function declaration");
+                        }
+
+                        if is_vector != is_mut {
+                            if is_vector {
+                                panic!("Expected mutable reference to Vec in parameters in Rust function declaration");
+                            } else {
+                                panic!("Expected immutable reference to scalar in parameters in Rust function declaration");
+                            }
+                        }
+                    } else {
+                        panic!("Invalid type of parameter in Rust function declaration");
+                    }
+
+                    parameters.push(RustFunctionParameter {
+                        is_vector: is_vector,
+                        name: name,
+                        ty: ty
+                    });
+                } else {
+                    panic!("Expected references in parameters in Rust function declaration");
+                }
+            } else {
+                panic!("Expected explicit parameters in Rust function declaration");
+            }
+        }
+
+        Ok(RustFunctionDeclaration {
+            documentation: documentation,
+            is_pub: is_pub,
+            name: name,
+            parameters: parameters
+        })
+    }
+}
+
+struct EmuItems {
+    emu_functions: Vec<EmuFunction>,
+    rust_function_declarations: Vec<RustFunctionDeclaration>
+}
+
+impl Parse for EmuItems {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let mut emu_functions = vec![];
+        let mut rust_function_declarations = vec![];
+
+        // consume next item
+        while !input.is_empty() {
+            // determine what kind of item to consume
+            let lookahead = input.lookahead1();
+
+            if lookahead.peek(Ident) {
+                // handle Emu function
+                let new_emu_function = input.call(EmuFunction::parse)?;
+                emu_functions.push(new_emu_function);
+            } else {
+                // handle Rust function declaration
+                // throw error if Rust function declaration not found
+                let new_rust_function_declaration = input.call(RustFunctionDeclaration::parse)?;
+                rust_function_declarations.push(new_rust_function_declaration);
+            }
+        }
+
+        Ok(EmuItems {
+            emu_functions: emu_functions,
+            rust_function_declarations: rust_function_declarations
+        })
+    }
+}
 
 #[proc_macro]
-pub fn build(tokens: TokenStream) -> TokenStream {
-    let raw_input = tokens.to_string();
-    let input = raw_input.split_whitespace().collect::<Vec<&str>>();
+/// Accepts a chunk of Emu code and generates Rust functions
+pub fn emu(tokens: TokenStream) -> TokenStream {
+    // parse Emu items
+    let EmuItems { emu_functions, rust_function_declarations } = parse_macro_input!(tokens as EmuItems);
 
-    // get name
-    let kernel_name = input[0];
-    let kernel_name_identifier = Ident::new(kernel_name, syn::export::Span::call_site());
+    // get program code from concatenate generated code from each Emu function
+    let mut program = String::new();
+    for emu_function in &emu_functions {
+        program += emu_function.generated_code.as_str();
+    }
 
-    let mut parameters: Vec<Parameter> = vec![];
-    let mut token_index = 0;
-    let mut token_vector_index = 0;
-    for token in &input {
-        if token_index > 0 && input[token_index] != "[" && input[token_index] != "]" {
-            if input[token_index - 1] == "[" {
-                parameters.push(Parameter("param_".to_owned() + &token_vector_index.to_string(), input[token_index].to_string(), true))
-            } else {
-                parameters.push(Parameter("param_".to_owned() + &token_vector_index.to_string(), input[token_index].to_string(), false))
+    // generate code for each Rust function
+    let mut functions = vec![];
+    for function_declaration in rust_function_declarations {
+        // get parameters that contribute to dimensionality of function from EMU
+        let mut dimensionality_parameters = vec![];
+        for emu_function in &emu_functions {
+            if emu_function.name == function_declaration.name {
+                dimensionality_parameters = emu_function.dimensionality_parameters.clone();
             }
-            token_vector_index += 1;
         }
 
-        token_index += 1;
-    }
+        // generate documentation
+        let documentation = &function_declaration.documentation;
 
-    let mut params = vec![];
+        // generate signature
+        let maybe_pub = if function_declaration.is_pub { quote! { pub } } else { quote! {} };
+        let name = Ident::new(&function_declaration.name, Span::call_site());
+        let mut parameters = vec![];
 
-    let mut params_index = 0;
-    let mut new_param_index = 0;
-    let mut result_param = "";
-    let mut result_param_name = String::new();
-    for param_type in &input {
-        if params_index > 1 && input[params_index] != "[" && input[params_index] != "]" {
-            if input[params_index - 1] == "[" {
-                result_param = input[params_index];
-                result_param_name = String::from("param_");
-                result_param_name += &new_param_index.to_string();
+        // generate buffer loading
+        let mut get_buffers = vec![];
 
-                // parameter is vector
-                let new_param_name = Ident::new((String::from("param_") + &new_param_index.to_string()).as_str(), syn::export::Span::call_site());
-                let new_param_type = Ident::new(input[params_index], syn::export::Span::call_site());
-                params.push(quote! { #new_param_name : Vec< #new_param_type > })
-            } else {
-                // parameter is scalar
-                let new_param_name = Ident::new((String::from("param_") + &new_param_index.to_string()).as_str(), syn::export::Span::call_site());
-                let new_param_type = Ident::new(input[params_index], syn::export::Span::call_site());
-                params.push(quote! { #new_param_name : #new_param_type })
+        // generate buffer reading
+        let mut read_buffers = vec![];
+
+        // generate creation of kernel
+        let kernel_name = function_declaration.name.as_str();
+        let mut dimensions = vec![];
+        let mut kernel_arguments = vec![];
+
+        for parameter in function_declaration.parameters {
+            // function signature
+            let parameter_name = Ident::new(&parameter.name, Span::call_site());
+            let ty = match (&parameter.ty, &parameter.is_vector) {
+                (EmuType::Bool, true) => quote! { &mut Vec<bool> },
+                (EmuType::Int8, true) => quote! { &mut Vec<i8> },
+                (EmuType::Int16, true) => quote! { &mut Vec<i16> },
+                (EmuType::Int32, true) => quote! { &mut Vec<i32> },
+                (EmuType::Int64, true) => quote! { &mut Vec<i64> },
+                (EmuType::UInt8, true) => quote! { &mut Vec<u8> },
+                (EmuType::UInt16, true) => quote! { &mut Vec<u16> },
+                (EmuType::UInt32, true) => quote! { &mut Vec<u32> },
+                (EmuType::UInt64, true) => quote! { &mut Vec<u64> },
+                (EmuType::Float32, true) => quote! { &mut Vec<f32> },
+                (EmuType::Bool, false) => quote! { & bool },
+                (EmuType::Int8, false) => quote! { & i8 },
+                (EmuType::Int16, false) => quote! { & i16 },
+                (EmuType::Int32, false) => quote! { & i32 },
+                (EmuType::Int64, false) => quote! { & i64 },
+                (EmuType::UInt8, false) => quote! { & u8 },
+                (EmuType::UInt16, false) => quote! { & u16 },
+                (EmuType::UInt32, false) => quote! { & u32 },
+                (EmuType::UInt64, false) => quote! { & u64 },
+                (EmuType::Float32, false) => quote! { & f32 },
+                _ => quote! { } // this case should never occur
+            };
+
+            parameters.push(quote! { #parameter_name : #ty });
+
+            // buffer getting
+            if parameter.is_vector {
+                let buffer_ty = match &parameter.ty {
+                    EmuType::Bool => quote! { bool },
+                    EmuType::Int8 => quote! { i8 },
+                    EmuType::Int16 => quote! { i16 },
+                    EmuType::Int32 => quote! { i32 },
+                    EmuType::Int64 => quote! { i64 },
+                    EmuType::UInt8 => quote! { u8 },
+                    EmuType::UInt16 => quote! { u16 },
+                    EmuType::UInt32 => quote! { u32 },
+                    EmuType::UInt64 => quote! { u64 },
+                    EmuType::Float32 => quote! { f32 },
+                    _ => quote! { } // this case should never occur
+                };
+                let buffer_name = Ident::new(&(parameter.name.clone() + "_buffer"), Span::call_site());
+                let buffer_source = Ident::new(&parameter.name, Span::call_site());
+
+                get_buffers.push(quote! {
+                    // TODO look at cache in EMU for applicable instance
+                    let #buffer_name: Buffer< #buffer_ty > = Buffer::builder()
+                        .queue(queue.clone())
+                        .flags(flags::MEM_READ_WRITE)
+                        .len(#buffer_source .len())
+                        .copy_host_slice(#buffer_source)
+                        .build()?;
+                });
             }
-            new_param_index += 1;
+
+            // kernel creation
+            if parameter.is_vector && dimensionality_parameters.contains(&parameter.name) {
+                let dimension = Ident::new(&parameter.name, Span::call_site());
+
+                dimensions.push(quote! {
+                    #dimension .len()
+                });
+            }
+            let maybe_ref = if parameter.is_vector { quote! { & } } else { quote! {  } };
+            let argument = match parameter.is_vector {
+                true => Ident::new(&(parameter.name.clone() + "_buffer"), Span::call_site()),
+                false => Ident::new(&parameter.name, Span::call_site()),
+            };
+            kernel_arguments.push(quote! {
+                .arg(#maybe_ref #argument)
+            });
+
+            // buffer reading
+            // TODO only read back buffers that have been changed
+            if parameter.is_vector {
+                let buffer_name = Ident::new(&(parameter.name.clone() + "_buffer"), Span::call_site());
+                let buffer_target = Ident::new(&parameter.name, Span::call_site());
+
+                read_buffers.push(quote! {
+                    #buffer_name .cmd()
+                        .queue(&queue)
+                        .offset(0)
+                        .read(#buffer_target)
+                        .enq()?;
+                })
+            }
         }
 
-        params_index += 1;
-    }
+        // generate Rust code for function
+        functions.push(quote! {
+            #(#documentation)*
 
-    let result_param_type = Ident::new(result_param, syn::export::Span::call_site());
-    let result_param_identifier = Ident::new(&result_param_name, syn::export::Span::call_site());
+            #maybe_pub fn #name ( #(#parameters),* ) -> ocl::Result<()> {
 
-    let mut params_for_kernel_builder = vec![];
-    let mut param_for_kernel_builder_index = 0;
-    for parameter in &parameters {
-        let mut param_for_kernel_builder = String::from(parameter.0.as_str());
-        if parameter.2 {
-            param_for_kernel_builder += "_buffer";
-        }
-        let param_for_kernel_builder_index_identifier = Ident::new(&param_for_kernel_builder, syn::export::Span::call_site());
-        params_for_kernel_builder.push(quote! { .arg(& #param_for_kernel_builder_index_identifier ) });
-        param_for_kernel_builder_index += 1;
-    }
+                use ocl::{flags, Platform, Device, Context, Queue, Program, Buffer, Kernel};
 
-    let mut buffers = vec![];
-    let mut result_buffer_name = String::new();
-    for parameter in &parameters {
-        if parameter.2 {
-            let mut buffer_name = String::from(parameter.0.as_str());
-            buffer_name += "_buffer";
-            if result_buffer_name == "" { result_buffer_name = buffer_name.clone() }
-            let buffer_type = String::from(parameter.1.as_str());
-            let buffer_source = String::from(parameter.0.as_str());
-            let buffer_name_identifier = Ident::new(&buffer_name, syn::export::Span::call_site());
-            let buffer_type_identifier = Ident::new(&buffer_type, syn::export::Span::call_site());
-            let buffer_source_identifier = Ident::new(&buffer_source, syn::export::Span::call_site());
-            buffers.push(quote! {
-                let #buffer_name_identifier = Buffer::< #buffer_type_identifier >::builder()
-                    .queue(queue.clone())
-                    .flags(flags::MEM_READ_WRITE)
-                    .len(#buffer_source_identifier .len())
-                    .copy_host_slice(& #buffer_source_identifier)
+                // get platform
+                // get device from platform
+                // get context from platform, device
+                // get queue from context, device
+                // TODO look at cache in EMU for applicable instances
+                let platform = Platform::default();
+                let device = Device::first(platform)?;
+                let context = Context::builder()
+                    .platform(platform)
+                    .devices(device.clone())
                     .build()?;
-            })
-        }
+                let queue = Queue::new(&context, device, None)?;
+
+                // get program
+                // TODO look at cache in EMU for applicable instance
+                let program = Program::builder()
+                    .devices(device)
+                    .src( #program )
+                    .build(&context)?;
+
+                // get buffers
+                #(#get_buffers)*
+
+                // get dimensions
+                let dimensions = [ #(#dimensions),* ];
+
+                // create kernel from program, queue, dimensions, arguments/buffers
+                let kernel = Kernel::builder()
+                    .program(&program)
+                    .name(#kernel_name)
+                    .queue(queue.clone())
+                    .global_work_size(dimensions)
+                    #(#kernel_arguments)*
+                    .build()?;
+
+                // run kernel
+                unsafe {
+                    kernel.cmd()
+                        .queue(&queue)
+                        .global_work_offset(kernel.default_global_work_offset())
+                        .global_work_size(dimensions)
+                        .local_work_size(kernel.default_local_work_size())
+                        .enq()?;
+                }
+
+                // TODO read buffers
+                // TODO ensure generated code is correct
+                #(#read_buffers)*
+
+                Ok(())
+            }
+        });
     }
-    let result_buffer = Ident::new(&result_buffer_name, syn::export::Span::call_site());
 
     // generate output Rust code
     let output = quote! {
-        fn #kernel_name_identifier ( #(#params),* ) -> ocl::Result<Vec< #result_param_type >>  {
-            // (1) Define which platform and device(s) to use. Create a context,
-            // queue, and program then define some dims (compare to step 1 above).
-            let platform = Platform::default();
-            let device = Device::first(platform)?;
-            let context = Context::builder()
-                .platform(platform)
-                .devices(device.clone())
-                .build()?;
-            let program = Program::builder()
-                .devices(device)
-                .src(EMU)
-                .build(&context)?;
-            let queue = Queue::new(&context, device, None)?;
-            let dims = #result_param_identifier .len();
-            // [NOTE]: At this point we could manually assemble a ProQue by calling:
-            // `ProQue::new(context, queue, program, Some(dims))`. One might want to
-            // do this when only one program and queue are all that's needed. Wrapping
-            // it up into a single struct makes passing it around simpler.
-
-            // (2) Create a `Buffer`:
-            #(#buffers)*
-
-            // (3) Create a kernel with arguments matching those in the source above:
-            let kernel = Kernel::builder()
-                .program(&program)
-                .name(#kernel_name)
-                .queue(queue.clone())
-                .global_work_size(dims)
-                #(#params_for_kernel_builder)*
-                .build()?;
-
-            // (4) Run the kernel (default parameters shown for demonstration purposes):
-            unsafe {
-                kernel.cmd()
-                    .queue(&queue)
-                    .global_work_offset(kernel.default_global_work_offset())
-                    .global_work_size(dims)
-                    .local_work_size(kernel.default_local_work_size())
-                    .enq()?;
-            }
-
-            // (5) Read results from the device into a vector (`::block` not shown):
-            let mut vec = vec![0 as #result_param_type; dims as usize];
-            #result_buffer .cmd()
-                .queue(&queue)
-                .offset(0)
-                .read(&mut vec)
-                .enq()?;
-
-            Ok(vec)
-        }
+        #(#functions)*
     };
 
-    // println!("{:?}", output.to_string());
+    // println!("{}", output);
 
     // return output converted to token stream
     output.into()
 }
 
-// TODO
-// precision conversions => https://www.khronos.org/registry/OpenCL/sdk/1.0/docs/man/xhtml/convert_T.html
-// vectors => https://github.com/rsnemmen/OpenCL-examples/blob/master/RayTraced_Quaternion_Julia-Set_Example/qjulia_kernel.cl
-// ensure identifier don't get mistaken for unsupported OpenCL keywords
+fn emu_to_emu_type(emu: &str) -> EmuType {
+    match emu {
+        "bool" => EmuType::Bool,
+        "i8" => EmuType::Int8,
+        "i16" => EmuType::Int16,
+        "i32" => EmuType::Int32,
+        "i64" => EmuType::Int64,
+        "u8" => EmuType::UInt8,
+        "u16" => EmuType::UInt16,
+        "u32" => EmuType::UInt32,
+        "u64" => EmuType::UInt64,
+        "f32" => EmuType::Float32,
+        _ => EmuType::Null
+    }
+}
+
+fn emu_type_to_opencl(emu_type: &EmuType) -> &str {
+    match emu_type {
+        EmuType::Bool => "bool",
+        EmuType::Int8 => "char",
+        EmuType::Int16 => "short",
+        EmuType::Int32 => "int",
+        EmuType::Int64 => "long",
+        EmuType::UInt8 => "uchar",
+        EmuType::UInt16 => "ushort",
+        EmuType::UInt32 => "uint",
+        EmuType::UInt64 => "ulong",
+        EmuType::Float32 => "float",
+        _ => "void"
+    }
+}
+
+fn emu_to_opencl(emu: &str) -> &str {
+    match emu {
+        "bool" => "bool",
+        "i8" => "char",
+        "i16" => "short",
+        "i32" => "int",
+        "i64" => "long",
+        "u8" => "uchar",
+        "u16" => "ushort",
+        "u32" => "uint",
+        "u64" => "ulong",
+        "f32" => "float",
+        _ => "null"
+    }
+}
+
+// TODO don't clone stuff
+
+// TODO report errors
+// TODO ignore reserved keywords
