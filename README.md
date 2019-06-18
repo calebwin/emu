@@ -1,4 +1,4 @@
-# Emu: a programming language for GPUs
+# The Emu Programming Language
 
 ![a picture of a real-world emu](https://i.imgur.com/8CeUiar.jpg) 
 
