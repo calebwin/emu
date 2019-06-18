@@ -1,6 +1,7 @@
-# The Emu Programming Language
-
 ![a picture of a real-world emu](https://i.imgur.com/8CeUiar.jpg) 
+
+# The Emu Programming Language
+![](https://img.shields.io/crates/d/em.svg) ![](https://img.shields.io/crates/v/em.svg) ![](https://img.shields.io/crates/l/em.svg)
 
 Emu is a high-level language for programming GPUs.
 
