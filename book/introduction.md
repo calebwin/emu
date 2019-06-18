@@ -63,4 +63,4 @@ emu! {
 }
 ```
 
-Now you're probably wondering - how do I actually run these functions? This question is answered in [the chapter on execution](https://github.com/calebwin/emu/blob/master/book/execution.md). The next few chapters will also go into more details on what you can have in the parameters and in the body of a function in the Emu language.
+Now you're probably wondering - how do I actually run these functions? This question is answered in [the chapter on execution](https://github.com/calebwin/emu/blob/master/book/execution.md#the-emu-book). The next few chapters will also go into more details on what you can have in the parameters and in the body of a function in the Emu language.
