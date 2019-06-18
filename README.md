@@ -10,14 +10,14 @@ Emu is a high-level language for programming GPUs.
 emu! {
     // Multiply any element in given data by given coefficient
     function multiply(data [f32], coeff f32) {
-        data[...] *= coeff;
+        data[..] *= coeff;
     }
     
     // Apply sigmoid function to any element in given data
     function sig(data [f32]) {
         let elem: f32 = data[...];
         let res: f32 = 1 / (1 + E ^ -elem);
-        data[...] = res;
+        data[..] = res;
     }
 
     /// Multiplies each element in given data by given coefficient
