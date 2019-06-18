@@ -1,42 +1,43 @@
-<!--![a picture of a real-world emu](https://i.imgur.com/jraDjSK.jpg)-->
-![a picture of a real-world emu](https://i.imgur.com/8CeUiar.jpg)
+# Emu: a programming language for GPUs
 
-Emu is a high-level language for programming GPUs. Unlike other languages such as OpenCL or Halide that are designed for embedding in C or C++, Emu is designed for embedding in Rust. It provides a single procedural macro for writing functions. <!--(As of now, these functions get automatically translated to clean, compact OpenCL code at compile time and stored in the `EMU` global constant, which can then be run using any binding to OpenCL such as [`ocl`](https://github.com/cogciprocate/ocl) or [`rust-opencl`](https://github.com/luqmana/rust-opencl).--> The macro translates the functions at compile time into lower-level code so that they can be run on the GPU.
+![a picture of a real-world emu](https://i.imgur.com/8CeUiar.jpg) 
 
-<!--As a high-level language for numerical computing, Emu is focused on providing useful features specifically for doing numerical (and scientific) computation such as built-in mathematical and physical constants, unit annotation and implicit conversion.--->
-Emu also provides several features that aim to make programming GPUs more accessible such as built-in mathematical and physical constants, unit annotation and implicit conversion. Here are some example functions...
+Emu is a high-level language for programming GPUs.
+
+Emu - unlike OpenCL/CUDA/Halide/Futhark - is embedded in Rust and takes advantage of the ecosystem (cargo build, cargo test, cargo doc, rustc, crates.io, docs.rs) in ways that let it provide a far more streamlined system for programming GPUs.
+
+Emu makes Rust ideal (compared to Python/Julia/C++) for writing minimalistic programs that do robust, data-intensive computation.
+
 ```rust
 emu! {
-	// more particles
-	more_particles(num_particles u32, num_moles u32) u32 {
-		return num_particles + num_moles * L;
-	}
+    // Multiply any element in given data by given coefficient
+    function multiply(data [f32], coeff f32) {
+        data[...] *= coeff;
+    }
+    
+    // Apply sigmoid function to any element in given data
+    function sig(data [f32]) {
+        let elem: f32 = data[...];
+        let res: f32 = 1 / (1 + E ^ -elem);
+        data[...] = res;
+    }
 
-	// moves particles
-	move_particles(global_particles_x [f32], global_particles_y [f32], global_particles_z [f32]) {
-		global_particles_z[get_global_id(0)] += 7.3e1 as nm;
-		global_particles_x[get_global_id(0)] += 2 as cm;
-		global_particles_y[get_global_id(0)] += 6 as cm;
-	}
-	
-	// moves particles in circle
-	rotate_particles(global_particles_r [f32]) {
-		global_particles_r[get_global_id(0)] += 7.5 * TAU;
-	}
-
-	// multiplies 2 matrices
-	// n is the dimension of the matrices
-	// a and b are the matrices to be multiplied, c is the result
-	multiply_matrices(n i32, global_a [f32], global_b [f32], global_c [f32]) {
-		// indices of cells to multiply
-		let i: i32 = get_global_id(0);
-		let j: i32 = get_global_id(1);
-
-		// execute step of multiplication
-		for k in 0..n {
-			global_c[i * n + j] += global_a[i * n + k] * global_b[k * n + j];
-		}
-	}
+    /// Multiplies each element in given data by given coefficient
+    fn multiply(data: &mut Vec<f32>, coeff: &f32);
+    /// Applies sigmoid to each element in given data
+    fn sig(data: &mut Vec<f32>);
 }
 ```
- To get started programming GPUs with Emu, check out [**the book**](https://github.com/calebwin/emu/tree/master/book#the-emu-book), [**the examples**](https://github.com/calebwin/emu/tree/master/examples), and [**the crate**](https://crates.io/crates/em) itself.
+
+```rust
+fn main() {
+    // Vector of data to be operated on
+    let mut my_data = vec![0.9, 3.8, 3.9, 8.2, 2.5];
+    
+    // Multiply data by 10 and take sigmoid
+    multiply(&mut my_data, &10.0)
+    sig(&mut my_data);
+}
+```
+
+To get started programming GPUs with Emu, check out [**the book**](https://github.com/calebwin/emu/tree/master/book#the-emu-book), [**the examples**](https://github.com/calebwin/emu/tree/master/examples), the showcase, the tutorials, and [**the crate**](https://crates.io/crates/em) itself.
