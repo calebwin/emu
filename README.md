@@ -4,10 +4,6 @@
 
 Emu is a high-level language for programming GPUs.
 
-Emu - unlike OpenCL/CUDA/Halide/Futhark - is embedded in Rust and takes advantage of the ecosystem (cargo build, cargo test, cargo doc, rustc, crates.io, docs.rs) in ways that let it provide a far more streamlined system for programming GPUs.
-
-Emu makes Rust ideal (compared to Python/Julia/C++) for writing minimalistic programs that do robust, data-intensive computation.
-
 ```rust
 emu! {
     // Multiply any element in given data by given coefficient
@@ -28,7 +24,7 @@ emu! {
     fn sig(data: &mut Vec<f32>);
 }
 ```
-
+Emu - unlike OpenCL/CUDA/Halide/Futhark - is embedded in Rust and takes advantage of the ecosystem (cargo build, cargo test, cargo doc, rustc, crates.io, docs.rs) in ways that let it provide a far more streamlined system for programming GPUs. Emu makes Rust ideal (compared to Python/Julia/C++) for writing minimalistic programs that do robust, data-intensive computation.
 ```rust
 fn main() {
     // Vector of data to be operated on
