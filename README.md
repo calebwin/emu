@@ -5,6 +5,8 @@
 Emu is a high-level language for programming GPUs.
 
 ```rust
+// The "emu!" macro accepts a chunk of Emu code and
+// generates Rust functions that can be called to perform computation on the GPU
 emu! {
     // Multiply any element in given data by given coefficient
     function multiply(data [f32], coeff f32) {
