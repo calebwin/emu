@@ -1,3 +1,5 @@
+# Emu
+
 ![a picture of a real-world emu](https://i.imgur.com/8CeUiar.jpg)
 <!--# The Emu Programming Language-->
 [![](https://img.shields.io/crates/d/em.svg)](https://crates.io/crates/em) [![](https://img.shields.io/crates/v/em.svg)](https://crates.io/crates/em) [![](https://img.shields.io/crates/l/em.svg)](https://crates.io/crates/em)
@@ -5,6 +7,7 @@
 Emu is a high-level language for programming GPUs.
 
 ```rust
+
 // The "emu!" macro accepts a chunk of Emu code and
 // generates Rust functions that can be called to perform computation on the GPU
 emu! {
@@ -25,9 +28,11 @@ emu! {
     /// Applies sigmoid to each element in given data
     fn sig(data: &mut Vec<f32>);
 }
+
 ```
 Emu (unlike OpenCL/CUDA/Halide/Futhark) is embedded in Rust. This lets it take advantage of the ecosystem (cargo build, cargo test, cargo doc, rustc, crates.io, docs.rs) in ways that let it provide a far more streamlined system for programming GPUs. And consequently, Emu makes Rust ideal - compared to Python/Julia/C++ - for writing minimalistic programs that do robust, data-intensive computation.
 ```rust
+
 fn main() {
     // Vector of data to be operated on
     let mut my_data = vec![0.9, 3.8, 3.9, 8.2, 2.5];
@@ -36,6 +41,7 @@ fn main() {
     multiply(&mut my_data, &10.0)
     sig(&mut my_data);
 }
+
 ```
 
 To get started programming GPUs with Emu, check out [**the book**](https://github.com/calebwin/emu/tree/master/book#the-emu-book), [**the examples**](https://github.com/calebwin/emu/tree/master/examples), and [**the crate**](https://crates.io/crates/em) itself.
