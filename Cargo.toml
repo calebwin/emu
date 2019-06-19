@@ -8,6 +8,7 @@ edition = "2018"
 
 homepage = "https://calebwin.github.io/emu/"
 repository = "https://github.com/calebwin/emu"
+documentation = "https://github.com/calebwin/emu/tree/master/book"
 readme = "README.md"
 
 keywords = ["emu", "gpu", "opencl", "gpgpu", "language"]

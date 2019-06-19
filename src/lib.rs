@@ -2,7 +2,7 @@
 
 // useful output gets printed when debug is true
 // debug should be false for production builds
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 // for generating Rust
 #[macro_use]
@@ -1046,6 +1046,9 @@ fn emu_type_prefix_to_opencl(prefix: &str) -> &str {
 
 // TODO don't clone stuff
 
+// TODO report OpenCL runtime errors
 // TODO report errors with Span instead of panic! when feature becomes stable
 // TODO define reserved keywords and throw error when used for function name, parameter name, variable name
 // TODO document all functions, constants that are built in
+// TODO define procedural macro for creating caches of data
+// TODO make generated functions look at cache before creating new instances of data
