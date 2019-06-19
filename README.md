@@ -1,10 +1,20 @@
-# Emu
-
-![a picture of a real-world emu](https://i.imgur.com/8CeUiar.jpg)
+<!--![a picture of a real-world emu](https://i.imgur.com/8CeUiar.jpg)-->
 <!--# The Emu Programming Language-->
 [![](https://img.shields.io/crates/d/em.svg)](https://crates.io/crates/em) [![](https://img.shields.io/crates/v/em.svg)](https://crates.io/crates/em) [![](https://img.shields.io/crates/l/em.svg)](https://crates.io/crates/em)
 
-Emu is a high-level language for programming GPUs.
+# Emu is a language for programming GPUs
+
+But unlike OpenCL/CUDA/Halide/Futhark, Emu is embedded in Rust. This lets it take advantage of the ecosystem in ways...
+- `cargo build` for importing functions
+- `cargo test` for testing functions
+- `cargo doc` for documenting functions
+- `rustc` for validating and parsing function code
+- `rustc` for verifying safe data transfer to GPU
+- `rustc` for familiar error reporting
+- crates.io for hosting function code
+- docs.rs for hosting function documentation
+
+...that let it provide a far more streamlined system for programming GPUs. Consequently, Emu makes Rust ideal - compared to Python/Julia/C++ - for writing minimalistic programs that do robust, data-intensive computation.
 
 ```rust
 
@@ -24,13 +34,12 @@ emu! {
     }
 
     /// Multiplies each element in given data by given coefficient
-    fn multiply(data: &mut Vec<f32>, coeff: &f32);
+    pub fn multiply(data: &mut Vec<f32>, coeff: &f32);
     /// Applies sigmoid to each element in given data
-    fn sig(data: &mut Vec<f32>);
+    pub fn sig(data: &mut Vec<f32>);
 }
 
 ```
-Emu (unlike OpenCL/CUDA/Halide/Futhark) is embedded in Rust. This lets it take advantage of the ecosystem (cargo build, cargo test, cargo doc, rustc, crates.io, docs.rs) in ways that let it provide a far more streamlined system for programming GPUs. And consequently, Emu makes Rust ideal - compared to Python/Julia/C++ - for writing minimalistic programs that do robust, data-intensive computation.
 ```rust
 
 fn main() {
