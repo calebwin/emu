@@ -23,11 +23,13 @@ But unlike OpenCL/CUDA/Halide/Futhark, Emu is embedded in Rust. This lets it tak
 emu! {
 
     // Multiply any element in given data by given coefficient
+    // Data and coefficient must be floats
     function multiply(data [f32], coeff f32) {
         data[..] *= coeff;
     }
     
     // Apply sigmoid function to any element in given data
+    // Data must be floats
     function sig(data [f32]) {
         let elem: f32 = data[..];
         let res: f32 = 1 / (1 + pow(E, -elem));
