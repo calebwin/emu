@@ -11,8 +11,8 @@ But unlike OpenCL/CUDA/Halide/Futhark, Emu is embedded in Rust. This lets it tak
 - `rustc` for validating and parsing function code
 - `rustc` for verifying safe data transfer to GPU
 - `rustc` for familiar error reporting
-- crates.io for hosting function code
-- docs.rs for hosting function documentation
+- `crates.io` for hosting function code
+- `docs.rs` for hosting function documentation
 
 ...that let it provide a far more streamlined system for programming GPUs. Consequently, Emu makes Rust ideal - compared to Python/Julia/C++ - for writing minimalistic programs that do robust, data-intensive computation.
 
