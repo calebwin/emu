@@ -1,6 +1,6 @@
 <!--![a picture of a real-world emu](https://i.imgur.com/8CeUiar.jpg)-->
 <!--# The Emu Programming Language-->
-[![](https://img.shields.io/crates/d/em.svg)](https://crates.io/crates/em) [![](https://img.shields.io/crates/v/em.svg)](https://crates.io/crates/em) [![](https://img.shields.io/crates/l/em.svg)](https://crates.io/crates/em)
+<!--[![](https://img.shields.io/crates/d/em.svg)](https://crates.io/crates/em) [![](https://img.shields.io/crates/v/em.svg)](https://crates.io/crates/em) [![](https://img.shields.io/crates/l/em.svg)](https://crates.io/crates/em)-->
 
 # Emu is a language for programming GPUs
 
