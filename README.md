@@ -29,8 +29,8 @@ emu! {
     
     // Apply sigmoid function to any element in given data
     function sig(data [f32]) {
-        let elem: f32 = data[...];
-        let res: f32 = 1 / (1 + E ^ -elem);
+        let elem: f32 = data[..];
+        let res: f32 = 1 / (1 + pow(E, -elem));
         data[..] = res;
     }
 
