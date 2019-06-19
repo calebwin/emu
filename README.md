@@ -33,14 +33,16 @@ emu! {
         let res: f32 = 1 / (1 + pow(E, -elem));
         data[..] = res;
     }
-
+```
+```rust
     /// Multiplies each element in given data by given coefficient
     pub fn multiply(data: &mut Vec<f32>, coeff: &f32);
     /// Applies sigmoid to each element in given data
     pub fn sig(data: &mut Vec<f32>);
     
 }
-
+```
+```rust
 fn main() {
     // Vector of data to be operated on
     let mut my_data = vec![0.9, 3.8, 3.9, 8.2, 2.5];
