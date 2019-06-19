@@ -21,6 +21,7 @@ But unlike OpenCL/CUDA/Halide/Futhark, Emu is embedded in Rust. This lets it tak
 // The "emu!" macro accepts a chunk of Emu code and
 // generates Rust functions that can be called to perform computation on the GPU
 emu! {
+
     // Multiply any element in given data by given coefficient
     function multiply(data [f32], coeff f32) {
         data[..] *= coeff;
@@ -37,10 +38,8 @@ emu! {
     pub fn multiply(data: &mut Vec<f32>, coeff: &f32);
     /// Applies sigmoid to each element in given data
     pub fn sig(data: &mut Vec<f32>);
+    
 }
-
-```
-```rust
 
 fn main() {
     // Vector of data to be operated on
