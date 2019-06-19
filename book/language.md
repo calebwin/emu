@@ -1,3 +1,8 @@
+# Table of contents
+- Chapter 1 - [Language](https://github.com/calebwin/emu/edit/master/book/language.md#table-of-contents)
+- Chapter 2 - [Holes](https://github.com/calebwin/emu/edit/master/book/holes.md#table-of-contents)
+- Chapter 3 - [Numbers](https://github.com/calebwin/emu/edit/master/book/numbers.md#table-of-contents)
+
 # Language
 The Emu language comes with a bunch of constructs that should be familiar to you if you have programmed in a decently popular language before.
 - If/Else statements
