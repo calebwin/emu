@@ -1,5 +1,9 @@
 #![recursion_limit="256"]
 
+// useful output gets printed when debug is true
+// debug should be false for production builds
+const DEBUG: bool = true;
+
 // for generating Rust
 #[macro_use]
 extern crate quote;
@@ -155,6 +159,10 @@ impl<'a> Visit<'a> for EmuFunctionBody {
                 // visit all statements with expressions that end in semicolons
                 self.visit_expr(e);
                 self.generated_code += ";\n";
+            }
+            Stmt::Expr(e) => {
+                // visit expressions that don't end in semicolons such as if statements and loops
+                self.visit_expr(e);
             }
             _ => {
                 panic!("Invalid statement");
@@ -371,30 +379,7 @@ impl<'a> Visit<'a> for EmuFunctionBody {
                 if !is_precision_conversion {
                     if let Type::Path(ty) = *e.ty.clone() {
                         if let Some(ty_prefix) = ty.path.segments[0].ident.to_string().chars().next() {
-                            self.generated_code += String::from(match ty_prefix.to_string().as_ref() {
-                                "Y" => "*10000000000",
-                                "Z" => "*1000000000",
-                                "E" => "*100000000",
-                                "P" => "*10000000",
-                                "T" => "*1000000",
-                                "G" => "*100000",
-                                "M" => "*10000",
-                                "k" => "*1000",
-                                "h" => "*100",
-                                "D" => "*10",
-                                "d" => "*0.1",
-                                "c" => "*0.01",
-                                "m" => "*0.001",
-                                "u" => "*0.0001",
-                                "n" => "*0.00001",
-                                "p" => "*0.000001",
-                                "f" => "*0.0000001",
-                                "a" => "*0.00000001",
-                                "z" => "*0.000000001",
-                                "y" => "*0.0000000001",
-                                "_" => "*1",
-                                _ => "*1",
-                            }).as_ref();
+                            self.generated_code += String::from(emu_type_prefix_to_opencl(ty_prefix.to_string().as_ref())).as_ref();
                         } else {
                             panic!("Expected prefix for unit annotation");
                         }
@@ -438,20 +423,19 @@ impl<'a> Visit<'a> for EmuFunctionBody {
                 // }
 
                 self.generated_code += match raw_identifier_name.to_string().as_ref() {
-                    "PI"  => "3.141592653589793",
-                    "PAU" => "4.71238898038",
-                    "TAU" => "6.283185307179586",
-                    "E"   => "2.718281828459045",
-                    "PHI" => "1.618033988749894",
+                    "PI"  => "M_PI_F",
+                    "PAU" => "(1.5 * M_PI_F)",
+                    "TAU" => "(2 * M_PI_F)",
+                    "E"   => "(M_E_F)",
+                    "PHI" => "1.618033",
                     "G"   => "6.67408e-11",
                     "SG"  => "9.80665",
-                    "C"   => "299792458.0",
-                    "H"   => "6.62607004e-34",
-                    "K"   => "1.38064852e-23",
-                    "L"   => "6.02214086e23",
-                    "MU0" => "0.00000125663",
-                    "R"   => "8.314462618",
-
+                    "C"   => "29979246e1",
+                    "H"   => "6.626070e-34",
+                    "K"   => "1.380648e-23",
+                    "L"   => "6.022140e23",
+                    "MU0" => "0.000001",
+                    "R"   => "8.314462",
                     _     => &raw_identifier_name,
                 };
             }
@@ -482,6 +466,7 @@ impl<'a> Visit<'a> for EmuFunctionBody {
 struct EmuFunction {
     name: String,
     generated_code: String,
+    parameters: Vec<String>,
     dimensionality_parameters: Vec<String>
 }
 
@@ -538,8 +523,11 @@ impl Parse for EmuFunction {
         generated_code += &name.to_string();
 
         // generate parameters
+        let mut parameter_names = vec![];
         generated_code += " (";
         for parameter in &parameters {
+            parameter_names.push(String::from(parameter.name.clone()));
+
             generated_code += if parameter.is_vector { "__global " } else { "" };
             generated_code += emu_type_to_opencl(&parameter.ty);
             generated_code += if parameter.is_vector { "* " } else { " " };
@@ -566,6 +554,7 @@ impl Parse for EmuFunction {
         Ok(EmuFunction {
             name: name.to_string(),
             generated_code: generated_code,
+            parameters: parameter_names,
             dimensionality_parameters: dimensionality_parameters
         })
     }
@@ -737,6 +726,21 @@ impl Parse for EmuItems {
             }
         }
 
+        for rust_function_declaration in &rust_function_declarations {
+            let mut is_defined = false;
+            for emu_function in &emu_functions {
+                if rust_function_declaration.name == emu_function.name {
+                    is_defined = true;
+                    if emu_function.dimensionality_parameters.len() == 0 || emu_function.dimensionality_parameters.len() > 3 {
+                        panic!("Expected function to have exactly 1, 2, or 3 holes");
+                    }
+                }
+            }
+            if !is_defined {
+                panic!("Function not defined")
+            }
+        }
+
         Ok(EmuItems {
             emu_functions: emu_functions,
             rust_function_declarations: rust_function_declarations
@@ -759,11 +763,26 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
     // generate code for each Rust function
     let mut functions = vec![];
     for function_declaration in rust_function_declarations {
-        // get parameters that contribute to dimensionality of function from EMU
-        let mut dimensionality_parameters = vec![];
+        // get dimensions
+        let mut dimensions = vec![];
         for emu_function in &emu_functions {
             if emu_function.name == function_declaration.name {
-                dimensionality_parameters = emu_function.dimensionality_parameters.clone();
+                for dimensionality_parameter in &emu_function.dimensionality_parameters {
+                    let dimension = Ident::new(&dimensionality_parameter, Span::call_site());
+
+                    dimensions.push(quote! {
+                        #dimension .len()
+                    });
+                }
+
+                let mut emu_function_parameter_index = 0;
+                for parameter in &emu_function.parameters {
+                    if parameter != &function_declaration.parameters[emu_function_parameter_index].name {
+                        panic!("Names of parameters in Rust function declaration must match names of parameters in Emu function definition");
+                    }
+
+                    emu_function_parameter_index += 1;
+                }
             }
         }
 
@@ -783,53 +802,18 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
 
         // generate creation of kernel
         let kernel_name = function_declaration.name.as_str();
-        let mut dimensions = vec![];
         let mut kernel_arguments = vec![];
 
         for parameter in function_declaration.parameters {
             // function signature
             let parameter_name = Ident::new(&parameter.name, Span::call_site());
-            let ty = match (&parameter.ty, &parameter.is_vector) {
-                (EmuType::Bool, true) => quote! { &mut Vec<bool> },
-                (EmuType::Int8, true) => quote! { &mut Vec<i8> },
-                (EmuType::Int16, true) => quote! { &mut Vec<i16> },
-                (EmuType::Int32, true) => quote! { &mut Vec<i32> },
-                (EmuType::Int64, true) => quote! { &mut Vec<i64> },
-                (EmuType::UInt8, true) => quote! { &mut Vec<u8> },
-                (EmuType::UInt16, true) => quote! { &mut Vec<u16> },
-                (EmuType::UInt32, true) => quote! { &mut Vec<u32> },
-                (EmuType::UInt64, true) => quote! { &mut Vec<u64> },
-                (EmuType::Float32, true) => quote! { &mut Vec<f32> },
-                (EmuType::Bool, false) => quote! { & bool },
-                (EmuType::Int8, false) => quote! { & i8 },
-                (EmuType::Int16, false) => quote! { & i16 },
-                (EmuType::Int32, false) => quote! { & i32 },
-                (EmuType::Int64, false) => quote! { & i64 },
-                (EmuType::UInt8, false) => quote! { & u8 },
-                (EmuType::UInt16, false) => quote! { & u16 },
-                (EmuType::UInt32, false) => quote! { & u32 },
-                (EmuType::UInt64, false) => quote! { & u64 },
-                (EmuType::Float32, false) => quote! { & f32 },
-                _ => quote! { } // this case should never occur
-            };
+            let ty = emu_parameter_to_rust(&parameter.ty, &parameter.is_vector);
 
             parameters.push(quote! { #parameter_name : #ty });
 
             // buffer getting
             if parameter.is_vector {
-                let buffer_ty = match &parameter.ty {
-                    EmuType::Bool => quote! { bool },
-                    EmuType::Int8 => quote! { i8 },
-                    EmuType::Int16 => quote! { i16 },
-                    EmuType::Int32 => quote! { i32 },
-                    EmuType::Int64 => quote! { i64 },
-                    EmuType::UInt8 => quote! { u8 },
-                    EmuType::UInt16 => quote! { u16 },
-                    EmuType::UInt32 => quote! { u32 },
-                    EmuType::UInt64 => quote! { u64 },
-                    EmuType::Float32 => quote! { f32 },
-                    _ => quote! { } // this case should never occur
-                };
+                let buffer_ty = emu_type_to_rust(&parameter.ty);
                 let buffer_name = Ident::new(&(parameter.name.clone() + "_buffer"), Span::call_site());
                 let buffer_source = Ident::new(&parameter.name, Span::call_site());
 
@@ -845,13 +829,6 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
             }
 
             // kernel creation
-            if parameter.is_vector && dimensionality_parameters.contains(&parameter.name) {
-                let dimension = Ident::new(&parameter.name, Span::call_site());
-
-                dimensions.push(quote! {
-                    #dimension .len()
-                });
-            }
             let maybe_ref = if parameter.is_vector { quote! { & } } else { quote! {  } };
             let argument = match parameter.is_vector {
                 true => Ident::new(&(parameter.name.clone() + "_buffer"), Span::call_site()),
@@ -944,7 +921,7 @@ pub fn emu(tokens: TokenStream) -> TokenStream {
         #(#functions)*
     };
 
-    // println!("{}", output);
+    if DEBUG { println!("{}", output); }
 
     // return output converted to token stream
     output.into()
@@ -998,7 +975,77 @@ fn emu_to_opencl(emu: &str) -> &str {
     }
 }
 
+fn emu_parameter_to_rust(ty: &EmuType, is_vector: &bool) -> quote::__rt::TokenStream {
+    match (ty, is_vector) {
+        (EmuType::Bool, true) => quote! { &mut Vec<bool> },
+        (EmuType::Int8, true) => quote! { &mut Vec<i8> },
+        (EmuType::Int16, true) => quote! { &mut Vec<i16> },
+        (EmuType::Int32, true) => quote! { &mut Vec<i32> },
+        (EmuType::Int64, true) => quote! { &mut Vec<i64> },
+        (EmuType::UInt8, true) => quote! { &mut Vec<u8> },
+        (EmuType::UInt16, true) => quote! { &mut Vec<u16> },
+        (EmuType::UInt32, true) => quote! { &mut Vec<u32> },
+        (EmuType::UInt64, true) => quote! { &mut Vec<u64> },
+        (EmuType::Float32, true) => quote! { &mut Vec<f32> },
+        (EmuType::Bool, false) => quote! { & bool },
+        (EmuType::Int8, false) => quote! { & i8 },
+        (EmuType::Int16, false) => quote! { & i16 },
+        (EmuType::Int32, false) => quote! { & i32 },
+        (EmuType::Int64, false) => quote! { & i64 },
+        (EmuType::UInt8, false) => quote! { & u8 },
+        (EmuType::UInt16, false) => quote! { & u16 },
+        (EmuType::UInt32, false) => quote! { & u32 },
+        (EmuType::UInt64, false) => quote! { & u64 },
+        (EmuType::Float32, false) => quote! { & f32 },
+        _ => quote! { } // this case should never occur
+    }
+}
+
+fn emu_type_to_rust(ty: &EmuType) -> quote::__rt::TokenStream {
+    match &ty {
+        EmuType::Bool => quote! { bool },
+        EmuType::Int8 => quote! { i8 },
+        EmuType::Int16 => quote! { i16 },
+        EmuType::Int32 => quote! { i32 },
+        EmuType::Int64 => quote! { i64 },
+        EmuType::UInt8 => quote! { u8 },
+        EmuType::UInt16 => quote! { u16 },
+        EmuType::UInt32 => quote! { u32 },
+        EmuType::UInt64 => quote! { u64 },
+        EmuType::Float32 => quote! { f32 },
+        _ => quote! { } // this case should never occur
+    }
+}
+
+fn emu_type_prefix_to_opencl(prefix: &str) -> &str {
+    match prefix {
+        "Y" => "*10000000000",
+        "Z" => "*1000000000",
+        "E" => "*100000000",
+        "P" => "*10000000",
+        "T" => "*1000000",
+        "G" => "*100000",
+        "M" => "*10000",
+        "k" => "*1000",
+        "h" => "*100",
+        "D" => "*10",
+        "d" => "*0.1",
+        "c" => "*0.01",
+        "m" => "*0.001",
+        "u" => "*0.0001",
+        "n" => "*0.00001",
+        "p" => "*0.000001",
+        "f" => "*0.0000001",
+        "a" => "*0.00000001",
+        "z" => "*0.000000001",
+        "y" => "*0.0000000001",
+        "_" => "*1",
+        _ => "*1",
+    }
+}
+
 // TODO don't clone stuff
 
-// TODO report errors
-// TODO ignore reserved keywords
+// TODO report errors with Span instead of panic! when feature becomes stable
+// TODO define reserved keywords and throw error when used for function name, parameter name, variable name
+// TODO document all functions, constants that are built in
