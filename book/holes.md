@@ -14,7 +14,7 @@ function foo(x [f32]) {
 }
 ```
 These holes in the program let you define computation symbolically. The function takes in an array as input but the computation it does can be different depending on what values fill the holes.
-But what's the point? To get Emu to actually generate a useful Rust function, you write the following.
+To get Emu to actually generate a useful Rust function, you write the following.
 ```rust
 fn foo(x: &mut Vec<f32>);
 ```
