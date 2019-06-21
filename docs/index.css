@@ -6,7 +6,7 @@ html {
 
 article {
 	margin: 0 auto;
-	max-width: 75em;
+	max-width: 65em;
 	height: 100%;
 }
 
@@ -23,20 +23,27 @@ article {
 	border: solid 1px #999
 }
 
+.topnav div {
+	float: right;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+	font-size: 15px;
+}
+
 h1.title {
-	font-size: 170px;
+	font-size: 200px;
 	font-weight: 600;
 	text-align: center;
-	letter-spacing: 2px;
-
+	letter-spacing: 10px;
 	margin-top: 225px;
-	margin-bottom: 150px;
+	margin-bottom: 200px;
 }
 
 p {
 	font-size: 20px;
-	line-height: 25px;
-	margin-bottom: 80px;
+	line-height: 35px;
+	margin-bottom: 130px;
 }
 
 code, pre {
@@ -46,7 +53,7 @@ code, pre {
 pre {
 	box-shadow: 0px 0px 0px #999;
 	border: solid 1px #999 !important;
-	font-size: 20px !important;
+	font-size: 15px !important;
 	font-weight: 300;
 	background-color: white;
 	padding: 20px !important;
