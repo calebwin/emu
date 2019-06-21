@@ -19,12 +19,12 @@ article {
 	text-align: center;
 	padding: 14px 16px;
 	text-decoration: none;
-	font-size: 20px;
+	font-size: 15px;
 	border: solid 1px #999
 }
 
 h1.title {
-	font-size: 200px;
+	font-size: 170px;
 	font-weight: 600;
 	text-align: center;
 	letter-spacing: 2px;
@@ -59,7 +59,7 @@ code {
     white-space: -pre-wrap;
     white-space: -o-pre-wrap;
     word-wrap: break-word;
-	line-height: 35px !important;
+	line-height: 30px !important;
     background-color: white !important;
 }
 
