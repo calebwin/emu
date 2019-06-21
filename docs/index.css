@@ -6,7 +6,7 @@ html {
 
 article {
 	margin: 0 auto;
-	max-width: 85em;
+	max-width: 75em;
 	height: 100%;
 }
 
@@ -34,8 +34,8 @@ h1.title {
 }
 
 p {
-	font-size: 25px;
-	line-height: 50px;
+	font-size: 20px;
+	line-height: 25px;
 	margin-bottom: 80px;
 }
 
@@ -46,7 +46,7 @@ code, pre {
 pre {
 	box-shadow: 0px 0px 0px #999;
 	border: solid 1px #999 !important;
-	font-size: 20px;
+	font-size: 20px !important;
 	font-weight: 300;
 	background-color: white;
 	padding: 20px !important;
@@ -59,7 +59,7 @@ code {
     white-space: -pre-wrap;
     white-space: -o-pre-wrap;
     word-wrap: break-word;
-	line-height: 30px !important;
+	line-height: 25px !important;
     background-color: white !important;
 }
 
