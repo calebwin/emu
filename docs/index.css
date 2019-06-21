@@ -4,26 +4,39 @@ html {
 	height: 100%;
 }
 
-body {
+article {
 	margin: 0 auto;
-	max-width: 65em;
+	max-width: 85em;
 	height: 100%;
 }
 
+.topnav {
+	float: center;
+}
+
+.topnav a {
+	float: left;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+	font-size: 20px;
+	border: solid 1px #999
+}
+
 h1.title {
-	font-size: 100px;
+	font-size: 200px;
 	font-weight: 600;
 	text-align: center;
-	letter-spacing: 5px;
+	letter-spacing: 2px;
 
-	margin-top: 100px;
-	margin-bottom: 100px;
+	margin-top: 225px;
+	margin-bottom: 150px;
 }
 
 p {
-	font-size: 20px;
-	line-height: 30px;
-	/*margin-top: 50px;*/
+	font-size: 25px;
+	line-height: 50px;
+	margin-bottom: 80px;
 }
 
 code, pre {
@@ -31,7 +44,23 @@ code, pre {
 }
 
 pre {
-	box-shadow: 0px 0px 10px grey;
+	box-shadow: 0px 0px 0px #999;
+	border: solid 1px #999 !important;
+	font-size: 20px;
+	font-weight: 300;
+	background-color: white;
+	padding: 20px !important;
+}
+
+code {
+	font-family: monospace !important;
+	white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;
+	line-height: 35px !important;
+    background-color: white !important;
 }
 
 .bottom {

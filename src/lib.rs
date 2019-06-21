@@ -751,6 +751,12 @@ impl Parse for EmuItems {
 #[proc_macro]
 /// Accepts a chunk of Emu code and generates Rust functions
 pub fn emu(tokens: TokenStream) -> TokenStream {
+    // // TODO replace var with let
+    // // TODO replace for with for or while or loop
+    // // TODO replace and or or or not with && or || or !
+    // // TODO replace ^ with pow
+    // tokens = TokenStream::from_str(var_to_let(&tokens.to_string()));
+
     // parse Emu items
     let EmuItems { emu_functions, rust_function_declarations } = parse_macro_input!(tokens as EmuItems);
 
@@ -1052,3 +1058,4 @@ fn emu_type_prefix_to_opencl(prefix: &str) -> &str {
 // TODO document all functions, constants that are built in
 // TODO define procedural macro for creating caches of data
 // TODO make generated functions look at cache before creating new instances of data
+// TODO generate Rust functions for Emu functions that return stuff

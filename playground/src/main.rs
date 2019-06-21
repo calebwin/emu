@@ -311,44 +311,43 @@ use em::emu;
 // }
 
 emu! {
-    
-    function twice(input f32) f32 {
-        return input * 2;
+    function add(a [f32], b[f32]) {
+        let n: i32 = index[..];
+
+        a[..i] += b[..i];
     }
 
-    // Multiplies any value in data by scalar
-    // Values in buffer and scalar are 32-bit floats
-    function multiply(data [f32], scalar f32) {
-        data[..] *= scalar;
+    function multiply(data [f32], coeff f32) {
+        data[..] *= coeff;
+        data[..] += data[..];
     }
 
-    // Multiplies any value in data by scalar
-    // Values in buffer and scalar are 32-bit floats
-    function add(data [f32], scalar f32) {
-        data[..] += scalar;
-    }
-
-    function foo(a [f32], b [f32]) {
-        let x: i32 = 50;
-        a[..] += b[..];
-    }
-
-    /// Multiplies each value in data by scalar
-    /// Values in data and scalar are 32-bit floats
-    fn multiply(data: &mut Vec<f32>, scalar: &f32);
-
-    /// Adds each value in data to scalar
-    /// Values in data and scalar are 32-bit floats
-    fn add(data: &mut Vec<f32>, scalar: &f32);
-
-    fn foo(a: &mut Vec<f32>, b: &mut Vec<f32>);
+    // fn add(a: &mut Vec<f32>, b: &mut Vec<f32>);
+    fn multiply(data: &mut Vec<f32>, coeff: &f32);
 }
 
 fn main() {
     let mut a = vec![1.8, 9.3, 5.0];
-    let mut b = vec![2.8, 9.9, 7.3, 7.4, 2.8];
+    let mut b = vec![1.8, 9.3, 5.0];
 
-    foo(&mut a, &mut b);
+    // add(&mut a, &mut b);
+    multiply(&mut a, &3.0);
 
-    println!("{:?}", a);
+    println!("{:?}", &a);
 }
+
+// emu! {
+//     function move(particles_x [f32], particles_y [f32], potential f32 f32 f32 f32 to f32) {
+//         // TODO
+//     }
+
+//     pub fn move(particles_x: &mut Vec<f32>, particles_y: &mut Vec<f32>, potential: String)
+// }
+
+// emu! {
+//     function potential(a_x f32, a_y f32, b_x f32, b_y f32) f32 {
+//         // TODO
+//     }
+
+//     fn potential() -> String;
+// }

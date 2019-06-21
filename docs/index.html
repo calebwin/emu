@@ -4,67 +4,65 @@
 	<title>Emu - GPU programming language for Rust</title>
 	<link rel="stylesheet" href="https://rsms.me/raster/raster.css">
 	<link rel="stylesheet" type="text/css" href="index.css">
-	<script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
-	<script async defer src="https://buttons.github.io/buttons.js"></script>
+	<link rel="stylesheet" href="default.css">
+	<script src="highlight.pack.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
 </head>
 <body>
- 	<h1 class="title">emu</h1>
-
-	<p>
-		Emu is a language for programming GPUs from Rust. Emu provides the <code class="prettyprint">emu!</code> macro for compiling functions written in the Emu language to an intermediate code which gets stored in the <code class="prettyprint">EMU</code> global constant. You can then run your code using a binding to OpenCL such as <a href="https://github.com/cogciprocate/ocl">ocl</a> or <a href="https://github.com/luqmana/rust-opencl">rust-opencl</a> or use the <code class="prettyprint">build!</code> macro which generates Rust functions that can be called to run your Emu functions.
-	</p>
-
-	<pre class="prettyprint">extern crate em;
-use em::emu;
-
-emu! {
-	// more particles
-	more_particles(num_particles u32, num_moles u32) u32 {
-		return num_particles + num_moles * L;
-	}
-
-	// moves particles
-	move_particles(global_particles_x [f32], global_particles_y f32, global_particles_z f32) {
-		global_particles_z[get_global_id(0)] += 7.3e1 as nm;
-		global_particles_x[get_global_id(0)] += 2 as cm;
-		global_particles_y[get_global_id(0)] += 6 as cm;
-	}
-	
-	// moves particles in circle
-	rotate_particles(global_particles_r [f32]) {
-		global_particles_r[get_global_id(0)] += 7.5 * TAU;
-	}
-
-	// multiplies 2 matrices
-	// n is the dimension of the matrices
-	// a and b are the matrices to be multiplied, c is the result
-	multiply_matrices(n i32, global_a [f32], global_b [f32], global_c [f32]) {
-		// indices of cells to multiply
-		let i: i32 = get_global_id(0);
-		let j: i32 = get_global_id(1);
-
-		// execute step of multiplication
-		for k in 0..n {
-			global_c[i * n + j] += global_a[i * n + k] * global_b[k * n + j];
-		}
-	}
-}</pre>
-
-	<p>
-		To start writing Emu functions embedded in your Rust code, simply add the following to your <code>Cargo.toml</code> file and import the macro as shown above.
-	</p>
-
-	<pre class="prettyprint">[dependencies]
-em = "0.1.2"</pre>
-	
-	<!-- <p>
-		You can find more information about the Emu programming language <a href="https://github.com/calebwin/emu">on GitHub</a>.
-	</p> -->
-
-	<div style="text-align:center;line-height:200px;height:200px;margin-top:0px">
-		<!-- <a class="github-button" href="https://github.com/calebwin/emu" data-size="large" data-show-count="true" aria-label="Star calebwin/emu on GitHub">Star</a> -->
-		<iframe src="https://ghbtns.com/github-btn.html?user=calebwin&repo=emu&type=star&count=true&size=large" frameborder="0" scrolling="0" width="160px" height="30px"></iframe>
+	<div class="topnav">
+		<a href="https://github.com/calebwin/emu/tree/master/book#table-of-contents">Book on GitHub</a>
+		<a href="https://github.com/calebwin/emu/">Code on GitHub</a>
+		<a href="https://crates.io/crates/em">Crate on Crates.io</a>
 	</div>
+
+	<article>
+
+	 	<h1 class="title">emu</h1>
+
+		<p>
+			Emu is a language for programming GPUs. Unlike OpenCL/CUDA/Halide/Futhark, Emu is embedded in Rust. This lets it take advantage of the ecosystem (cargo build, cargo doc, cargo test, crates.io, docs.rs) in ways that let it provide a far more streamlined system for programming GPUs. Consequently, Emu makes Rust ideal - compared to Python/Julia/C++ - for writing minimalistic programs that do robust, data-intensive computation.
+		</p>
+
+	<pre><code class="rust">emu! {
+	function compute_sigmoid(x f32) f32 {
+		return 1 / (1 + pow(E, -x));
+	}
+
+	function apply_sigmoid(data [f32]) {
+		data[..] = compute_sigmoid(data[..]);
+	}
+
+	function apply_relu(data [f32]) {
+		if data[..] < 0 { data[..] = 0; }
+	}
+
+	fn apply_sigmoid(data: &mut Vec<f32>);
+	fn apply_relu(data: &mut Vec<f32>);
+}</code></pre>
+
+<pre><code class="rust">fn main() {
+	let mut inputs = vec![1.9, 2.8, 3.7, 4.6];
+
+	apply_sigmoid(&mut inputs);
+	apply_relu(&mut inputs);
+}</code></pre>
+
+	<pre><code class="rust">[dependencies]
+em = "0.1.2"</code></pre>
+		
+		<!-- <p>
+			You can find more information about the Emu programming language <a href="https://github.com/calebwin/emu">on GitHub</a>.
+		</p> -->
+
+		<div style="text-align:center;line-height:200px;height:200px;margin-top:0px">
+			<!-- <a class="github-button" href="https://github.com/calebwin/emu" data-size="large" data-show-count="true" aria-label="Star calebwin/emu on GitHub">Star</a> -->
+			<iframe src="https://ghbtns.com/github-btn.html?user=calebwin&repo=emu&type=star&count=true&size=large" frameborder="0" scrolling="0" width="160px" height="30px"></iframe>
+		</div>
+
+	</article>
+
+
+	<script>hljs.initHighlightingOnLoad();</script>
 
 </body>
 </html>
