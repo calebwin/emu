@@ -8,12 +8,12 @@ Emu is a language and framework for programming GPUs.
 
 # Table of Contents
 
-- **`1. Example............................`** [goto](https://github.com/calebwin/emu/new/master/docs#Example)
-- **`2. Parallelism is implicit............`** [goto](https://github.com/calebwin/emu/new/master/docs#Parallelism-is-implicit)
-- **`3. Code is procedurally generated.....`** [goto](https://github.com/calebwin/emu/new/master/docs#Code-is-procedurally-generated)
-- **`4. You work with functions............`** [goto](https://github.com/calebwin/emu/new/master/docs#You-work-with-functions)
-- **`5. You work with components...........`** [goto](https://github.com/calebwin/emu/new/master/docs#You-work-with-components)
-- **`6. Usage..............................`** [goto](https://github.com/calebwin/emu/new/master/docs#Usage)
+- **`1. Example............................`** [**`goto`**](https://github.com/calebwin/emu/new/master/docs#Example)
+- **`2. Parallelism is implicit............`** [**`goto`**](https://github.com/calebwin/emu/new/master/docs#Parallelism-is-implicit)
+- **`3. Code is procedurally generated.....`** [**`goto`**](https://github.com/calebwin/emu/new/master/docs#Code-is-procedurally-generated)
+- **`4. You work with functions............`** [**`goto`**](https://github.com/calebwin/emu/new/master/docs#You-work-with-functions)
+- **`5. You work with components...........`** [**`goto`**](https://github.com/calebwin/emu/new/master/docs#You-work-with-components)
+- **`6. Usage..............................`** [**`goto`**](https://github.com/calebwin/emu/new/master/docs#Usage)
 
 # Example
 
