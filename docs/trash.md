@@ -7,8 +7,6 @@ Emu is a language, framework for programming GPUs. Emu and Rust together let you
 
 [![](https://img.shields.io/crates/d/em.svg)](https://crates.io/crates/em) [![](https://img.shields.io/crates/v/em.svg)](https://crates.io/crates/em) [![](https://img.shields.io/crates/l/em.svg)](https://crates.io/crates/em) [![](https://img.shields.io/gitter/room/calebwin/emu-yellowgreen.svg)](https://gitter.im/talk-about-emu/thoughts) [![](https://img.shields.io/badge/book-v0.2.0-yellow.svg)](https://github.com/calebwin/emu/tree/master/book#table-of-contents) <!--[![Sourcegraph](https://sourcegraph.com/github.com/calebwin/emu/-/badge.svg)](https://sourcegraph.com/github.com/calebwin/emu?badge)-->
 
-# table of contents
-
 - **`0. Overview...........................`** [**`goto`**](https://github.com/calebwin/emu/new/master/docs#Example)
 - **`1. Example............................`** [**`goto`**](https://github.com/calebwin/emu/new/master/docs#Example)
 - **`2. Parallelism is implicit............`** [**`goto`**](https://github.com/calebwin/emu/new/master/docs#Parallelism-is-implicit)
