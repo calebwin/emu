@@ -1,4 +1,4 @@
-# ![a picture of a real-world emu](https://i.imgur.com/vijwEix.jpg)
+![a picture of a real-world emu](https://i.imgur.com/vijwEix.jpg)
 # the emu programming language
 <!--# The Emu Programming Language-->
 <!--# Emu is a language for programming GPUs-->
