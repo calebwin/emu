@@ -222,7 +222,7 @@ You can then run your tests by invoking `cargo test`.
 
 # usage
 
-Emu is being designed for use in a project with data-intensive computation. Emu can be included in any Rust project with the following. The only other dependency is OpencL so make sure you have that installed - https://www.eriksmistad.no/getting-started-with-opencl-and-gpu-computing/.
+Emu is being designed for use in a project with data-intensive computation. Emu can be included in any Rust project with the following. The only other dependency is OpenCL so make sure you have that installed - https://www.eriksmistad.no/getting-started-with-opencl-and-gpu-computing/.
 
 ```toml
 [dependencies]

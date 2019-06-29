@@ -19,7 +19,7 @@ em = "0.2.0"
 ```
 
 Then add the following to the file where you would like to use the `emu!` macro.
-The only dependency of Emu is OpencL so make sure you have that installed - https://www.eriksmistad.no/getting-started-with-opencl-and-gpu-computing/
+The only dependency of Emu is OpenCL so make sure you have that installed - https://www.eriksmistad.no/getting-started-with-opencl-and-gpu-computing/
 
 ```rust
 extern crate em;
