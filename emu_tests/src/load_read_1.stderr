@@ -1,0 +1,5 @@
+error[E0599]: no method named `as_slice` found for type `std::string::String` in the current scope
+ --> $DIR/load_read_1.rs:4:1
+  |
+4 | #[gpu_use]
+  | ^^^^^^^^^^

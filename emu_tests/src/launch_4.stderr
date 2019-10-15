@@ -1,0 +1,8 @@
+error: unsupported expression
+  --> $DIR/launch_4.rs:11:13
+   |
+11 |           data[i] = {
+   |  ___________________^
+12 | |             0.0
+13 | |         };
+   | |_________^

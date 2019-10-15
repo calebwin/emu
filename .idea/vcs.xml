@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$/em" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/emu_examples/arithmetic" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/emu_macro" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/emu_tests" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/examples/arithmetic" vcs="Git" />
+  </component>
+</project>

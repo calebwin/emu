@@ -1,0 +1,8 @@
+error[E0596]: cannot borrow `data` as mutable, as it is not declared as mutable
+ --> $DIR/load_read_2.rs:4:1
+  |
+4 | #[gpu_use]
+  | ^^^^^^^^^^ cannot borrow as mutable
+5 | fn main() {
+6 |     let data = vec![];
+  |         ---- help: consider changing this to be mutable: `mut data`

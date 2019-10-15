@@ -1,0 +1,113 @@
+[package]
+name = "emu_tests-tests"
+version = "0.0.0"
+edition = "2018"
+publish = false
+[dependencies.em]
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\../em"
+
+[dependencies.emu_tests]
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests"
+default-features = false
+
+[[bin]]
+name = "emu_tests-tests"
+path = "main.rs"
+
+[[bin]]
+name = "trybuild000"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/macro_usage_0.rs"
+
+[[bin]]
+name = "trybuild001"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/macro_usage_1.rs"
+
+[[bin]]
+name = "trybuild002"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/macro_usage_2.rs"
+
+[[bin]]
+name = "trybuild003"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/macro_usage_3.rs"
+
+[[bin]]
+name = "trybuild004"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/macro_usage_4.rs"
+
+[[bin]]
+name = "trybuild005"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/macro_usage_5.rs"
+
+[[bin]]
+name = "trybuild006"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/macro_usage_6.rs"
+
+[[bin]]
+name = "trybuild007"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/macro_usage_7.rs"
+
+[[bin]]
+name = "trybuild008"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/macro_usage_8.rs"
+
+[[bin]]
+name = "trybuild009"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/macro_usage_9.rs"
+
+[[bin]]
+name = "trybuild010"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/macro_usage_10.rs"
+
+[[bin]]
+name = "trybuild011"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/macro_usage_11.rs"
+
+[[bin]]
+name = "trybuild012"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/load_read_0.rs"
+
+[[bin]]
+name = "trybuild013"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/load_read_1.rs"
+
+[[bin]]
+name = "trybuild014"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/load_read_2.rs"
+
+[[bin]]
+name = "trybuild015"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/load_read_3.rs"
+
+[[bin]]
+name = "trybuild016"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/load_read_4.rs"
+
+[[bin]]
+name = "trybuild017"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/launch_0.rs"
+
+[[bin]]
+name = "trybuild018"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/launch_1.rs"
+
+[[bin]]
+name = "trybuild019"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/launch_2.rs"
+
+[[bin]]
+name = "trybuild020"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/launch_3.rs"
+
+[[bin]]
+name = "trybuild021"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/launch_4.rs"
+
+[[bin]]
+name = "trybuild022"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/launch_5.rs"
+
+[[bin]]
+name = "trybuild023"
+path = "C:\\Users\\Caleb Winston\\Projects\\emu\\emu_tests\\src/launch_6.rs"
+
+[workspace]

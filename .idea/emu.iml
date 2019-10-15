@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/emu_tests/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/emu_tests\examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/emu_tests\tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/emu_tests\benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/em/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/em\examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/em\tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/em\benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/emu_macro/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/emu_macro\examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/emu_macro\tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/emu_macro\benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/emu_examples/arithmetic/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/emu_examples/arithmetic\examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/emu_examples/arithmetic\tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/emu_examples/arithmetic\benches" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/em/target" />
+      <excludeFolder url="file://$MODULE_DIR$/emu_examples/arithmetic\target" />
+      <excludeFolder url="file://$MODULE_DIR$/emu_macro/target" />
+      <excludeFolder url="file://$MODULE_DIR$/emu_tests\target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

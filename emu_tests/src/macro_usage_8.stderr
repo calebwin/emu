@@ -1,0 +1,5 @@
+error: expected identifier/name of helper function
+ --> $DIR/macro_usage_8.rs:4:11
+  |
+4 | #[gpu_use(em::do_something)]
+  |           ^^

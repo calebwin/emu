@@ -1,0 +1,15 @@
+[package]
+name = "emu_macro"
+version = "0.1.0"
+authors = ["Caleb Winston <calebhwin@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+proc-macro2 = "0.4.30"
+syn = { version = "1.0.5", features = ["full", "visit", "fold"] }
+quote = "1.0.2"
+
+[lib]
+proc-macro = true

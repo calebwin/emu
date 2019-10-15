@@ -1,0 +1,1 @@
+{"rustc":2854982172252333660,"features":"[\"default\"]","target":2853601631441890360,"profile":9935990280773120926,"path":2944825892166505667,"deps":[[12778549334746520238,"semver_parser",false,11358146287935434827]],"local":[{"Precalculated":"0.9.0"}],"rustflags":["-A","dead_code"],"metadata":8762386052474907708}

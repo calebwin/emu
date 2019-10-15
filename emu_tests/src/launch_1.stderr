@@ -1,0 +1,13 @@
+error: unexpected kind of for loop
+  --> $DIR/launch_1.rs:10:2
+   |
+10 |     for i in (0..100) {
+   |     ^^^
+
+warning: unnecessary parentheses around `for` head expression
+  --> $DIR/launch_1.rs:10:11
+   |
+10 |     for i in (0..100) {
+   |              ^^^^^^^^ help: remove these parentheses
+   |
+   = note: #[warn(unused_parens)] on by default

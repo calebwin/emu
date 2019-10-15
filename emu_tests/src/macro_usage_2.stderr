@@ -1,0 +1,5 @@
+error[E0425]: cannot find function `do_something` in this scope
+ --> $DIR/macro_usage_2.rs:4:1
+  |
+4 | #[gpu_use(do_something)]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^ not found in this scope

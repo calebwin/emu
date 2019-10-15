@@ -1,0 +1,5 @@
+error: unexpected kind of for loop
+  --> $DIR/launch_2.rs:10:2
+   |
+10 |     for (ii, i) in (0..100).enumerate() {
+   |     ^^^

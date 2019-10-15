@@ -1,0 +1,5 @@
+error: unexpected kind of for loop
+  --> $DIR/launch_0.rs:10:2
+   |
+10 |     for x in data {
+   |     ^^^

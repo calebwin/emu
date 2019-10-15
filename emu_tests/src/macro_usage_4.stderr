@@ -1,0 +1,5 @@
+error: custom attribute invocations must be of the form #[foo] or #[foo(..)], the macro name must only be followed by a delimiter token
+ --> $DIR/macro_usage_4.rs:5:1
+  |
+5 | #[gpu_use = 100]
+  | ^^^^^^^^^^^^^^^^

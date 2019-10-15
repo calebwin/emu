@@ -1,0 +1,5 @@
+error[E0425]: cannot find value `data` in this scope
+ --> $DIR/load_read_0.rs:4:1
+  |
+4 | #[gpu_use]
+  | ^^^^^^^^^^ not found in this scope
