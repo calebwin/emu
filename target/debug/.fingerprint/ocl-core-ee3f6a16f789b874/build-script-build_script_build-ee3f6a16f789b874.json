@@ -1,1 +1,0 @@
-{"rustc":2854982172252333660,"features":"[\"cl-sys\", \"default\", \"ocl-core-vector\", \"opencl_version_1_1\", \"opencl_version_1_2\"]","target":10088282520713642473,"profile":9935990280773120926,"path":1971708798287280816,"deps":[[7165216917328829833,"rustc_version",false,15277753777785425345]],"local":[{"Precalculated":"0.11.2"}],"rustflags":[],"metadata":1480063500725533577}

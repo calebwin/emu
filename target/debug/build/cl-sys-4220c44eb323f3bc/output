@@ -1,2 +1,0 @@
-cargo:rustc-link-search=native=C:\Program Files (x86)\Intel\OpenCL SDK\7.0\lib\x64
-cargo:rustc-link-search=native=C:\Program Files (x86)\OCL_SDK_Light\lib\x86_64

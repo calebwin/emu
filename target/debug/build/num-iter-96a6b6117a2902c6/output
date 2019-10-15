@@ -1,2 +1,0 @@
-cargo:rustc-cfg=has_i128
-cargo:rerun-if-changed=C:\Users\Caleb Winston\.cargo\registry\src\github.com-1ecc6299db9ec823\num-iter-0.1.39\build.rs
