@@ -36,6 +36,7 @@ fn main() {
 
     // this code gets identified as accelerate-able
     // the compiler will insert calls to OpenCL to run this on the GPU
+    gpu_do!(launch());
     for i in 0..1000 {
         x[i] = x[i] * 10;
     }
