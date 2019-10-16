@@ -4,7 +4,7 @@
 
 [![Gitter](https://badges.gitter.im/talk-about-emu/thoughts.svg)](https://gitter.im/talk-about-emu/thoughts?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Emu is a framework for accelerating code by using GPUs. It is a procedural macro that accept pure, safe Rust code as input, identifies portions to attempt to accelerate, and automatically writes in code to run portions on the GPU instead of the CPU.
+Emu is a framework/compiler for GPU acceleration of Rust, GPU programming. It is a procedural macro that accept pure, safe Rust code as input, identifies portions to attempt to accelerate, and automatically writes in code to run portions on the GPU instead of the CPU.
 
 # features
 
