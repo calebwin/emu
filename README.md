@@ -32,16 +32,14 @@ use em::*;
 #[gpu_use]
 fn main() {
     let mut x = vec![0.0; 1000];
-    gpu_do!(load(x)); // load data to the GPU
-
-    // this code gets identified as accelerate-able
-    // the compiler will insert calls to OpenCL to run this on the GPU
-    gpu_do!(launch());
+    gpu_do!(load(x)); // move data to the GPU
+    
+    gpu_do!(launch()); // off-load to run on the GPU
     for i in 0..1000 {
         x[i] = x[i] * 10;
     }
 
-    gpu_do!(read(x)); // read data back from the GPU
+    gpu_do!(read(x)); // move data back from the GPU
     println!("{:?}", x);
 }
 ```
