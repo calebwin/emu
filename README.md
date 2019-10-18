@@ -1,5 +1,6 @@
 <p align="center">
-<img width="250px" src="https://i.imgur.com/kTap42K.png"/>
+<!-- <img width="250px" src="https://i.imgur.com/kTap42K.png"/> -->
+    <img width="250px" src="https://i.imgur.com/CZEkdK1.png"/>
 </p>
 
 [![Gitter](https://badges.gitter.im/talk-about-emu/thoughts.svg)](https://gitter.im/talk-about-emu/thoughts?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
