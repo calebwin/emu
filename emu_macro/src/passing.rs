@@ -137,6 +137,12 @@ pub fn modify_signature_for_helper_function(
     }
 }
 
+// TODO handle question mark operator
+// we can do one of several things
+// - forbid ?
+// - handle by expanding syntactic sugar
+// - handle by looking for Result in signature and modifying the Ok part of it
+
 // modifies return expression
 // note this doesn't fix up all the return statements only the implicit "last expression is returned" stuff
 // we'll deal with the return statements later

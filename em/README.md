@@ -41,7 +41,7 @@ fn main() {
     // the compiler will insert calls to OpenCL to run this on the GPU
     gpu_do!(launch());
     for i in 0..1000 {
-        x[i] = x[i] * 10;
+        x[i] = x[i] * 10.0;
     }
 
     gpu_do!(read(x)); // read data back from the GPU

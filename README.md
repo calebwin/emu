@@ -39,7 +39,7 @@ fn main() {
     
     gpu_do!(launch()); // off-load to run on the GPU
     for i in 0..1000 {
-        x[i] = x[i] * 10;
+        x[i] = x[i] * 10.0;
     }
 
     gpu_do!(read(x)); // move data back from the GPU
