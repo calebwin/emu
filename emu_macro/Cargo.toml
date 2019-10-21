@@ -9,6 +9,7 @@ repository = "https://www.github.com/calebwin/emu"
 readme = "README.md"
 keywords = ["emu", "em", "gpu", "gpgpu", "acceleration"]
 categories = ["science", "asynchronous", "concurrency", "multimedia", "rendering"]
+license = "MIT"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
