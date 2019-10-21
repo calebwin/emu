@@ -1,0 +1,1 @@
+This crate is not intended as the primary front-end for the Emu compiler framework. Instead, you should use [em](https://crates.io/crates/em).

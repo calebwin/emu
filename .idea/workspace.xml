@@ -66,6 +66,7 @@
   </component>
   <component name="RustProjectSettings">
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+    <option name="version" value="2" />
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -78,6 +79,7 @@
       <option name="presentableId" value="Default" />
       <updated>1570300605171</updated>
       <workItem from="1571165155907" duration="145000" />
+      <workItem from="1571248199036" duration="201000" />
     </task>
     <servers />
   </component>

@@ -57,24 +57,3 @@ You can use Emu in your Rust projects by doing the following-
 2. Confirm that an OpenCL library [is installed]() for your platform
 
 Learn how to get started with Emu by looking at [the documentation](https://docs.rs/em).
-
-# contributing
-
-Emu currently works very well (robust, well-documented, OK-ish baseline performance) but only with a small subset of Rust. The roadmap for what to do next is pretty straightforward - expand that subset of Rust that we look at. Here is an up-to-date (but not necessarily complete) list of things to work on.
-
-- [ ] Constant address space by default
-- [ ] Data race safety with Rayon
-- [ ] Multiple GPU usage
-- [ ] Multiple thread usage (from host)
-- [ ] Support for methods
-- [ ] Support for block algorithms
-- [ ] Support for reduction algorithms
-- [ ] Support for `for x in &data`
-- [ ] Support for `for x in &mut data`
-- [ ] Support for variables
-- [ ] Support for if statements
-- [ ] Support for if/else-if/else statements
-- [ ] Support for all Rust with NVPTX
-- [ ] *insert your super-cool idea here*
-
-We want people to be able to implement all sorts of cool things (simulations, AI, image processing) with Rust + Emu. If you are excited about building a framework for accelerating Rust code with GPUs, create a GitHub issue for whatever you want to work on and/or discuss on Gitter.

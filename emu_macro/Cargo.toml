@@ -2,6 +2,13 @@
 name = "emu_macro"
 version = "0.1.0"
 authors = ["Caleb Winston <calebhwin@gmail.com>"]
+description = "A helper for Emu, a procedural macro for GPU acceleration, GPU programming"
+homepage = "https://www.github.com/calebwin/emu"
+documentation = "https://docs.rs/emu_macro"
+repository = "https://www.github.com/calebwin/emu"
+readme = "README.md"
+keywords = ["emu", "em", "gpu", "gpgpu", "acceleration"]
+categories = ["science", "asynchronous", "concurrency", "multimedia", "rendering"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -10,6 +17,9 @@ edition = "2018"
 proc-macro2 = "0.4.30"
 syn = { version = "1.0.5", features = ["full", "visit", "fold"] }
 quote = "1.0.2"
+
+[dev-dependencies]
+em = { path = "../em" }
 
 [lib]
 proc-macro = true

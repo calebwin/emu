@@ -10,4 +10,4 @@ warning: unnecessary parentheses around `for` head expression
 10 |     for i in (0..100) {
    |              ^^^^^^^^ help: remove these parentheses
    |
-   = note: #[warn(unused_parens)] on by default
+   = note: `#[warn(unused_parens)]` on by default

@@ -1,3 +1,6 @@
+//! This is not the main documentation for Emu. Go to [docs.rs/em](https://docs.rs/em)
+//! for the main documentation of Emu.
+
 // for generating Rust
 #[macro_use]
 extern crate quote;
@@ -13,19 +16,14 @@ use syn::fold::Fold;
 use syn::*;
 
 // THE TABLE OF CONTENTS
-// |
-// |
-// |
+// 
 // these modules are the main modules Emu uses
-mod accelerating;
-mod passing; // for passing around a reference to the GPU from function to function // for looking through code for gpu_do!() and using the GPU appropriately
-                                                                                    // |
-                                                                                    // |
-                                                                                    // |
-                                                                                    // these modules are more linke utilities for Emu
-mod generator;
+mod accelerating; // for looking through code for gpu_do!() and using the GPU appropriately
+mod passing; // for passing around a reference to the GPU from function to function
+// these modules are more linke utilities for Emu
+mod generator; // for generating OpenCL from Rust
 mod identifier; // for identifying a for loop as potentially something we can work with
-mod inspector; // for inspecting a function for more info // for generating OpenCL from Rust
+mod inspector; // for inspecting a function for more info
 
 use accelerating::*;
 use inspector::*;
@@ -64,26 +62,92 @@ macro_rules! unwrap_or_return {
 
 /// A procedural macro for using the GPU to store data and accelerate parts of code in the tagged function.
 ///
-/// Errors may occur as the procedural macro looks through code. These are reported in a clean manner using `std::compile_error`.
-/// An example of using the macro is shown below.
-/// ```compile_fail
+/// While this is technically what looks through your code for `gpu_do!()`
+/// declarations and expands them in ways that potentially accelerate your
+/// code, you should think about this more as the "passing" part of Emu rather
+/// than the "acceleration" part.
+///
+/// Well, what do I mean by passing? I've talked in other parts of the docs
+/// about the "GPU being in scope" or "passing the GPU around". I literally
+/// mean an identifier `gpu` that references an instance of `Gpu` and holds
+/// all information about the physical GPU that Emu needs to know. Why do we
+/// need to "pass" this `Gpu` instance from function to function? Well, we
+/// would like only 1 instance of `Gpu` to exist throughout an entire
+/// application. Even if you are using other libaries, those libraries should
+/// be using this 1 instance of `Gpu`. The way we accomplish this is by
+/// modifying functions (that use the GPU) to accept as input, return as
+/// output, pass around the `Gpu` instance. That "modification" of functions
+/// is done by this macro.
+///
+/// So, how do I do passing? If you correctly tag your function with
+/// `#[gpu_use]`, it's function signature will be modified and its contents
+/// will be modified so as to allow `gpu`, a `Gpu` instance, to be used in
+/// the function body. To correctly tag your function with `#[gpu_use]`, you
+/// must list the "helper functions" of the tagged function.
+/// ```
 /// # extern crate em;
 /// # use em::*;
-///
-/// #[gpu_use]
+/// # #[gpu_use(multiply)]
+/// # fn multiply(data: Vec<f32>, scalar: f32) -> Vec<f32> {data}
+/// # #[gpu_use(add_one_then_double)]
+/// # fn add_one_then_double(data: Vec<f32>) -> Vec<f32> {data}
+/// #[gpu_use(multiply, add_one_then_double)]
 /// fn main() {
 ///     let mut data = vec![0.1; 1000];
 ///
 ///     gpu_do!(load(data));
-///     gpu_do!(launch());
-///     for i in 0..1000 {
-///         data[i] = data[i] * 10.0;
-///     }
+///     data = multiply(data, 10.0);
+///     data = add_one_then_double(data);
 ///     gpu_do!(read(data));
 ///
 ///     println!("{:?}", data);
 /// }
 /// ```
+/// In this above example, the helper functions of the tagged function are `multiply` and `add_one_then_double`. What would those helper functions look like themselves?
+/// ```
+/// # extern crate em;
+/// # use em::*;
+/// #[gpu_use(multiply)]
+/// fn multiply(mut data: Vec<f32>, scalar: f32) -> Vec<f32> {
+///     gpu_do!(launch());
+///     for i in 0..1000 {
+///         data[i] = data[i] * scalar;
+///     }
+///
+///     data
+/// }
+///
+/// #[gpu_use(add_one_then_double, multiply)]
+/// fn add_one_then_double(mut data: Vec<f32>) -> Vec<f32> {
+///     gpu_do!(launch());
+///     for i in 0..1000 {
+///         data[i] = data[i] + 1.0;
+///     }
+///     data = multiply(data, 2.0);
+///
+///     data
+/// }
+///
+/// #[gpu_use(multiply, add_one_then_double)]
+/// fn main() {
+///     let mut data = vec![0.1; 1000];
+///
+///     gpu_do!(load(data));
+///     data = multiply(data, 10.0);
+///     data = add_one_then_double(data);
+///     gpu_do!(read(data));
+/// }
+/// ```
+/// There is, admittedly, a lot going on here. But there is just one thing I want you to focus
+/// on - the `#[gpu_use()]` invocations/tags. Focus on that. See how different
+/// functions have different helper functions. First look at the main function and its helper functions and then look at the other two functions. You will see that the helper functions of a
+/// function are each only one of 2 things.
+/// 1. A function called from inside the function body that uses the GPU (is tagged with `#[gpu_use]`)
+/// 2. The function itself, if it can be a helper function to another function
+///
+/// Looking at the above example you should be able to justify each helper
+/// function listed for each function, using the above 2 cases. Note that the `main` function doesn't list itself as a helper function and that is because
+/// it doesn't need the GPU passed to it ever.
 #[proc_macro_attribute]
 pub fn gpu_use(metadata: TokenStream, mut input: TokenStream) -> TokenStream {
     // there are 3 parts of Emu's procedural code generation
