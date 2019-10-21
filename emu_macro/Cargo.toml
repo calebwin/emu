@@ -19,7 +19,7 @@ syn = { version = "1.0.5", features = ["full", "visit", "fold"] }
 quote = "1.0.2"
 
 [dev-dependencies]
-em = { path = "../em" }
+em = { path = "../em", version = "0.*" }
 
 [lib]
 proc-macro = true
