@@ -57,6 +57,21 @@ We also make GPGPU more productive.
 - Boilerplate code is inferred from your code, automatically generated
 - Testing and documentation with standard tools (`cargo test`, `cargo doc`, `Crates.io`)
 
+## Comparison
+
+If you're coming from a different GPU technology, here are some of the ways in which Emu may be better for GPGPU than what you're using right now.
+
+| What you currently use...                                    | Emu...                 |
+| ------------------------------------------------------------ | ---------------------- |
+| **OpenCL** allows null-pointer, type mismatch, syntax errors     | Fewer errors           |
+| **OpenACC** requires a seperate compiler, allows null-pointer errors | Just a library         |
+| **CUDAnative.jl** requires understanding of threads, memory hierarchy | Just for loops         |
+| **CUDA** requires understanding ^ and a seperate compiler        | Nope                   |
+| **ArrayFire** provides a limited set of composable functions     | Just write code        |
+| **Numba** has slow base-line                                     | Base-line is fast LLVM |
+
+
+
 ## Getting started
 
 You can get started with Rust + Emu by doing the following-
@@ -64,4 +79,4 @@ You can get started with Rust + Emu by doing the following-
 1. Add `em = 0.3.0` to `Cargo.toml` (in the folder of your Rust project)
 2. Confirm that an OpenCL library [is installed]() for your platform
 
-Learn how to use Emu by looking at [the documentation](https://docs.rs/em).
+Learn more about Emu by looking at [the documentation](https://docs.rs/em).
