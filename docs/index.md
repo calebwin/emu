@@ -1,37 +1,48 @@
-## Welcome to GitHub Pages
+Emu is a free, open-source library for general-purpose GPU programming. It aims to provide a productive single-source environment for GPGPU programming while guaranteeing safety and enabling big speedups.
 
-You can use the [editor on GitHub](https://github.com/calebwin/emu/edit/master/docs/index.md) to maintain and preview the content for your website in Markdown files.
+## Low effort, big speedup
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+Emu lets you start with sequential pure Rust software that runs on CPU and add just a few lines of code to have portions be automatically off-loaded to the GPU. For example, we can start with a simple scalar-vector multiplication.
 
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+```rust
+fn main() {
+    let mut x = vec![0.1; 1000];
+    
+    for i in 0..1000 {
+        x[i] = x[i] * 5.0;
+    }
+}
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+We can then add a few lines of code to declare things the GPU should do - things like moving data, launching computation.
 
-### Jekyll Themes
+```rust
+fn main() {
+    let mut x = vec![0.1; 1000];
+    
+    gpu_do!(load(x));
+    gpu_do!(launch());
+    for i in 0..1000 {
+        x[i] = x[i] * 5.0;
+    }
+}
+```
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/calebwin/emu/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+Finally, we can tag the function with `#[gpu_use]` to tell Emu to interpret the declarations and off-load the for loop to the GPU.
 
-### Support or Contact
+```rust
+#[gpu_use]
+fn main() {
+    let mut x = vec![0.1; 1000];
+    
+    gpu_do!(load(x));
+    gpu_do!(launch());
+    for i in 0..1000 {
+        x[i] = x[i] * 5.0;
+    }
+}
+```
 
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+## Fewer bugs, more productivity
+
+Emu lets you work with 
