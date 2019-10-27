@@ -64,7 +64,7 @@ Emu currently works very well (robust, well-documented, OK-ish baseline performa
 - [ ] Data race safety with Rayon
 - [ ] Multiple GPU usage
 - [ ] Multiple thread usage (from host)
-- [ ] Support for methods
+- [ ] Support for methods (details in [`CONTRIBUTING.md`](https://github.com/calebwin/emu/blob/master/CONTRIBUTING.md))
 - [ ] Support for block algorithms
 - [ ] Support for reduction algorithms
 - [ ] Support for `for x in &data`
