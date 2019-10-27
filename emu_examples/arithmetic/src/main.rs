@@ -13,3 +13,21 @@ fn main() {
 
     println!("{:?}", data);
 }
+
+// fn main() {
+// 	// i = get_group_id
+// 	// j = get_local_id
+
+// 	for (i, j) in x.enumerate().map(|(i, _)| (i / 10, i % 10)) {
+
+// 	}
+
+// 	for (i, chunk) in x.chunks(10).enumerate() {
+// 		let mut scratch = vec![0.0; 10];
+// 		for (j, _) in chunk.enumerate() {
+			
+// 		}
+// 	}
+
+
+// }

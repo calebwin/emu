@@ -29,6 +29,21 @@ use accelerating::*;
 use inspector::*;
 use passing::*;
 
+// TODO document this somewhere
+// let's consider the following where x is of type T
+// gpu_do!(load(x))
+// gpu_do!(read(x))
+// here are the restrictions for what T can be
+// - T must have .as_slice() for reading from slice to GPU
+// - T must have .as_mut_slice() for writing to slice back from GPU
+// - T must implement Index, IndexMut for use inside a launched loop
+// these requirements are here for 2 reasons
+// 1. loading and reading T should be possible for GPU
+// 2. using T inside of launched loop should be same on GPU or CPU
+// by following these requirements you can use not only Vec but also your
+// own types like a Tensor or Matrix or Queue
+// of course, you can't use methods and stuff but Emu already enforces that
+
 // error represents an error in compilation that makes it more confusing to user to proceed
 // if e is an error, we just stop the proc macro execution and just return what was already there + errors
 //
