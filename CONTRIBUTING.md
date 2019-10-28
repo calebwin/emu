@@ -28,6 +28,30 @@ The order we want to expoand the subset is from outside to inside. From outside 
 2. work on `gpu_do!()`
 3. work on `gpu_do!(launch())` and support more kinds of for loops
 4. work on supporting more kinds of stuff inside the for loops
+5. etc.
+
+Some of the things that need to be worked on include but are not limited to-
+
+1. work on `#[gpu_use]`
+   1. support methods
+   2. support `?` operator
+2. work on `gpu_do!()`
+   1. support `gpu_do!(load_async(data))`, `gpu_do!(read_async(data))`, `gpu_do!(launch_async())`, `gpu_do!(wait())` for asynchronous usage of GPUs
+   2. support `gpu_do!(open("nvidia ti"))`, `#[gpu_use("nvidia ti", "nvidia gt")]` for usage of multiple GPUs
+   3. support `gpu_do!(load_mut(data))` to optimize for data that isn't actually mutable
+3. work on `gpu_do!(launch())` and support more kinds of for loops
+   1. support loops that declare block algorithms/blocked iteration/iteration over chunks
+   2. support loops that `for x in data`
+   3. support loops that `for x in 0..(i * j)`
+4. work on supporting more kinds of stuff inside the for loops
+   1. support variables
+   2. support all binary/unary operators
+   3. support if/else-if/else
+   4. support loops
+   5. support more primitive types such as `char`, `i32`, `u128`
+5. etc.
+   1. support structures with `#[gpu_use_struct]`
+   2. support helper functions `#[gpu_use_fn]`
 
 To be even more specific, here is what we want to do-
 
