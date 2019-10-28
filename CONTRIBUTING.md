@@ -51,7 +51,7 @@ Some of the things that need to be worked on include but are not limited to-
    - [ ] support more primitive types such as `char`, `i32`, `u128`
 5. etc.
    - [ ] support structures with `#[gpu_use_struct]`
-   - [ ] support helper functions `#[gpu_use_fn]`
+   - [ ] support functions (that can be called from inside of for loop) `#[gpu_use_fn]`
 
 To be even more specific, here is what we want to do-
 
