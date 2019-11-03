@@ -25,9 +25,8 @@ fn main() {
 // 	for (i, chunk) in x.chunks(10).enumerate() {
 // 		let mut scratch = vec![0.0; 10];
 // 		for (j, _) in chunk.enumerate() {
-			
+
 // 		}
 // 	}
-
 
 // }

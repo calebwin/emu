@@ -144,10 +144,10 @@ macro_rules! get_buffer_key {
 /// 3. Launching on the GPU with `gpu_do!(launch())`
 ///
 /// Note that data must be an identifier. The only hard requirement for data is
-/// that it must have the 2 following methods. 
+/// that it must have the 2 following methods.
 /// - `fn as_slice(&self) -> &[f32]`
 /// - `fn as_mut_slice(&mut self) -> &mut [f32]`
-/// 
+///
 /// There is a soft requirement that the data should be representing a list of
 /// `f32`s and indexing it with `data[i]` should return an `f32`. But this is
 /// really just to ensure that when we lift code from CPU to GPU it is

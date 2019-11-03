@@ -16,11 +16,11 @@ use syn::fold::Fold;
 use syn::*;
 
 // THE TABLE OF CONTENTS
-// 
+//
 // these modules are the main modules Emu uses
 mod accelerating; // for looking through code for gpu_do!() and using the GPU appropriately
 mod passing; // for passing around a reference to the GPU from function to function
-// these modules are more linke utilities for Emu
+             // these modules are more linke utilities for Emu
 mod generator; // for generating OpenCL from Rust
 mod identifier; // for identifying a for loop as potentially something we can work with
 mod inspector; // for inspecting a function for more info

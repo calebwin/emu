@@ -16,4 +16,4 @@ edition = "2018"
 
 [dependencies]
 ocl = "0.19.3"
-emu_macro = "0.1.0"
+emu_macro = { path = "../emu_macro" }
