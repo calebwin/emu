@@ -7,7 +7,9 @@
 [![](http://meritbadge.herokuapp.com/em)](https://crates.io/crates/em)
 [![](https://docs.rs/em/badge.svg)](https://docs.rs/em)
 
-Emu is a framework/compiler for GPU acceleration of Rust, GPU programming. It is a procedural macro that accept pure, safe Rust code as input, identifies portions to attempt to accelerate, and automatically writes in code to run portions on the GPU instead of the CPU.
+Emu is a framework/compiler for GPU acceleration of Rust, GPU programming. It is a procedural macro that accept pure, safe Rust code as input, identifies portions to attempt to accelerate, and automatically writes in code to run portions on the GPU instead of the CPU. 
+
+Ultimately, Emu helps you develop single-source, GPU-accelerated applications in Rust, taking advantage of Rust's tooling, ecosystem, and safety guarantees.
 
 # features
 
