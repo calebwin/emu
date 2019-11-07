@@ -37,14 +37,14 @@ use em::*;
 #[gpu_use]
 fn main() {
     let mut x = vec![0.0; 1000];
-    gpu_do!(load(x)); // move data to the GPU
     
+    gpu_do!(load(x)); // move data to the GPU
     gpu_do!(launch()); // off-load to run on the GPU
     for i in 0..1000 {
         x[i] = x[i] * 10.0;
     }
-
     gpu_do!(read(x)); // move data back from the GPU
+    
     println!("{:?}", x);
 }
 ```
