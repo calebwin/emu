@@ -18,6 +18,7 @@ Ultimately, Emu helps you develop single-source, GPU-accelerated applications in
   - work with `cargo test`, `cargo doc`, `crates.io`
   - work with `rustfmt`, `racer`, `rls`
   - switch between CPU and GPU with 1 line
+  - seamlessly drop down to low-level OpenCL, SPIR-V
 - safety guarantees
   - no null pointer errors
   - no type mismatch errors
