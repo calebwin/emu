@@ -153,7 +153,7 @@ macro_rules! get_buffer_key {
 /// really just to ensure that when we lift code from CPU to GPU it is
 /// functionally equivalent in a sane way. Also, note that no invocation of
 /// `gpu_do!()` will ever expand to anything, unless the function it's being
-/// used in is tagged with `#[gpu_use]
+/// used in is tagged with `#[gpu_use]`
 ///
 /// There is also a requirement that once data is loaded, it should not be
 /// re-allocated on the CPU in-between launches, reads that make use of it.
