@@ -1,3 +1,5 @@
+> The old version of Emu (which used macros and stuff) is [here](https://github.com/calebwin/emu/tree/master/em).
+
 [![Discord Chat](https://img.shields.io/discord/308323056592486420.svg)](https://discord.gg/WqhrRQ)
 
 <p align="center">
