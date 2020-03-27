@@ -1,5 +1,5 @@
 [workspace]
 
 members = [
-    "em", "emu_macro", "emu_examples/arithmetic", "emu_tests"
+    "em", "emu_macro", "emu_examples/arithmetic", "emu_tests", "emu_core", "emu_glsl"
 ]
