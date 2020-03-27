@@ -1,81 +1,95 @@
+[![Discord Chat](https://img.shields.io/discord/308323056592486420.svg)](https://discord.gg/WqhrRQ)
+
 <p align="center">
 <!-- <img width="250px" src="https://i.imgur.com/kTap42K.png"/> -->
     <img width="250px" src="https://i.imgur.com/CZEkdK1.png"/>
 </p>
 
-[![Gitter](https://badges.gitter.im/talk-about-emu/thoughts.svg)](https://gitter.im/talk-about-emu/thoughts?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![](http://meritbadge.herokuapp.com/em)](https://crates.io/crates/em)
-[![](https://docs.rs/em/badge.svg)](https://docs.rs/em)
+Emu is a GPGPU library with a focus on portability, modularity, and performance. It's a CUDA-esque compute-specific abstraction over [WebGPU](https://github.com/gfx-rs/wgpu-rs) providing specific functionality to make WebGPU feel more like CUDA. Here's a quick run-down of highlight features...
 
-Emu is a framework/compiler for GPU acceleration of Rust, GPU programming. It is a procedural macro (`#[gpu_use]`) that walks through your Rust code and off-loads parts of it to the GPU. It looks for annotations (`gpu_do!()`) embedded in your code to know where to add GPU-specific action (like moving data and launching computation).
+- **Emu can run anywhere** - Emu uses WebGPU to support DirectX, Metal, Vulkan (and also OpenGL and browser eventually) as compile targets. This allows Emu to run on pretty much any user interface including desktop, mobile, and browser. By moving heavy computations to the user's device, you can reduce system latency and improve privacy.
+- **Emu makes compute easier** - Emu makes WebGPU feel like CUDA. It does this by providing...
+    - `DeviceBox<T>` as a wrapper for data that lives on the GPU (thereby ensuring type-safe data movement)
+    - `DevicePool` as a no-config auto-managed pool of devices (similar to CUDA)
+    - `trait Cache` - a no-setup-required LRU cache of JITed compute kernels.
+- **Emu is transparent** - Emu is a fully transparent abstraction. This means, at any point, you can decide to remove the abstraction and work directly with WebGPU constructs with zero overhead. For example, if you want to mix Emu with WebGPU-based graphics, you can do that with zero overhead. You can also swap out the JIT compiler artifact cache with your own cache, manage the device pool if you wish, and define your own compile-to-SPIR-V compiler that interops with Emu.
 
-Ultimately, Emu helps you develop single-source, GPU-accelerated applications in Rust, taking advantage of Rust's tooling, ecosystem, and safety guarantees.
+Here's a quick example of Emu. You can find more in `emu_core/examples`.
 
-# features
-
-- ease of use
-  - download a library, not a whole new compiler
-  - work with `cargo test`, `cargo doc`, `crates.io`
-  - work with `rustfmt`, `racer`, `rls`
-  - switch between CPU and GPU with 1 line
-  - seamlessly drop down to low-level OpenCL, SPIR-V
-- safety guarantees
-  - no null pointer errors
-  - no type mismatch errors
-  - no syntax errors
-- more fun
-  - up to 80% less code
-  - up to 300x speedup
-  - as fast as single-GPU, single-threaded, idiomatic usage of OpenCL
-
-# an example
-
-```rust
-#[macro_use]
-extern crate em;
-use em::*;
-
-#[gpu_use]
-fn main() {
-    let mut x = vec![0.0; 1000];
-    
-    gpu_do!(load(x)); // move data to the GPU
-    gpu_do!(launch()); // off-load to run on the GPU
-    for i in 0..1000 {
-        x[i] = x[i] * 10.0;
-    }
-    gpu_do!(read(x)); // move data back from the GPU
-    
-    println!("{:?}", x);
+```toml
+[dependencies]
+emu_core = {
+    git = "https://github.com/calebwin/emu/tree/master/emu_core.git",
+    rev = "265d2a5fb9292e2644ae4431f2982523a8d27a0f"
 }
 ```
+```rust
+#[macro_use]
+extern crate emu_core;
+use emu_core::boxed::*;
+use emu_core::device::*;
+use emu_core::error::CompletionError;
+use emu_core::pool::*;
+use emu_core::r#fn::*;
+use zerocopy::*;
 
-# usage
+#[macro_use]
+extern crate timeit;
 
-You can use Emu in your Rust projects by doing the following-
+#[repr(C)]
+#[derive(AsBytes, FromBytes, Copy, Clone, Default, Debug)]
+struct Rectangle {
+    x: u32,
+    y: u32,
+    w: i32,
+    h: i32,
+}
 
-1. Add `em = 0.3.0` to `Cargo.toml`
-2. Confirm that an OpenCL library [is installed]() for your platform
+async fn do_some_stuff() -> Result<(), Box<dyn std::error::Error>> {
+    let mut x: DeviceBox<[Rectangle]> = vec![Default::default(); 128].as_device_boxed()?;
+    
+    let c = unsafe {
+        compile::<String, GlslCompile, _, GlobalCache>(String::from(
+            r#"
+#version 450
+layout(local_size_x = 1) in;
 
-Learn how to get started with Emu by looking at [the documentation](https://docs.rs/em).
+struct Rectangle {
+    uint x;
+    uint y;
+    int w;
+    int h;
+};
 
-# contributing
+layout(set = 0, binding = 0) buffer Rectangles {
+    Rectangle[] rectangles;
+}; // this is used as both input and output for convenience
 
-Emu currently works very well (robust, well-documented, OK-ish baseline performance) but only with a small subset of Rust. The roadmap for what to do next is pretty straightforward - expand that subset of Rust that we look at. Here is an up-to-date (but not necessarily complete) list of things to work on.
+Rectangle flip(Rectangle r) {
+    r.x = r.x + r.w;
+    r.y = r.y + r.h;
+    r.w *= -1;
+    r.h *= -1;
+    return r;
+}
 
-- [ ] Constant address space by default
-- [ ] Data race safety with Rayon
-- [ ] Multiple GPU usage
-- [ ] Multiple thread usage (from host)
-- [ ] Support for methods (details in [`CONTRIBUTING.md`](https://github.com/calebwin/emu/blob/master/CONTRIBUTING.md))
-- [ ] Support for block algorithms
-- [ ] Support for reduction algorithms
-- [ ] Support for `for x in &data`
-- [ ] Support for `for x in &mut data`
-- [ ] Support for variables
-- [ ] Support for if statements
-- [ ] Support for if/else-if/else statements
-- [ ] Support for all Rust with NVPTX
-- [ ] *insert your super-cool idea here*
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    rectangles[index] = flip(rectangles[index]);
+}
+            "#,
+        ))?
+    };
+    unsafe {
+        spawn(128).launch(call!(c, &mut x));
+    }
 
-We want people to be able to implement all sorts of cool things (simulations, AI, image processing) with Rust + Emu. If you are excited about building a framework for accelerating Rust code with GPUs, create a GitHub issue for whatever you want to work on and/or discuss on Gitter.
+    println!("{:?}", x.get().await?);
+
+    Ok(())
+}
+
+fn main() {
+    futures::executor::block_on(do_some_stuff()).expect("failed to do stuff on GPU");
+}
+```
