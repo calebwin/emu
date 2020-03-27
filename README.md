@@ -67,6 +67,8 @@ struct Rectangle {
 };
 
 // make sure to use only a single set and keep all your n parameters in n storage buffers in bindings 0 to n-1
+// you shouldn't use push constants or anything OTHER than storage buffers for passing stuff into the kernel
+// just use buffers with one buffer per binding
 layout(set = 0, binding = 0) buffer Rectangles {
     Rectangle[] rectangles;
 }; // this is used as both input and output for convenience
@@ -79,6 +81,8 @@ Rectangle flip(Rectangle r) {
     return r;
 }
 
+// there should be only one entry point and it should be named "main"
+// ultimately, Emu has to kind of restrict how you use GLSL because it is compute focused
 void main() {
     uint index = gl_GlobalInvocationID.x; // this gives us the index in the x dimension of the thread space
     rectangles[index] = flip(rectangles[index]);
