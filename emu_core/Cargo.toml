@@ -1,0 +1,34 @@
+[package]
+name = "emu_core"
+version = "0.1.0"
+authors = ["caleb"]
+edition = "2018"
+
+# for now, we use a the latest version of the wgpu-rs git repo from GitHub
+# we have to use a since it isn't yet published to Crates.io
+# unfortunately, this does mean we can't publish emu_core until wgpu-rs is published
+# hopefully, once wgpu-rs is published, we can swap this dep with the Crates.io version
+# when we swap it out, we might have to make some modifications to use the new wgpu-rs API
+# but again, hopefully, those modifications are small enough
+
+[features]
+default = []
+spirv-compile = ["spirv_headers", "spirv-reflect"]
+glsl-compile = ["spirv_headers", "spirv-reflect", "shaderc"]
+
+[dependencies]
+wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git", rev = "ab787e2b2c3ff1411ee505d40d449dd4e7949e52" }
+futures = "0.3.1"
+zerocopy = "0.2.0"
+lazy_static = "1.4.0"
+derive_more = "0.99.2"
+lru = "0.4.3"
+
+spirv_headers = { version = "1.4.2", optional = true }
+spirv-reflect = { version = "0.2.3", optional = true }
+shaderc = { version = "0.6.2", optional = true }
+# xshade-parser = "0.1.2"
+
+[dev-dependencies]
+futures = "0.3"
+timeit = "0.1.2"
