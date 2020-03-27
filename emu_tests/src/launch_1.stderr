@@ -1,8 +1,11 @@
 error: unexpected kind of for loop
   --> $DIR/launch_1.rs:10:2
    |
-10 |     for i in (0..100) {
-   |     ^^^
+10 |       for i in (0..100) {
+   |  _____^
+11 | |
+12 | |     }
+   | |_____^
 
 warning: unnecessary parentheses around `for` head expression
   --> $DIR/launch_1.rs:10:11

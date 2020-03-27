@@ -11,6 +11,7 @@ use syn::fold::Fold;
 use syn::spanned::Spanned;
 use syn::visit::Visit;
 use syn::*;
+use proc_macro2::Span;
 
 // for etc.use crate::generator::Generator;
 use crate::identifier::get_global_work_size;
@@ -120,7 +121,7 @@ impl Fold for Accelerator {
                         // is it load? read? launch?
                         if path
                             .path
-                            .is_ident(&Ident::new("load", quote::__rt::Span::call_site()))
+                            .is_ident(&Ident::new("load", Span::call_site()))
                         {
                             let new_code = quote! {
                                 {
@@ -166,7 +167,7 @@ impl Fold for Accelerator {
                             new_ast
                         } else if path
                             .path
-                            .is_ident(&Ident::new("read", quote::__rt::Span::call_site()))
+                            .is_ident(&Ident::new("read", Span::call_site()))
                         {
                             let new_code = quote! {
                                 {
@@ -190,7 +191,7 @@ impl Fold for Accelerator {
                             new_ast
                         } else if path
                             .path
-                            .is_ident(&Ident::new("launch", quote::__rt::Span::call_site()))
+                            .is_ident(&Ident::new("launch", Span::call_site()))
                         {
                             self.ready_to_launch = true;
 
@@ -256,7 +257,7 @@ impl Fold for Accelerator {
 
                 // (b) generate arguments
                 let args = code_generator.params.iter().map(|param| {
-                    let ident = Ident::new(&param.name, quote::__rt::Span::call_site());
+                    let ident = Ident::new(&param.name, Span::call_site());
                     let ident_literal = ident.to_string().clone();
 
                     if param.is_array {

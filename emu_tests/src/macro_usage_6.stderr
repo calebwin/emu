@@ -2,14 +2,4 @@ error: async function cannot be tagged with `#[gpu_use]`
  --> $DIR/macro_usage_6.rs:5:1
   |
 5 | async fn do_something() {
-  | ^^^^^
-
-error[E0658]: async fn is unstable
- --> $DIR/macro_usage_6.rs:5:1
-  |
-5 | / async fn do_something() {
-6 | | 
-7 | | }
-  | |_^
-  |
-  = note: for more information, see https://github.com/rust-lang/rust/issues/50547
+  | ^^^^^^^^^^^^^^^^^^^^^^^

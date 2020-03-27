@@ -2,4 +2,4 @@ error: expected `gpu_do!(launch())` to be followed by a for loop
   --> $DIR/launch_3.rs:10:2
    |
 10 |     data[0] = data[0] + 1.0;
-   |     ^^^^
+   |     ^^^^^^^^^^^^^^^^^^^^^^^

@@ -2,4 +2,4 @@ error[E0599]: no method named `as_slice` found for type `std::string::String` in
  --> $DIR/load_read_1.rs:4:1
   |
 4 | #[gpu_use]
-  | ^^^^^^^^^^
+  | ^^^^^^^^^^ method not found in `std::string::String`
