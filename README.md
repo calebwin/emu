@@ -9,15 +9,15 @@ Emu is a GPGPU library with a focus on portability, modularity, and performance.
 
 It's a CUDA-esque compute-specific abstraction over [WebGPU](https://github.com/gfx-rs/wgpu-rs) providing specific functionality to make WebGPU feel more like CUDA. Here's a quick run-down of highlight features...
 
-**Emu can run anywhere** - Emu uses WebGPU to support DirectX, Metal, Vulkan (and also OpenGL and browser eventually) as compile targets. This allows Emu to run on pretty much any user interface including desktop, mobile, and browser. By moving 
+- **Emu can run anywhere** - Emu uses WebGPU to support DirectX, Metal, Vulkan (and also OpenGL and browser eventually) as compile targets. This allows Emu to run on pretty much any user interface including desktop, mobile, and browser. By moving 
 heavy computations to the user's device, you can reduce system latency and improve privacy.
 
-**Emu makes compute easier** - Emu makes WebGPU feel like CUDA. It does this by providing...
-- `DeviceBox<T>` as a wrapper for data that lives on the GPU (thereby ensuring type-safe data movement)
-- `DevicePool` as a no-config auto-managed pool of devices (similar to CUDA)
-- `trait Cache` - a no-setup-required LRU cache of JITed compute kernels.
+- **Emu makes compute easier** - Emu makes WebGPU feel like CUDA. It does this by providing...
+    - `DeviceBox<T>` as a wrapper for data that lives on the GPU (thereby ensuring type-safe data movement)
+    - `DevicePool` as a no-config auto-managed pool of devices (similar to CUDA)
+    - `trait Cache` - a no-setup-required LRU cache of JITed compute kernels.
     
-**Emu is transparent** - Emu is a fully transparent abstraction. This means, at any point, you can decide to remove the abstraction and work directly with WebGPU constructs with zero overhead. For example, if you want to mix Emu with WebGPU-based graphics, you can do that with zero overhead. You can also swap out the JIT compiler artifact cache with your own cache, manage the device pool if you wish, and define your own compile-to-SPIR-V compiler that interops with Emu.
+- **Emu is transparent** - Emu is a fully transparent abstraction. This means, at any point, you can decide to remove the abstraction and work directly with WebGPU constructs with zero overhead. For example, if you want to mix Emu with WebGPU-based graphics, you can do that with zero overhead. You can also swap out the JIT compiler artifact cache with your own cache, manage the device pool if you wish, and define your own compile-to-SPIR-V compiler that interops with Emu.
 
 Here's a quick example of Emu. You can find more in `emu_core/examples`.
 
