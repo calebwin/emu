@@ -2,4 +2,4 @@ error: expected name of helper function
  --> $DIR/macro_usage_5.rs:4:11
   |
 4 | #[gpu_use(x = "hello")]
-  |           ^
+  |           ^^^^^^^^^^^

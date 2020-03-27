@@ -121,7 +121,7 @@ impl Fold for Accelerator {
                         // is it load? read? launch?
                         if path
                             .path
-                            .is_ident(&Ident::new("load", quote::__rt::Span::call_site()))
+                            .is_ident(&Ident::new("load", Span::call_site()))
                         {
                             let new_code = quote! {
                                 {
@@ -257,7 +257,7 @@ impl Fold for Accelerator {
 
                 // (b) generate arguments
                 let args = code_generator.params.iter().map(|param| {
-                    let ident = Ident::new(&param.name, quote::__rt::Span::call_site());
+                    let ident = Ident::new(&param.name, Span::call_site());
                     let ident_literal = ident.to_string().clone();
 
                     if param.is_array {
