@@ -16,13 +16,6 @@ Emu is a GPGPU library with a focus on portability, modularity, and performance.
 
 Here's a quick example of Emu. You can find more in `emu_core/examples`.
 
-```toml
-[dependencies]
-emu_core = {
-    git = "https://github.com/calebwin/emu/tree/master/emu_core.git",
-    rev = "265d2a5fb9292e2644ae4431f2982523a8d27a0f"
-}
-```
 ```rust
 #[macro_use]
 extern crate emu_core;
@@ -93,3 +86,14 @@ fn main() {
     futures::executor::block_on(do_some_stuff()).expect("failed to do stuff on GPU");
 }
 ```
+
+For now, you can get started with using Emu with the following.
+```toml
+[dependencies]
+emu_core = {
+    git = "https://github.com/calebwin/emu/tree/master/emu_core.git",
+    rev = "265d2a5fb9292e2644ae4431f2982523a8d27a0f"
+}
+```
+
+If you have any questions, please [ask in the Discord](https://discord.gg/WqhrRQ).
