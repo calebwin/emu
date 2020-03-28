@@ -44,7 +44,7 @@ use spirv_reflect::*;
 // generic over its inpput
 pub trait Compile<I: Hash> {
     type Output: Read + Seek;
-    fn compile(src: I) -> (DeviceFnMutParams, String, Self::Output);
+    fn compile(src: I) -> Result<(DeviceFnMutParams, String, Self::Output), CompileError>;
 }
 
 // this doesn't support **all** SPIR-V
@@ -63,7 +63,9 @@ pub struct SpirvCompile;
 impl Compile<Vec<u8>> for SpirvCompile {
     type Output = Cursor<Vec<u8>>;
 
-    fn compile(mut src: Vec<u8>) -> (DeviceFnMutParams, String, Self::Output) {
+    fn compile(
+        mut src: Vec<u8>,
+    ) -> Result<(DeviceFnMutParams, String, Self::Output), CompileError> {
         let mut num_params = 0;
         let mut kernel_name = String::new();
 
@@ -76,13 +78,12 @@ impl Compile<Vec<u8>> for SpirvCompile {
         // let module = loader.module();
 
         // attempt using spirv-reflect-rs
-        let module = ShaderModule::load_u8_data(&src).unwrap();
+        let module = unsafe { ShaderModule::load_u8_data(&src).unwrap() };
         let entry_point = module
             .enumerate_entry_points()
             .unwrap()
             .iter()
-            .find(|entry_point| entry_point.spirv_execution_model == ExecutionModel::GLCompute)
-            .expect("the given SPIR-V program doesn't contain any compute kernels")
+            .find(|entry_point| entry_point.spirv_execution_model == ExecutionModel::GLCompute)?
             .clone();
         kernel_name = entry_point.name.clone();
         num_params = entry_point.descriptor_sets[0]
@@ -91,11 +92,11 @@ impl Compile<Vec<u8>> for SpirvCompile {
             .filter(|binding| binding.descriptor_type == ReflectDescriptorType::StorageBuffer)
             .count();
 
-        (
+        Ok((
             DeviceFnMutParams::new(num_params),
             kernel_name,
             Cursor::new(src),
-        )
+        ))
     }
 }
 
@@ -109,32 +110,34 @@ pub struct GlslCompile;
 impl Compile<String> for GlslCompile {
     type Output = Cursor<Vec<u8>>;
 
-    fn compile(mut src: String) -> (DeviceFnMutParams, String, Self::Output) {
+    fn compile(mut src: String) -> Result<(DeviceFnMutParams, String, Self::Output), CompileError> {
         let mut num_params = 0;
         let mut kernel_name = String::new();
 
         // (1) compile to SPIR-V
-        let mut compiler = shaderc::Compiler::new().unwrap();
-        let binary_result = compiler
-            .compile_into_spirv(
-                &src,
-                shaderc::ShaderKind::Compute,
-                "a compute shader",
-                "main",
-                None,
-            )
-            .unwrap();
+        let mut compiler = unsafe { shaderc::Compiler::new().unwrap() };
+        let binary_result = unsafe {
+            compiler
+                .compile_into_spirv(
+                    &src,
+                    shaderc::ShaderKind::Compute,
+                    "a compute shader",
+                    "main",
+                    None,
+                )
+                .unwrap()
+        };
         let spirv_bytes = Vec::from(binary_result.as_binary_u8());
 
         // (2) extract info
 
-        let module = ShaderModule::load_u8_data(&spirv_bytes).unwrap();
+        let module = unsafe { ShaderModule::load_u8_data(&spirv_bytes).unwrap() };
         let entry_point = module
             .enumerate_entry_points()
             .unwrap()
             .iter()
             .find(|entry_point| entry_point.spirv_execution_model == ExecutionModel::GLCompute)
-            .expect("the given SPIR-V program doesn't contain any compute kernels")
+            .ok_or(CompileError)?
             .clone();
         kernel_name = entry_point.name.clone();
         num_params = entry_point.descriptor_sets[0]
@@ -143,11 +146,162 @@ impl Compile<String> for GlslCompile {
             .filter(|binding| binding.descriptor_type == ReflectDescriptorType::StorageBuffer)
             .count();
 
-        (
+        Ok((
             DeviceFnMutParams::new(num_params),
             kernel_name,
             Cursor::new(spirv_bytes),
-        )
+        ))
+    }
+}
+
+// TODO create GlslKernel { local_size, structs, parameters, helper_code, kernel_code}
+// TODO add trait, derive macro for structs to GLSL
+
+// TODO in the future, generalize this to other types, not just struct
+pub trait GlslStruct {
+    fn as_glsl() -> String;
+}
+
+#[derive(Hash)]
+pub struct GlslKernel {
+    code: String,
+    params: Vec<String>,
+    params_mutability: Vec<Mutability>,
+    structs: Vec<String>,
+    local_size: Vec<u32>,
+    helper_code: String,
+    kernel_code: String,
+}
+
+impl GlslKernel {
+    pub fn new() -> Self {
+        Self {
+            code: String::from("#version 450\n"),
+            params: vec![],
+            params_mutability: vec![],
+            structs: vec![],
+            local_size: vec![],
+            helper_code: String::new(),
+            kernel_code: String::new(),
+        }
+    }
+
+    pub fn spawn(mut self, num_threads: u32) -> Self {
+        if self.local_size.len() == 3 {
+            panic!("cannot spawn more threads within thread block");
+        }
+        self.local_size.push(num_threads);
+        self
+    }
+
+    pub fn with_struct<T: GlslStruct>(mut self) -> Self {
+        self.structs.push(T::as_glsl());
+        self
+    }
+
+    pub fn param(mut self, param: impl Into<String>) -> Self {
+        self.params.push(param.into());
+        self.params_mutability.push(Mutability::Const);
+        self
+    }
+
+    pub fn param_mut(mut self, param: impl Into<String>) -> Self {
+        self.params.push(param.into());
+        self.params_mutability.push(Mutability::Mut);
+        self
+    }
+
+    pub fn with_helper_code(mut self, code: impl Into<String>) -> Self {
+        self.helper_code = code.into();
+        self
+    }
+
+    pub fn with_kernel_code(mut self, code: impl Into<String>) -> Self {
+        self.kernel_code = code.into();
+        self
+    }
+}
+
+#[cfg(feature = "glsl-compile")]
+pub struct GlslKernelCompile;
+
+#[cfg(feature = "glsl-compile")]
+impl Compile<GlslKernel> for GlslKernelCompile {
+    type Output = Cursor<Vec<u8>>;
+
+    fn compile(
+        mut src: GlslKernel,
+    ) -> Result<(DeviceFnMutParams, String, Self::Output), CompileError> {
+        let mut num_params = src.params.len();
+        let mut kernel_name = String::from("main");
+
+        // (1) local size
+        if src.local_size.len() == 0 {
+            src.local_size = vec![1];
+        }
+        src.code += "\nlayout(";
+        if src.local_size.len() == 1 {
+            src.code += "local_size_x = ";
+            src.code += &src.local_size[0].to_string();
+        }
+        if src.local_size.len() == 2 {
+            src.code += "local_size_x = ";
+            src.code += &src.local_size[0].to_string();
+            src.code += ", local_size_y = ";
+            src.code += &src.local_size[1].to_string();
+        }
+        if src.local_size.len() == 3 {
+            src.code += "local_size_x = ";
+            src.code += &src.local_size[0].to_string();
+            src.code += ", local_size_y = ";
+            src.code += &src.local_size[1].to_string();
+            src.code += ", local_size_z = ";
+            src.code += &src.local_size[2].to_string();
+        }
+        src.code += ") in;\n";
+
+        // (2) structs
+        for struct_def in src.structs {
+            src.code += &struct_def;
+        }
+
+        // (3) buffers
+        let mut params = ParamBuilder::new();
+        for (i, param) in src.params.iter().enumerate() {
+            params = params.param(src.params_mutability[i]);
+            src.code += "\nlayout(set = 0, binding = ";
+            src.code += &i.to_string();
+            src.code += ") buffer Buffer";
+            src.code += &i.to_string();
+            src.code += " {\n";
+            src.code += param;
+            src.code += ";\n};\n";
+        }
+
+        // (4) helper code
+        src.code += &src.helper_code;
+
+        // (5) kernel code
+        src.code += "\nvoid main() {\n";
+        src.code += &src.kernel_code;
+        src.code += "}\n";
+
+        // (6) compile to SPIR-V
+        let mut compiler = unsafe { shaderc::Compiler::new().unwrap() };
+        let binary_result = unsafe {
+            compiler
+                .compile_into_spirv(
+                    &src.code,
+                    shaderc::ShaderKind::Compute,
+                    "a compute shader",
+                    "main",
+                    None,
+                )
+                .unwrap()
+        };
+        let spirv_bytes = Vec::from(binary_result.as_binary_u8());
+
+        Ok((params.build(), kernel_name, Cursor::new(spirv_bytes)))
     }
 }
 
@@ -248,6 +402,10 @@ impl Cache for GlobalCache {
     }
 }
 
+//
+// FUNCTIONS
+//
+
 // TODO add a module for easily caching kernels
 // TODO instead of Compile and compile, create module for dynamically defining kernels (or maybe even computation with kernels cached)
 
@@ -262,7 +420,10 @@ impl Cache for GlobalCache {
 // this function returns a scary looking Arc (automatic reference counting pointer)
 // but you can easily convert it to a reference with &
 // we use Arc because DeviceFnMut's are loaded from global caches that can be used from various different threads
-pub unsafe fn compile<I: Hash, U: Compile<I, Output = O>, O, C: Cache>(
+//
+// this function is safe as long as U can compile to SPIR-V safely
+// once U compiles to SPIR-V, wgpu-rs should be able to safely compile to machine code
+pub fn compile<I: Hash, U: Compile<I, Output = O>, O, C: Cache>(
     src: I,
 ) -> Result<Arc<DeviceFnMut>, CompileOrNoDeviceError>
 where
@@ -278,7 +439,7 @@ where
     if C::contains(hash) {
         Ok(C::get(hash))
     } else {
-        let compiled = U::compile(src_into);
+        let compiled = U::compile(src_into).map_err(|_| CompileOrNoDeviceError::Compile)?;
         C::insert(
             hash,
             Arc::new(

@@ -259,7 +259,7 @@ impl Device {
         Ok(())
     }
 
-    pub unsafe fn compile<T: Into<String>, U: Read + Seek>(
+    pub fn compile<T: Into<String>, U: Read + Seek>(
         &self,
         program_params: DeviceFnMutParams,
         program: U,
@@ -382,49 +382,49 @@ impl DeviceFnMutParams {
     }
 }
 
-// #[derive(Eq, PartialEq)]
-// pub enum Mutability {
-//     Mut,
-//     Const,
-// }
+#[derive(Eq, PartialEq, Hash, Copy, Clone)]
+pub enum Mutability {
+    Mut,
+    Const,
+}
 
-// pub struct ParamBuilder {
-//     binding_layouts: HashMap<u32, wgpu::BindGroupLayoutBinding>,
-// }
+pub struct ParamBuilder {
+    binding_layouts: HashMap<u32, wgpu::BindGroupLayoutBinding>,
+}
 
-// impl ParamBuilder {
-//     pub fn new() -> Self {
-//         Self {
-//             binding_layouts: HashMap::new(),
-//         }
-//     }
+impl ParamBuilder {
+    pub fn new() -> Self {
+        Self {
+            binding_layouts: HashMap::new(),
+        }
+    }
 
-//     // right now, all we need to know is if the parameter is mutable
-//     // in the future this param method might except more
-//     pub fn param(mut self, mutability: Mutability) -> Self {
-//         let new_binding_layout_idx = self.binding_layouts.len() as u32;
-//         self.binding_layouts.insert(
-//             new_binding_layout_idx,
-//             wgpu::BindGroupLayoutBinding {
-//                 binding: new_binding_layout_idx,
-//                 visibility: wgpu::ShaderStage::COMPUTE,
-//                 ty: wgpu::BindingType::StorageBuffer {
-//                     dynamic: false, // we usually don't need dynamic for compute so we default to 0, of course if you need it you can provide your own Device...Params
-//                     readonly: mutability == Mutability::Const,
-//                 },
-//             },
-//         );
+    // right now, all we need to know is if the parameter is mutable
+    // in the future this param method might except more
+    pub fn param(mut self, mutability: Mutability) -> Self {
+        let new_binding_layout_idx = self.binding_layouts.len() as u32;
+        self.binding_layouts.insert(
+            new_binding_layout_idx,
+            wgpu::BindGroupLayoutBinding {
+                binding: new_binding_layout_idx,
+                visibility: wgpu::ShaderStage::COMPUTE,
+                ty: wgpu::BindingType::StorageBuffer {
+                    dynamic: false, // we usually don't need dynamic for compute so we default to 0, of course if you need it you can provide your own Device...Params
+                    readonly: mutability == Mutability::Const,
+                },
+            },
+        );
 
-//         self
-//     }
+        self
+    }
 
-//     pub fn build(self) -> DeviceFnMutParams {
-//         let mut bind_group_layouts = HashMap::new();
-//         bind_group_layouts.insert(0, self.binding_layouts); // again, we usually don't need more than 1 set, so we default to just 1
+    pub fn build(self) -> DeviceFnMutParams {
+        let mut bind_group_layouts = HashMap::new();
+        bind_group_layouts.insert(0, self.binding_layouts); // again, we usually don't need more than 1 set, so we default to just 1
 
-//         DeviceFnMutParams { bind_group_layouts }
-//     }
-// }
+        DeviceFnMutParams { bind_group_layouts }
+    }
+}
 
 // a DeviceFnMutArgs holds the actual arguments to be passed into a DeviceFnMut
 // it should be cheap to construct and consist mainly of a bunch of wgpu::Binding's where a Binding represents an argument

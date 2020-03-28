@@ -13,9 +13,9 @@ use syn::visit::Visit;
 use syn::*;
 
 // for etc.use crate::generator::Generator;
+use crate::generator::Generator;
 use crate::identifier::get_global_work_size;
 use crate::identifier::Dim;
-use crate::generator::Generator;
 
 // there is passing
 // then there is accelerating

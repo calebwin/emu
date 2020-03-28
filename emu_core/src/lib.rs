@@ -3,7 +3,7 @@
 #[macro_use]
 extern crate lazy_static;
 
-// a bunch of utilities for compiling/launching programs
+// a bunch of utilities for compiling/launching programs (with a cache for JITed programs)
 pub mod r#fn;
 // a set of traits and functions for working with DeviceBox's
 pub mod boxed;

@@ -14,7 +14,7 @@ edition = "2018"
 [features]
 default = []
 spirv-compile = ["spirv_headers", "spirv-reflect"]
-glsl-compile = ["spirv_headers", "spirv-reflect", "shaderc"]
+glsl-compile = ["spirv_headers", "spirv-reflect","shaderc"]
 
 [dependencies]
 wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git", rev = "ab787e2b2c3ff1411ee505d40d449dd4e7949e52" }
@@ -32,3 +32,4 @@ shaderc = { version = "0.6.2", optional = true }
 [dev-dependencies]
 futures = "0.3"
 timeit = "0.1.2"
+emu_glsl = { path = "../emu_glsl" }

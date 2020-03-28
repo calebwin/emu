@@ -236,9 +236,7 @@ impl Fold for HelperFunctionReturnModifier {
 // modifies return statements
 // this mainly just creates an instance of the above "folder" that we defined
 // we then just invoke it's "fold_item_fn" method to fold on the function
-pub fn modify_returns_for_helper_function(
-    input: TokenStream,
-) -> Result<TokenStream, Vec<Error>> {
+pub fn modify_returns_for_helper_function(input: TokenStream) -> Result<TokenStream, Vec<Error>> {
     // parse into function
     let maybe_ast = syn::parse::<ItemFn>(input.clone());
 
