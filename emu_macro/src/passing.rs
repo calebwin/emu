@@ -338,8 +338,8 @@ impl Fold for HelperFunctionInvocationModifier {
                 }
 
                 if is_helper_function_invocation {
-                    let gpu_ident = quote! {gpu}.into();
-                    i.args.insert(0, gpu_ident);
+                    let gpu_ident = quote! {gpu}.to_token_stream();
+                    i.args.insert(0, syn::Expr::Verbatim(gpu_ident));
 
                     let new_code = quote! {
                         {
