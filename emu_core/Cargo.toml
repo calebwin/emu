@@ -17,7 +17,7 @@ spirv-compile = ["spirv_headers", "spirv-reflect"]
 glsl-compile = ["spirv_headers", "spirv-reflect","shaderc"]
 
 [dependencies]
-wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git", rev = "ab787e2b2c3ff1411ee505d40d449dd4e7949e52" }
+wgpu = { git = "https://github.com/gfx-rs/wgpu-rs.git", rev = "d91b78bdfba1dfd991ddc0fa605b88336dfaf688" }
 futures = "0.3.1"
 zerocopy = "0.2.0"
 lazy_static = "1.4.0"

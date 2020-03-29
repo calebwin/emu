@@ -15,102 +15,74 @@ use derive_more::{From, Into};
 use crate::device::*;
 use crate::error::*;
 
+// // thread local state
+// // used for selecting device for each thread
+// //
+// // the big assumption here and elsewhere is that Adapter::enumerate() is invariant
+// thread_local! {
+//     static ADAPTER_IDX: RefCell<Option<usize>> = RefCell::new(None); // the Option here is None when it isn't initialized
+// }
+
+// fn maybe_initialize_adapter_idx() {
+//     if ADAPTER_IDX.with(|idx| idx.borrow().is_none()) {
+//         ADAPTER_IDX.with(|idx| *idx.borrow_mut() = Some(0));
+//     }
+// }
+
+// pub async fn take() -> Device {
+//     maybe_initialize_adapter_idx();
+
+//     let adapter_idx = ADAPTER_IDX.with(|idx| idx.clone());
+//     let adapter =
+//         &wgpu::Adapter::enumerate(wgpu::BackendBit::PRIMARY)[adapter_idx.into_inner().unwrap()];
+//     let (device, queue) = adapter
+//         .request_device(&wgpu::DeviceDescriptor {
+//             extensions: wgpu::Extensions {
+//                 anisotropic_filtering: false,
+//             },
+//             limits: wgpu::Limits::default(),
+//         })
+//         .await;
+//     Device {
+//         device: device,
+//         queue: queue,
+//         info: Some(DeviceInfo(adapter.get_info())),
+//     }
+// }
+
+// // each DeviceInfo in returned Vec has same index of corresponding Device in pool
+// pub fn info_all() -> Vec<DeviceInfo> {
+//     maybe_initialize_adapter_idx();
+
+//     Adapter::enumerate().into_iter().map(|adapter| DeviceInfo(adapter.get_info())).collect::<Vec<DeviceInfo>>()
+// }
+
+// pub fn take() -> DeviceInfo {
+//     maybe_initialize_device_idx();
+
+//     let adapter_idx = ADAPTER_IDX.with(|idx| idx.clone());
+//     let adapter =
+//         &wgpu::Adapter::enumerate(wgpu::BackendBit::PRIMARY)[adapter_idx.into_inner().unwrap()];
+//     DeviceInfo(adapter.get_info())
+// }
+
+// pub fn select<F: FnMut(usize, DeviceInfo) -> bool>(
+//     mut selector: F,
+// ) -> Result<(), NoDeviceError> {
+//     for (i, device_info) in info_all().iter().enumerate() {
+//         if selector()
+//     }
+// }
+
 // these are some things a pool should let you do
 // - provide a custom pool once or just use a default pool
 // - mutate the wgpu internals in the pool (by blocking till an &mut Device is available) }
 // - use high-level functions like set/get/compile/launch (that block to get &mut Device) } both of these use a thread-local selected index
 
-#[derive(From, Into, Clone)]
-pub struct DeviceInfo {
-    info: wgpu::AdapterInfo,
-}
-
-impl fmt::Debug for DeviceInfo {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{{ name: {:?}, vendor_id: {:?}, device_id: {:?}, device_type: {:?} }}",
-            self.get_name(),
-            self.get_vendor_id(),
-            self.get_device_id(),
-            self.get_device_type()
-        )
-    }
-}
-
-#[derive(Debug)]
-pub enum DeviceType {
-    Cpu,
-    IntegratedGpu,
-    DiscreteGpu,
-    VirtualGpu,
-    Other,
-}
-
-impl DeviceInfo {
-    fn get_name(&self) -> String {
-        self.info.name.clone()
-    }
-
-    fn get_vendor_id(&self) -> usize {
-        self.info.vendor
-    }
-
-    fn get_device_id(&self) -> usize {
-        self.info.device
-    }
-
-    fn get_device_type(&self) -> DeviceType {
-        match &self.info.device_type {
-            Cpu => DeviceType::Cpu,
-            IntegratedGpu => DeviceType::IntegratedGpu,
-            DiscreteGpu => DeviceType::DiscreteGpu,
-            VirtualGpu => DeviceType::VirtualGpu,
-            _ => DeviceType::Other,
-        }
-    }
-}
-
 #[derive(From, Into)]
 pub struct DevicePoolMember {
     device: Mutex<Device>, // this is a Mutex because we want to be able to mutate this from different threads
-    device_info: Option<DeviceInfo>, // this is an Option because we might not know info about the device
-}
-
-// a convenience helper function for getting a device
-// the device returned by this function would then be used to form the default device pool
-fn any_device() -> Result<DevicePoolMember, NoDeviceError> {
-    let adapter = wgpu::Adapter::request(
-        &wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::Default,
-        },
-        wgpu::BackendBit::PRIMARY,
-    )
-    .ok_or(NoDeviceError)?; // we use a ? because if request fails there is no (or None) device to be used
-
-    // we then get a device and a queue
-    // you might think we need to support multiple queues per device
-    // but Metal, DX, and WebGPU standard itself move the handling of different queues to underlying implmenetation
-    // so we only need one queue
-    let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
-        extensions: wgpu::Extensions {
-            anisotropic_filtering: false,
-        },
-        limits: wgpu::Limits::default(),
-    });
-
-    // return the constructed device
-    // there is no cost to returning device info so we just do it
-    // it might be useful for making an iterator over devices
-    Ok(DevicePoolMember {
-        device: Mutex::new(Device {
-            device: device,
-            queue: queue,
-        }),
-        device_info: Some(DeviceInfo {
-            info: adapter.get_info(),
-        }),
-    })
+    device_info: Option<DeviceInfo>, // we duplicate data here because we don't want to have to lock the Mutex just to see info
 }
 
 // global state
@@ -120,10 +92,8 @@ lazy_static! {
     static ref DEVICE_POOL: Option<Vec<DevicePoolMember>> = {
         if CUSTOM_DEVICE_POOL.lock().unwrap().is_some() {
             Some(CUSTOM_DEVICE_POOL.lock().unwrap().take().unwrap()) // we can unwrap since we know it is Some
-        } else if let Ok(device) = any_device() {
-            Some(vec![device]) // in the future, we will actually add all devices and not just 1
         } else {
-            Some(vec![])
+            panic!("pool of devices has not been initialized with either pool or pool_init_default")
         }
     };
 }
@@ -168,6 +138,16 @@ pub fn pool(new_device_pool: Vec<DevicePoolMember>) -> Result<(), PoolAlreadyIni
         *CUSTOM_DEVICE_POOL.lock().unwrap() = Some(new_device_pool);
         Ok(())
     }
+}
+
+// this should always be the first thing you call
+// that is - unless you use pool function - then you should call that first and then pool_init
+pub async fn pool_init_default() {
+    let devices = Device::all().await;
+    pool(devices.into_iter().map(|device| {let info = device.info.clone();DevicePoolMember {
+                device: Mutex::new(device),
+                device_info: info
+            }}).collect::<Vec<DevicePoolMember>>());
 }
 
 // this function is the connection between the high-level pool-based interface and the low-level wgpu internals

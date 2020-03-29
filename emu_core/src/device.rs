@@ -1,5 +1,6 @@
 // some std stuff...
 use std::collections::HashMap;
+use std::fmt;
 use std::io::{Read, Seek};
 use std::marker::PhantomData;
 
@@ -14,6 +15,55 @@ use derive_more::{From, Into};
 
 use crate::error::*;
 
+#[derive(From, Into, Clone)]
+pub struct DeviceInfo(pub wgpu::AdapterInfo);
+
+impl fmt::Debug for DeviceInfo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{{ name: {:?}, vendor_id: {:?}, device_id: {:?}, device_type: {:?} }}",
+            self.get_name(),
+            self.get_vendor_id(),
+            self.get_device_id(),
+            self.get_device_type()
+        )
+    }
+}
+
+impl DeviceInfo {
+    pub fn get_name(&self) -> String {
+        self.0.name.clone()
+    }
+
+    pub fn get_vendor_id(&self) -> usize {
+        self.0.vendor
+    }
+
+    pub fn get_device_id(&self) -> usize {
+        self.0.device
+    }
+
+    pub fn get_device_type(&self) -> DeviceType {
+        match &self.0.device_type {
+            Cpu => DeviceType::Cpu,
+            IntegratedGpu => DeviceType::IntegratedGpu,
+            DiscreteGpu => DeviceType::DiscreteGpu,
+            VirtualGpu => DeviceType::VirtualGpu,
+            _ => DeviceType::Other,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum DeviceType {
+    Cpu,
+    IntegratedGpu,
+    DiscreteGpu,
+    VirtualGpu,
+    Other,
+}
+
 // this is a handle to a device
 // it represents a single device
 // and so only one instance of it should exist for each device
@@ -23,46 +73,47 @@ use crate::error::*;
 pub struct Device {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue, // in the future. when multiple queues are supported, overlapping compute, mem ops on the same device will be possible
+    pub info: Option<DeviceInfo>,
 }
 
 impl Device {
-    // in the future, we will replace this with an iterator
-    // right now, we could return a len = 1 iterator
-    // but we don't know that there is just 1
-    // so for now, we just return any suitable instance
-    //
     // this shouldn't really ever be called
     // instead select a device from the pool with take/replace (if you are a library)
     // construct a pool with pool or use the default (if you are an application)
-    fn any() -> Result<Self, NoDeviceError> {
-        // an adapter is basically equivalent to a physical device
-        // we request one that would be suitable for compute
-        let adapter = wgpu::Adapter::request(
-            &wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::Default,
-            },
-            wgpu::BackendBit::PRIMARY,
-        )
-        .ok_or(NoDeviceError)?; // we use a ? because if request fails there is no (or None) device to be used
+    pub async fn all() -> Vec<Self> {
+        let adapters = wgpu::Adapter::enumerate(wgpu::BackendBit::PRIMARY);
 
-        // we then get a device and a queue
-        // you might think we need to support multiple queues per device
-        // but Metal, DX, and WebGPU standard itself move the handling of different queues to underlying implmenetation
-        // so we only need one queue
-        let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
-            extensions: wgpu::Extensions {
-                anisotropic_filtering: false,
-            },
-            limits: wgpu::Limits::default(),
-        });
+        futures::future::join_all(adapters.into_iter().map(|adapter| {
+            async move {
+                let info = adapter.get_info().clone();
+                // we then get a device and a queue
+                // you might think we need to support multiple queues per device
+                // but Metal, DX, and WebGPU standard itself move the handling of different queues to underlying implmenetation
+                // so we only need one queue
+                //
+                // searching for devices does not need to be async
+                // it takes barely any time and should really only be the first thing Emu is used to do
+                // also, it's a one-time thing
+                let (device, queue) = adapter
+                    .request_device(&wgpu::DeviceDescriptor {
+                        extensions: wgpu::Extensions {
+                            anisotropic_filtering: false,
+                        },
+                        limits: wgpu::Limits::default(),
+                    })
+                    .await;
 
-        // return the constructed device
-        // there is no cost to returning device info so we just do it
-        // it might be useful for making an iterator over devices
-        Ok(Device {
-            device: device,
-            queue: queue,
-        })
+                // return the constructed device
+                // there is no cost to returning device info so we just do it
+                // it might be useful for making an iterator over devices
+                Device {
+                    device: device,
+                    queue: queue,
+                    info: Some(DeviceInfo(info)),
+                }
+            }
+        }))
+        .await
     }
 
     pub fn create_with_size<T>(&mut self, size: usize) -> DeviceBox<T>
@@ -167,12 +218,7 @@ impl Device {
         self.queue.submit(&[encoder.finish()]);
     }
 
-    pub fn get<T>(
-        &mut self,
-        device_obj: &DeviceBox<[T]>,
-    ) -> impl std::future::Future<Output = Result<Box<[T]>, CompletionError>>
-    // TODO ensure Result is error when runtime error occurs
-    // we need a Result because it's possible that stuff on the device failed
+    pub async fn get<T>(&mut self, device_obj: &DeviceBox<[T]>) -> Result<Box<[T]>, CompletionError>
     where
         T: FromBytes + Copy, // implicitly, T is also Sized which is necessary for us to be able to deserialize
     {
@@ -193,24 +239,28 @@ impl Device {
         // now we can return a future for data read from staging buffer
         // this does a kind of complicated deserialization procedure
         // basically it does staging_buffer -> [T]
-        device_obj
+        let result = device_obj
             .staging_buffer
-            .map_read(0u64, device_obj.size) // this gets a GpuFuture<Result<BufferReadMapping, ()>>
-            .map(|buffer_map_read_result| {
-                buffer_map_read_result
-                    .map(|buffer_read_mapping| {
-                        buffer_read_mapping
-                            .as_slice() // this gets the &[u8] held by BufferReadMapping
-                            .chunks_exact(std::mem::size_of::<T>()) // this creates an iterator over each item of size = size_of(T)
-                            .map(|item| {
-                                let layout_verified: LayoutVerified<_, T> =
-                                    LayoutVerified::new(item).unwrap(); // TODO ensure this unwrap makes sense
-                                *layout_verified
-                            }) // this deserializes each size_of(T) item
-                            .collect() // this collects it all into a [T]
-                    }) // this transforms the inner BufferReadMapping
-                    .map_err(|error| CompletionError)
-            }) // this transforms the inner Result<BufferReadMapping, ()>
+            .map_read(0u64, device_obj.size); // this gets a GpuFuture<Result<BufferReadMapping, ()>>
+
+        // poll the device
+        // TODO this should not be blocking (since this is async) we need to find some way to poll a
+        self.device.poll(wgpu::Maintain::Wait);
+
+        result
+            .await
+            .map(|buffer_read_mapping| {
+                buffer_read_mapping
+                    .as_slice() // this gets the &[u8] held by BufferReadMapping
+                    .chunks_exact(std::mem::size_of::<T>()) // this creates an iterator over each item of size = size_of(T)
+                    .map(|item| {
+                        let layout_verified: LayoutVerified<_, T> =
+                            LayoutVerified::new(item).unwrap(); // TODO ensure this unwrap makes sense
+                        *layout_verified
+                    }) // this deserializes each size_of(T) item
+                    .collect() // this collects it all into a [T]
+            }) // this transforms the inner BufferReadMapping
+            .map_err(|error| CompletionError)
     }
 
     pub unsafe fn call<'a>(
@@ -224,6 +274,21 @@ impl Device {
         let mut encoder = self
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { todo: 0 });
+
+        let mut bind_groups = vec![];
+        for (set_num, (bind_group, offsets)) in &args.bind_groups {
+            bind_groups.push(
+                self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                    layout: &device_fn_mut.bind_group_layouts[&set_num],
+                    bindings: bind_group
+                        .values()
+                        .map(|binding| binding.clone())
+                        .collect::<Vec<wgpu::Binding<'a>>>()
+                        .as_slice(),
+                    // TODO ensure the above clone is okay, it should be only cloning the underlying reference to a buffer and not cloning the entire buffer
+                }),
+            );
+        }
         {
             // our compute pass will have 2 parts
             // 1. the pipeline, using the device_fn_mut
@@ -232,21 +297,10 @@ impl Device {
             // first we set the pipeline
             cpass.set_pipeline(&device_fn_mut.compute_pipeline);
             // then we apply the bind groups, binding all the arguments
+
             for (set_num, (bind_group, offsets)) in args.bind_groups {
                 // bind_group = collection of bindings
-                cpass.set_bind_group(
-                    set_num,
-                    &self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                        layout: &device_fn_mut.bind_group_layouts[&set_num],
-                        bindings: bind_group
-                            .values()
-                            .map(|binding| binding.clone())
-                            .collect::<Vec<wgpu::Binding<'a>>>()
-                            .as_slice(),
-                        // TODO ensure the above clone is okay, it should be only cloning the underlying reference to a buffer and not cloning the entire buffer
-                    }),
-                    &*offsets,
-                );
+                cpass.set_bind_group(set_num, &bind_groups[set_num as usize], &*offsets);
             }
             // finally we dispatch the compute pass with given work space dims
             // note that these work space dims would essentially be the same things that are between triple brackets in CUDA
@@ -276,7 +330,7 @@ impl Device {
                         bindings: set
                             .values()
                             .map(|binding_layout| binding_layout.clone())
-                            .collect::<Vec<wgpu::BindGroupLayoutBinding>>()
+                            .collect::<Vec<wgpu::BindGroupLayoutEntry>>()
                             .as_slice(),
                     }),
             );
@@ -355,7 +409,7 @@ pub struct DeviceFnMut {
 // there might be higher-level ways of defining parameters (e.g. - implicitly through a language that compiles to program + program_params)
 #[derive(From, Into)]
 pub struct DeviceFnMutParams {
-    bind_group_layouts: HashMap<u32, HashMap<u32, wgpu::BindGroupLayoutBinding>>, // (u32, u32) = (set number, binding number)
+    bind_group_layouts: HashMap<u32, HashMap<u32, wgpu::BindGroupLayoutEntry>>, // (u32, u32) = (set number, binding number)
 }
 
 impl DeviceFnMutParams {
@@ -366,7 +420,7 @@ impl DeviceFnMutParams {
             let new_binding_layout_idx = binding_layouts.len() as u32;
             binding_layouts.insert(
                 new_binding_layout_idx,
-                wgpu::BindGroupLayoutBinding {
+                wgpu::BindGroupLayoutEntry {
                     binding: new_binding_layout_idx,
                     visibility: wgpu::ShaderStage::COMPUTE,
                     ty: wgpu::BindingType::StorageBuffer {
@@ -389,7 +443,7 @@ pub enum Mutability {
 }
 
 pub struct ParamBuilder {
-    binding_layouts: HashMap<u32, wgpu::BindGroupLayoutBinding>,
+    binding_layouts: HashMap<u32, wgpu::BindGroupLayoutEntry>,
 }
 
 impl ParamBuilder {
@@ -405,7 +459,7 @@ impl ParamBuilder {
         let new_binding_layout_idx = self.binding_layouts.len() as u32;
         self.binding_layouts.insert(
             new_binding_layout_idx,
-            wgpu::BindGroupLayoutBinding {
+            wgpu::BindGroupLayoutEntry {
                 binding: new_binding_layout_idx,
                 visibility: wgpu::ShaderStage::COMPUTE,
                 ty: wgpu::BindingType::StorageBuffer {
@@ -441,7 +495,13 @@ pub struct DeviceFnMutArgs<'a> {
     // also, note the lifetime
     // a wgpu::Binding owns a reference to data (like a wgpu::Buffer owned by a DeviceBox)
     // we must ensure that DeviceFnMutArgs doesn't outlive the Buffer (and maybe DeviceBox) that it refers to
-    bind_groups: HashMap<u32, (HashMap<u32, wgpu::Binding<'a>>, Vec<wgpu::BufferAddress>)>, // (u32, u32) = (set number, binding number)
+    bind_groups: HashMap<
+        u32,
+        (
+            HashMap<u32, wgpu::Binding<'a>>,
+            Vec</*wgpu::BufferAddress*/ u32>,
+        ),
+    >, // (u32, u32) = (set number, binding number)
 }
 
 pub struct ArgBuilder<'a> {

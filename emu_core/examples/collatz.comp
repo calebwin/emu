@@ -9,7 +9,7 @@ struct Rectangle {
 };
 
 layout(set = 0, binding = 0) buffer PrimeIndices {
-    Rectangle[] indices;
+    uint[] indices;
 }; // this is used as both input and output for convenience
 
 // The Collatz Conjecture states that for any integer n:
@@ -34,6 +34,6 @@ uint collatz_iterations(uint n) {
 
 void main() {
     uint index = gl_GlobalInvocationID.x;
-    // indices[index] = collatz_iterations(indices[index].w);
-    indices[index].x = 10;
+     indices[index] = collatz_iterations(indices[index]);
+    //indices[index].x = 10;
 }

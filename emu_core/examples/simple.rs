@@ -76,6 +76,7 @@ async fn do_some_stuff() -> Result<(), Box<dyn std::error::Error>> {
     // println!("{:?}", x.get().await?);
 
     let mut x: DeviceBox<[Rectangle]> = vec![Rectangle::default(); 128].as_device_boxed()?;
+    let mut y: DeviceBox<[Rectangle]> = vec![Rectangle::default(); 128].as_device_boxed()?;
 
     // let c = unsafe {
     //     compile::<Vec<u8>, SpirvCompile, _, GlobalCache>(
@@ -154,11 +155,50 @@ Rectangle flip(Rectangle r) {
         spawn(128).launch(call!(c, &mut x))?;
     }
 
+    // futures::try_join!(x.get(), y.get())?;
+
     println!("{:?}", x.get().await?);
+    println!("{:?}", y.get().await?);
 
     Ok(())
 }
 
 fn main() {
-    futures::executor::block_on(do_some_stuff()).expect("failed to do stuff on GPU");
+    futures::executor::block_on(emu_core::pool::pool_init_default()); // initialize pool of devices
+    futures::executor::block_on(do_some_stuff()).expect("failed to do stuff on GPU"); // run stuff on GPU
 }
+
+// fn main() -> Result<(), Box<dyn std::error::Error>> {
+//     let c = compile::<GlslKernel, GlslKernelCompile, _, GlobalCache>(
+//         GlslKernel::new()
+//             .spawn(1)
+//             .param_mut("Rectangle[] rectangles")
+//             .with_struct::<Rectangle>()
+//             .with_helper_code(
+//                 r#"
+// Rectangle flip(Rectangle r) {
+//     r.x = r.x + r.w;
+//     r.y = r.y + r.h;
+//     r.w *= -1;
+//     r.h *= -1;
+//     return r;
+// }
+// "#,
+//             )
+//             .with_kernel_code(
+//                 "rectangles[gl_GlobalInvocationID.x] = flip(rectangles[gl_GlobalInvocationID.x]);",
+//             ),
+//     )?;
+
+//     let mut x: DeviceBox<[Rectangle]> = vec![Rectangle::default(); 128].as_device_boxed()?;
+//     let mut x_result: Box<[Rectangle]> = Box::new([]);
+//     unsafe {
+//         spawn(128).launch(call!(c, &mut x))?;
+//     }
+//     futures::executor::block_on(async move {
+//         x.get().await;
+//         // Ok::<(), Box<dyn std::error::Error>>(())
+//     });
+
+//     Ok(())
+// }
