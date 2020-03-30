@@ -28,6 +28,7 @@ pub fn glsl_struct(input: TokenStream) -> TokenStream {
         if let Fields::Named(named_fields) = struct_data.fields {
             for field in named_fields.named.iter() {
             	glsl += &(match &field.ty {
+            		// TODO add support for more features
             		Type::Path(type_path) => {
             			rust_to_glsl(type_path.path.get_ident().unwrap().to_string())
             		}
