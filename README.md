@@ -119,4 +119,4 @@ emu_core = {
 }
 ```
 
-If you have any questions, please [ask in the Discord](https://discord.gg/WqhrRQ).
+If you have any questions, please [ask in the Discord](https://discord.gg/sKf6KCs).
