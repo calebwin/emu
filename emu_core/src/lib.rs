@@ -15,3 +15,11 @@ pub mod error;
 pub mod device;
 
 // TODO add a prelude module
+pub mod prelude {
+	#[macro_use] pub use crate::call;
+	pub use crate::device::*;
+	pub use crate::error::*;
+	pub use crate::pool::*;
+	pub use crate::boxed::*;
+	pub use crate::r#fn::*;
+}

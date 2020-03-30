@@ -142,7 +142,10 @@ pub fn pool(new_device_pool: Vec<DevicePoolMember>) -> Result<(), PoolAlreadyIni
 
 // this should always be the first thing you call
 // that is - unless you use pool function - then you should call that first and then pool_init
-pub async fn pool_init_default() {
+// 
+// so if you are an application, definitely call this before you use Emu do anything on a GPU device
+// and if you are a library, definitely make sure that you call this before every possible first time that you use Emu
+pub async fn assert_device_pool_initialized() {
     let devices = Device::all().await;
     pool(devices.into_iter().map(|device| {let info = device.info.clone();DevicePoolMember {
                 device: Mutex::new(device),
