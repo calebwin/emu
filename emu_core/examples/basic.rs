@@ -7,8 +7,8 @@ use zerocopy::*;
 struct Shape {
     x: u32,
     y: u32,
-    w: u32,
-    h: u32,
+    w: i32,
+    h: i32,
     r: [i32; 2]
 }
 
@@ -21,7 +21,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 	// create some data on GPU
 	// even mutate it once loaded to GPU
 	let mut shapes: DeviceBox<[Shape]> = vec![Default::default(); 1024].as_device_boxed()?;
-	shapes.set(vec![Default::default(); 1024]);
+    let mut x: DeviceBox<[i32]> = vec![0; 1024].as_device_boxed()?;
+	shapes.set(vec![Shape {
+        x: 0,
+        y: 0,
+        w: 100,
+        h: 100,
+        r: [2, 9]
+    }; 1024]);
 
 	// compiel some code
 	// then, run it
@@ -29,6 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         GlslKernel::new()
             .spawn(1)
             .param_mut("Shape[] shapes")
+            .param_mut("int[] x")
             .with_struct::<Shape>()
             .with_helper_code(
                 r#"
@@ -37,19 +45,21 @@ Shape flip(Shape s) {
     s.y = s.y + s.h;
     s.w *= -1;
     s.h *= -1;
+    s.r = ivec2(5, 3);
     return s;
 }
 "#,
             )
             .with_kernel_code(
-                "shapes[gl_GlobalInvocationID.x] = flip(shapes[gl_GlobalInvocationID.x]);",
+                "shapes[gl_GlobalInvocationID.x] = flip(shapes[gl_GlobalInvocationID.x]); x[gl_GlobalInvocationID.x] = 100;",
             ),
     )?;
     unsafe {
-        spawn(128).launch(call!(c, &mut shapes))?;
+        spawn(1024).launch(call!(c, &mut shapes, &mut x))?;
     }
 
 	// download from GPU and print out
 	println!("{:?}", futures::executor::block_on(shapes.get())?);
+    println!("{:?}", futures::executor::block_on(x.get())?);
 	Ok(())
 }
