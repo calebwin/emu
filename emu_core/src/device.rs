@@ -1,6 +1,8 @@
 // some std stuff...
+use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::fmt;
+use std::hash::{Hash, Hasher};
 use std::io::{Read, Seek};
 use std::marker::PhantomData;
 
@@ -120,6 +122,34 @@ impl Device {
     where
         T: ?Sized,
     {
+        self.create_with_size_as::<T>(size, Mutability::Const)
+    }
+
+    pub fn create_with_size_mut<T>(&mut self, size: usize) -> DeviceBox<T>
+    where
+        T: ?Sized,
+    {
+        self.create_with_size_as::<T>(size, Mutability::Mut)
+    }
+
+    pub fn create_from_ref<T>(&mut self, host_obj: &T) -> DeviceBox<T>
+    where
+        T: AsBytes + ?Sized,
+    {
+        self.create_from_ref_as::<T>(host_obj, Mutability::Const)
+    }
+
+    pub fn create_from_ref_mut<T>(&mut self, host_obj: &T) -> DeviceBox<T>
+    where
+        T: AsBytes + ?Sized,
+    {
+        self.create_from_ref_as::<T>(host_obj, Mutability::Mut)
+    }
+
+    fn create_with_size_as<T>(&mut self, size: usize, mutability: Mutability) -> DeviceBox<T>
+    where
+        T: ?Sized,
+    {
         let staging_buffer = {
             let mapped = self.device.create_buffer_mapped(
                 size,
@@ -131,8 +161,10 @@ impl Device {
         };
         let storage_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
             size: size as u64, // casting usize to u64 is safe since usize is subtype of u64
-            usage: wgpu::BufferUsage::STORAGE
-                | wgpu::BufferUsage::COPY_DST
+            usage: match mutability {
+                Mutability::Mut => wgpu::BufferUsage::STORAGE,
+                Mutability::Const => wgpu::BufferUsage::STORAGE_READ,
+            } | wgpu::BufferUsage::COPY_DST
                 | wgpu::BufferUsage::COPY_SRC,
         });
         DeviceBox {
@@ -143,7 +175,7 @@ impl Device {
         }
     }
 
-    pub fn create_from_ref<T>(&mut self, host_obj: &T) -> DeviceBox<T>
+    fn create_from_ref_as<T>(&mut self, host_obj: &T, mutability: Mutability) -> DeviceBox<T>
     where
         T: AsBytes + ?Sized,
     {
@@ -159,8 +191,10 @@ impl Device {
         );
         let storage_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
             size: host_obj_bytes.len() as u64, // casting usize to u64 is safe since usize is subtype of u64
-            usage: wgpu::BufferUsage::STORAGE
-                | wgpu::BufferUsage::COPY_DST
+            usage: match mutability {
+                Mutability::Mut => wgpu::BufferUsage::STORAGE,
+                Mutability::Const => wgpu::BufferUsage::STORAGE_READ,
+            } | wgpu::BufferUsage::COPY_DST
                 | wgpu::BufferUsage::COPY_SRC,
         });
 
@@ -239,9 +273,7 @@ impl Device {
         // now we can return a future for data read from staging buffer
         // this does a kind of complicated deserialization procedure
         // basically it does staging_buffer -> [T]
-        let result = device_obj
-            .staging_buffer
-            .map_read(0u64, device_obj.size); // this gets a GpuFuture<Result<BufferReadMapping, ()>>
+        let result = device_obj.staging_buffer.map_read(0u64, device_obj.size); // this gets a GpuFuture<Result<BufferReadMapping, ()>>
 
         // poll the device
         // TODO this should not be blocking (since this is async) we need to find some way to poll a
@@ -313,11 +345,11 @@ impl Device {
         Ok(())
     }
 
-    pub fn compile<T: Into<String>, U: Read + Seek>(
+    pub fn compile<T: Into<String>, P: Borrow<[u32]>>(
         &self,
         program_params: DeviceFnMutParams,
-        program: U,
         program_entry: T,
+        program: P,
     ) -> Result<DeviceFnMut, CompileError> {
         // TODO return a Result with error for compile error
         // TODO use proper error types
@@ -349,9 +381,7 @@ impl Device {
                 layout: &pipeline_layout,
                 compute_stage: wgpu::ProgrammableStageDescriptor {
                     // TODO use a Result for this function instead of unwrap_or hack
-                    module: &self.device.create_shader_module(
-                        wgpu::read_spirv(program).unwrap_or(vec![]).as_slice(),
-                    ), // this is where we compile the bytecode program itself
+                    module: &self.device.create_shader_module(program.borrow()), // this is where we compile the bytecode program itself
                     entry_point: program_entry.into().as_str(), // this will probably be something like "main" or the name of the main function
                 },
             });
@@ -407,9 +437,19 @@ pub struct DeviceFnMut {
 // it should be cheap to construct
 // also, it is a relatively low-level construct
 // there might be higher-level ways of defining parameters (e.g. - implicitly through a language that compiles to program + program_params)
-#[derive(From, Into)]
+#[derive(From, Into, Clone)]
 pub struct DeviceFnMutParams {
     bind_group_layouts: HashMap<u32, HashMap<u32, wgpu::BindGroupLayoutEntry>>, // (u32, u32) = (set number, binding number)
+}
+
+impl Hash for DeviceFnMutParams {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        for bind_group_layout in self.bind_group_layouts.values() {
+            for entry in bind_group_layout.values() {
+                entry.hash(state);
+            }
+        }
+    }
 }
 
 impl DeviceFnMutParams {
@@ -442,11 +482,19 @@ pub enum Mutability {
     Const,
 }
 
-pub struct ParamBuilder {
+pub struct ParamsBuilder {
     binding_layouts: HashMap<u32, wgpu::BindGroupLayoutEntry>,
 }
 
-impl ParamBuilder {
+impl Hash for ParamsBuilder {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        for binding_layout in self.binding_layouts.values() {
+            binding_layout.hash(state);
+        }
+    }
+}
+
+impl ParamsBuilder {
     pub fn new() -> Self {
         Self {
             binding_layouts: HashMap::new(),

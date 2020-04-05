@@ -165,7 +165,8 @@ Rectangle flip(Rectangle r) {
 
 fn main() {
     futures::executor::block_on(emu_core::pool::pool_init_default()); // initialize pool of devices
-    futures::executor::block_on(do_some_stuff()).expect("failed to do stuff on GPU"); // run stuff on GPU
+    futures::executor::block_on(do_some_stuff()).expect("failed to do stuff on GPU");
+    // run stuff on GPU
 }
 
 // fn main() -> Result<(), Box<dyn std::error::Error>> {
