@@ -37,32 +37,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // then, we can either inspect the SPIR-V or finish the compilation by generating a DeviceFnMut
     // then, run the DeviceFnMut
     let c = compile::<GlslKernel, GlslKernelCompile, _, GlobalCache>(
-            GlslKernel::new()
-                .spawn(64)
-                .share("float stuff[64]")
-                .param_mut("Shape[] shapes")
-                .param_mut("int[] x")
-                .param("int scalar")
-                .with_struct::<Shape>()
-                .with_const("int c", "7")
-                .with_helper_code(
-                    r#"
-    Shape flip(Shape s) {
-        s.x = s.x + s.w;
-        s.y = s.y + s.h;
-        s.w *= -1;
-        s.h *= -1;
-        s.r = ivec2(5, 3);
-        return s;
-    }
-    "#,
-                )
-                .with_kernel_code(
-                    "uvec3 em_GlobalInvocationId = uvec3(0, 0, 0); shapes[gl_GlobalInvocationID.x] = flip(shapes[gl_GlobalInvocationID.x]); x[gl_GlobalInvocationID.x] = scalar + c + int(gl_WorkGroupID.x);",
-                ),
-        )?.finish()?;
+        GlslKernel::new()
+            .spawn(64)
+            .share("float stuff[64]")
+            .param_mut("Shape[] shapes")
+            .param_mut("int[] x")
+            .param("int scalar")
+            .with_struct::<Shape>()
+            .with_const("int c", "7")
+            .with_helper_code(
+                r#"
+Shape flip(Shape s) {
+s.x = s.x + s.w;
+s.y = s.y + s.h;
+s.w *= -1;
+s.h *= -1;
+s.r = ivec2(5, 3);
+return s;
+}
+"#,
+    )
+    .with_kernel_code(
+        "shapes[gl_GlobalInvocationID.x] = flip(shapes[gl_GlobalInvocationID.x]); x[gl_GlobalInvocationID.x] = scalar + c + int(gl_WorkGroupID.x);",
+    ),
+)?.finish()?;
     unsafe {
-        spawn(1024/64).launch(call!(c, &mut shapes, &mut x, &DeviceBox::new(10)?))?;
+        spawn(1024 / 64).launch(call!(c, &mut shapes, &mut x, &DeviceBox::new(10)?))?;
     }
 
     // download from GPU and print out

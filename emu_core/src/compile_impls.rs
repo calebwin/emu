@@ -21,9 +21,9 @@ impl<P: Hash + BorrowMut<[u32]>> CompileToSpirv<Spirv<P>, P> for Spirv<P> {
     }
 }
 
-// 
+//
 // Glsl
-// 
+//
 
 pub struct GlslCompile;
 
@@ -31,7 +31,7 @@ pub struct GlslCompile;
 pub struct Glsl {
     name: String,
     params_builder: ParamsBuilder,
-    code: String
+    code: String,
 }
 
 impl Glsl {
@@ -39,7 +39,7 @@ impl Glsl {
         Glsl {
             name: String::from("main"),
             params_builder: ParamsBuilder::new(),
-            code: String::from("#version 450\nvoid main() {}")
+            code: String::from("#version 450\nvoid main() {}"),
         }
     }
 
@@ -135,7 +135,11 @@ impl GlslKernel {
         self
     }
 
-    pub fn with_const(mut self, left_hand: impl Into<String>, right_hand: impl Into<String>) -> Self {
+    pub fn with_const(
+        mut self,
+        left_hand: impl Into<String>,
+        right_hand: impl Into<String>,
+    ) -> Self {
         self.consts.push((left_hand.into(), right_hand.into()));
         self
     }
