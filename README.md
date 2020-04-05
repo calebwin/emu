@@ -25,13 +25,8 @@ Here's a quick example of Emu. You can find more in `emu_core/examples`.
 
 First, we just import a bunch of stuff
 ```rust
-#[macro_use]
-extern crate emu_core;
-use emu_core::boxed::*;
-use emu_core::device::*;
-use emu_core::error::CompletionError;
-use emu_core::pool::*;
-use emu_core::r#fn::*;
+use emu_glsl::*;
+use emu_core::prelude::*;
 use zerocopy::*;
 ```
 We can define types of structures so that they can be safely serialized and deserialized to/from the GPU.
@@ -47,14 +42,19 @@ struct Rectangle {
 ```
 For this example, we make this entire function async but in reality you will only want small blocks of code to be async (like a bunch of asynchronous memory transfers and computation) and these blocks will be sent off to an executor to execute. You definitely don't want to do something like this where you are blocking (by doing an entire compilation step) in your async code.
 ```rust
-async fn do_some_stuff() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    futures::executor::block_on(assert_device_pool_initialized());
+
     // first, we move a bunch of rectangles to the GPU
     let mut x: DeviceBox<[Rectangle]> = vec![Default::default(); 128].as_device_boxed()?;
     
     // then we compile some GLSL code using the GlslCompile compiler and
     // the GlobalCache for caching compiler artifacts
-    let c = unsafe {
-        compile::<String, GlslCompile, _, GlobalCache>(String::from(
+    let c = compile::<String, GlslCompile, _, GlobalCache>(
+        GlslBuilder::new()
+            .set_entry_point_name("main")
+            .add_param_mut()
+            .set_code_with_glsl(
             r#"
 #version 450
 layout(local_size_x = 1) in; // our thread block size is 1, that is we only have 1 thread per block
@@ -88,8 +88,8 @@ void main() {
     rectangles[index] = flip(rectangles[index]);
 }
             "#,
-        ))?
-    };
+        )
+    )?.finish()?;
     
     // we spawn 128 threads (really 128 thread blocks)
     unsafe {
@@ -98,7 +98,7 @@ void main() {
 
     // this is the Future we need to block on to get stuff to happen
     // everything else is non-blocking in the API (except stuff like compilation)
-    println!("{:?}", x.get().await?);
+    println!("{:?}", futures::executor::block_on(x.get())?);
 
     Ok(())
 }
@@ -110,13 +110,6 @@ fn main() {
 }
 ```
 
-For now, you can get started with using Emu with the following.
-```toml
-[dependencies]
-emu_core = {
-    git = "https://github.com/calebwin/emu/tree/master/emu_core.git",
-    rev = "265d2a5fb9292e2644ae4431f2982523a8d27a0f"
-}
-```
+The latest version is not yet published (just waiting for `wgpu-rs` to get its 0.5.0 version released) but you can definitely clone the repository if you want to check things out for now.
 
 If you have any questions, please [ask in the Discord](https://discord.gg/sKf6KCs).
