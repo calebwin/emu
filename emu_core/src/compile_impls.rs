@@ -126,9 +126,6 @@ impl GlslKernel {
     }
 
     pub fn spawn(mut self, num_threads: u32) -> Self {
-        if self.local_size.len() == 3 {
-            panic!("cannot spawn more threads within thread block");
-        }
         self.local_size.push(num_threads);
         self
     }
@@ -201,6 +198,10 @@ impl CompileToSpirv<GlslKernel, Vec<u32>> for GlslKernelCompile {
             src.code += &src.local_size[1].to_string();
             src.code += ", local_size_z = ";
             src.code += &src.local_size[2].to_string();
+        }
+        if src.local_size.len() >= 4 {
+            src.code += "local_size_x = ";
+            src.code += &src.local_size.iter().product::<u32>().to_string();
         }
         src.code += ") in;\n";
 

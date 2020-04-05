@@ -30,7 +30,7 @@ impl Spawner {
                 self.work_space_dim[1],
                 self.work_space_dim[2],
             )),
-            _ => Err(LaunchError::TooManyThreads),
+            _ => Ok((self.work_space_dim.iter().product(), 1, 1)),
         }
     }
 
