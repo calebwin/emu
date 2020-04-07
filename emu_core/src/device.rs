@@ -1,9 +1,22 @@
+//! The lowest-level, core functionality for controlling a device (GPU)
+//!
+//! The most important things in this module that are likely of interest to
+//! you are [`Device`](struct.Device.html), [`DeviceBox<T>`](stuct.DeviceBox.html)
+//! , and [`DeviceFnMut`](struct.DeviceFnMut.html). Also, some basic guides that
+//!  will be useful for this module and the other higher-level modules are the following.
+//! - [How to use CUDA](https://www.nvidia.com/docs/IO/116711/sc11-cuda-c-basics.pdf) - This explains the idea of launching kernels on a 3-dimensional space of threads, which Emu and CUDA share
+//! - [How to write GLSL compute shaders](https://www.khronos.org/opengl/wiki/Compute_Shader) - This explains some of the stuff that is specific to SPIR-V, which Emu uses as input
+
+
+use crate::error::*;
+
 // some std stuff...
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::fmt;
+
 use std::hash::{Hash, Hasher};
-use std::io::{Read, Seek};
+
 use std::marker::PhantomData;
 
 // zerocopy is used for serializing and deserializing data to/from devices
@@ -15,9 +28,8 @@ use futures::future::FutureExt;
 // derive_more allows us to easily derive interop with wgpu stuff
 use derive_more::{From, Into};
 
-use crate::error::*;
-
-#[derive(From, Into, Clone)]
+/// Contains information about a device
+#[derive(From, Into, Clone, PartialEq)]
 pub struct DeviceInfo(pub wgpu::AdapterInfo);
 
 impl fmt::Debug for DeviceInfo {
@@ -25,39 +37,44 @@ impl fmt::Debug for DeviceInfo {
         write!(
             f,
             "{{ name: {:?}, vendor_id: {:?}, device_id: {:?}, device_type: {:?} }}",
-            self.get_name(),
-            self.get_vendor_id(),
-            self.get_device_id(),
-            self.get_device_type()
+            self.name(),
+            self.vendor_id(),
+            self.device_id(),
+            self.device_type()
         )
     }
 }
 
 impl DeviceInfo {
-    pub fn get_name(&self) -> String {
+    /// The name of the device (e.g. - "Intel(R) UHD Graphics 620 (Kabylake GT2)"")
+    pub fn name(&self) -> String {
         self.0.name.clone()
     }
 
-    pub fn get_vendor_id(&self) -> usize {
+    /// The vendor ID (e.g. - 32902)
+    pub fn vendor_id(&self) -> usize {
         self.0.vendor
     }
 
-    pub fn get_device_id(&self) -> usize {
+    /// The devie ID (e.g. - 22807)
+    pub fn device_id(&self) -> usize {
         self.0.device
     }
 
-    pub fn get_device_type(&self) -> DeviceType {
+    /// The device type (e.g. - Cpu)
+    pub fn device_type(&self) -> DeviceType {
         match &self.0.device_type {
-            Cpu => DeviceType::Cpu,
-            IntegratedGpu => DeviceType::IntegratedGpu,
-            DiscreteGpu => DeviceType::DiscreteGpu,
-            VirtualGpu => DeviceType::VirtualGpu,
+            _Cpu => DeviceType::Cpu,
+            _IntegratedGpu => DeviceType::IntegratedGpu,
+            _DiscreteGpu => DeviceType::DiscreteGpu,
+            _VirtualGpu => DeviceType::VirtualGpu,
             _ => DeviceType::Other,
         }
     }
 }
 
-#[derive(Debug)]
+/// Represents a type of device
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum DeviceType {
     Cpu,
     IntegratedGpu,
@@ -66,22 +83,34 @@ pub enum DeviceType {
     Other,
 }
 
-// this is a handle to a device
-// it represents a single device
-// and so only one instance of it should exist for each device
-//
-// by making the fields public, Device is interoperable with wgpu
-// you can construct it from wgpu and mutate its wgpu internals
+/// Represents a single device
+///
+/// Since its fields are public, you can easily construct and mutate a `Device`'s
+/// WebGPU internals.
 pub struct Device {
+    /// The WebGPU device wrapped by this data structure
     pub device: wgpu::Device,
+    /// The queue this device exposes to submit work to
     pub queue: wgpu::Queue, // in the future. when multiple queues are supported, overlapping compute, mem ops on the same device will be possible
+    /// Information about the device
+    ///
+    /// This is optional so that you don't _need_ information to construct a `Device` yourself.
     pub info: Option<DeviceInfo>,
 }
 
 impl Device {
-    // this shouldn't really ever be called
-    // instead select a device from the pool with take/replace (if you are a library)
-    // construct a pool with pool or use the default (if you are an application)
+    // TODO don't use a new staging buffer; instead, pull staging buffers from a pool
+
+    /// Gets all detected devices
+    ///
+    /// This is asynchronous because it may take a long time for all the devices
+    /// that are detected to actually be available. However, you shouldn't
+    /// actually use this. Unless you manually construct a pool of devices, a
+    /// default device pool is implicitly created. So you should instead do one of the following.
+    /// - If you are developing a library, select a device from the pool with [`select`](../pool/fn.select.html)/[`take`](../pool/fn.take.html)
+    /// - If you are developing an application, construct a pool with [`pool`](../pool/fn.pool.html) or use the default pool
+    ///
+    /// If you are using the default pool, don't forget to call [`assert_device_pool_initialized`](../pool/fn.assert_device_pool_initialized.html).
     pub async fn all() -> Vec<Self> {
         let adapters = wgpu::Adapter::enumerate(wgpu::BackendBit::PRIMARY);
 
@@ -118,6 +147,7 @@ impl Device {
         .await
     }
 
+    /// Creates a constant `DeviceBox<T>` with size of given number of bytes
     pub fn create_with_size<T>(&mut self, size: usize) -> DeviceBox<T>
     where
         T: ?Sized,
@@ -125,6 +155,7 @@ impl Device {
         self.create_with_size_as::<T>(size, Mutability::Const)
     }
 
+    /// Creates a mutable `DeviceBox<T>` with size of given number of bytes
     pub fn create_with_size_mut<T>(&mut self, size: usize) -> DeviceBox<T>
     where
         T: ?Sized,
@@ -132,6 +163,7 @@ impl Device {
         self.create_with_size_as::<T>(size, Mutability::Mut)
     }
 
+    /// Creates a constant `DeviceBox<T>` from a reference to `T`
     pub fn create_from_ref<T>(&mut self, host_obj: &T) -> DeviceBox<T>
     where
         T: AsBytes + ?Sized,
@@ -139,6 +171,7 @@ impl Device {
         self.create_from_ref_as::<T>(host_obj, Mutability::Const)
     }
 
+    /// Creates a mutable `DeviceBox<T>` from a reference to `T`
     pub fn create_from_ref_mut<T>(&mut self, host_obj: &T) -> DeviceBox<T>
     where
         T: AsBytes + ?Sized,
@@ -151,15 +184,17 @@ impl Device {
         T: ?Sized,
     {
         let staging_buffer = {
-            let mapped = self.device.create_buffer_mapped(
-                size,
-                wgpu::BufferUsage::MAP_READ
+            let mapped = self.device.create_buffer_mapped(&wgpu::BufferDescriptor {
+                label: None,
+                size: size as u64,
+                usage: wgpu::BufferUsage::MAP_READ
                     | wgpu::BufferUsage::COPY_DST
                     | wgpu::BufferUsage::COPY_SRC,
-            );
+            });
             mapped.finish()
         };
         let storage_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: None,
             size: size as u64, // casting usize to u64 is safe since usize is subtype of u64
             usage: match mutability {
                 Mutability::Mut => wgpu::BufferUsage::STORAGE,
@@ -190,6 +225,7 @@ impl Device {
             wgpu::BufferUsage::MAP_READ | wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::COPY_SRC,
         );
         let storage_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: None,
             size: host_obj_bytes.len() as u64, // casting usize to u64 is safe since usize is subtype of u64
             usage: match mutability {
                 Mutability::Mut => wgpu::BufferUsage::STORAGE,
@@ -201,7 +237,7 @@ impl Device {
         // now copy over the staging buffer to the storage buffer
         let mut encoder = self
             .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor { todo: 0 });
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
         encoder.copy_buffer_to_buffer(
             &staging_buffer,
             0,
@@ -222,6 +258,8 @@ impl Device {
         }
     }
 
+    // TODO say what is blocking and what isn't in the comments
+    /// Uploads data from the given reference to `T` to the given `DeviceBox<T>` that lives on this (meaning `self`) device
     pub fn set_from_ref<T>(&mut self, device_obj: &mut DeviceBox<T>, host_obj: &T)
     where
         T: AsBytes + ?Sized,
@@ -241,7 +279,7 @@ impl Device {
         // now copy over the staging buffer to the storage buffer
         let mut encoder = self
             .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor { todo: 0 });
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
         encoder.copy_buffer_to_buffer(
             &device_obj.staging_buffer,
             0,
@@ -252,6 +290,7 @@ impl Device {
         self.queue.submit(&[encoder.finish()]);
     }
 
+    /// Downloads data from the given `DeviceBox<T>` asyncronously and returns a boxed slice of `T`
     pub async fn get<T>(&mut self, device_obj: &DeviceBox<[T]>) -> Result<Box<[T]>, CompletionError>
     where
         T: FromBytes + Copy, // implicitly, T is also Sized which is necessary for us to be able to deserialize
@@ -260,7 +299,7 @@ impl Device {
         // the staging buffer is host visible so we can then work with it more easily
         let mut encoder = self
             .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor { todo: 0 });
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
         encoder.copy_buffer_to_buffer(
             &device_obj.storage_buffer,
             0,
@@ -292,9 +331,11 @@ impl Device {
                     }) // this deserializes each size_of(T) item
                     .collect() // this collects it all into a [T]
             }) // this transforms the inner BufferReadMapping
-            .map_err(|error| CompletionError)
+            .map_err(|_error| CompletionError)
     }
 
+
+    /// Runs the given `DeviceFnMut` on a 3-dimensional space of threads to launch (with given dimensions) and arguments to pass to the launched kernel
     pub unsafe fn call<'a>(
         &mut self,
         device_fn_mut: &DeviceFnMut,
@@ -305,12 +346,13 @@ impl Device {
         // then, generate command to do computation
         let mut encoder = self
             .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor { todo: 0 });
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
         let mut bind_groups = vec![];
-        for (set_num, (bind_group, offsets)) in &args.bind_groups {
+        for (set_num, (bind_group, _offsets)) in &args.bind_groups {
             bind_groups.push(
                 self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: None, // TODO maybe in all these label fields, we should actually use a label
                     layout: &device_fn_mut.bind_group_layouts[&set_num],
                     bindings: bind_group
                         .values()
@@ -330,7 +372,7 @@ impl Device {
             cpass.set_pipeline(&device_fn_mut.compute_pipeline);
             // then we apply the bind groups, binding all the arguments
 
-            for (set_num, (bind_group, offsets)) in args.bind_groups {
+            for (set_num, (_bind_group, offsets)) in args.bind_groups {
                 // bind_group = collection of bindings
                 cpass.set_bind_group(set_num, &bind_groups[set_num as usize], &*offsets);
             }
@@ -345,6 +387,11 @@ impl Device {
         Ok(())
     }
 
+    /// Compiles a `DeviceFnMut` using the given parameters, entry point name, and SPIR-V program
+    ///
+    /// The entry point is where in the SPIR-V program the compiled kernel should be entered upon execution.
+    /// The entry point's name is anything implementing `Into<String>` including `&str` and `String` while
+    /// the program itself is anything `Borrow<[u32]>` including `Vec<u32>` and `&[u32]`.
     pub fn compile<T: Into<String>, P: Borrow<[u32]>>(
         &self,
         program_params: DeviceFnMutParams,
@@ -359,6 +406,7 @@ impl Device {
                 set_num,
                 self.device
                     .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                        label: None,
                         bindings: set
                             .values()
                             .map(|binding_layout| binding_layout.clone())
@@ -393,6 +441,10 @@ impl Device {
     }
 }
 
+/// A "box" type for storing stuff on a device
+///
+/// It is generic over a type `T` so that we can safely transmute data from the
+/// GPU (`DeviceBox<T>`) to and from data from the CPU (`T`).
 pub struct DeviceBox<T>
 where
     T: ?Sized,
@@ -420,9 +472,9 @@ impl<T: ?Sized> Into<(wgpu::Buffer, wgpu::Buffer, u64)> for DeviceBox<T> {
     }
 }
 
-// a DeviceFnMut represents a compiled "kernel" that can then be invoked with call_mut
-// compiling a DeviceFnMut is expensive as it involves compilation
-// but running a DeviceFnMut with arbitrary work space dimensions or arguments incurs no significant extra compilation
+/// Represents a compiled kernel that can then be launched across spawned threads with [`Device::call`](struct.Device.html#method.call) or [`spawn`](../spawn/fn.spawn.html)
+///
+/// While compiling a `DeviceFnMut` is expensive, running a `DeviceFnMut` with varying work space dimensions or arguments incurs no significant extra compilation.
 #[derive(From, Into)]
 pub struct DeviceFnMut {
     // we really just need 2 things to define a function
@@ -433,10 +485,9 @@ pub struct DeviceFnMut {
     pub(crate) compute_pipeline: wgpu::ComputePipeline, // inv: has PipelineLayout consistent with above BindGroupLayout's
 }
 
-// a DeviceFnMutParams describes the parameters to a DeviceFnMut
-// it should be cheap to construct
-// also, it is a relatively low-level construct
-// there might be higher-level ways of defining parameters (e.g. - implicitly through a language that compiles to program + program_params)
+/// Describes the parameters that can be passed to a `DeviceFnMut`
+/// 
+/// This is cheap to construct and something you can safely clone multiple times. 
 #[derive(From, Into, Clone)]
 pub struct DeviceFnMutParams {
     bind_group_layouts: HashMap<u32, HashMap<u32, wgpu::BindGroupLayoutEntry>>, // (u32, u32) = (set number, binding number)
@@ -453,6 +504,7 @@ impl Hash for DeviceFnMutParams {
 }
 
 impl DeviceFnMutParams {
+    /// Constructs a set of parameters where each parameter is mutable
     pub fn new(num_params: usize) -> Self {
         let mut bind_group_layouts = HashMap::new();
         let mut binding_layouts = HashMap::new();
@@ -476,12 +528,15 @@ impl DeviceFnMutParams {
     }
 }
 
-#[derive(Eq, PartialEq, Hash, Copy, Clone)]
+/// Says whether or not something is mutable
+#[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub enum Mutability {
     Mut,
     Const,
 }
 
+/// Helps with building a `DeviceFnMutParams`
+#[derive(Clone)]
 pub struct ParamsBuilder {
     binding_layouts: HashMap<u32, wgpu::BindGroupLayoutEntry>,
 }
@@ -495,14 +550,14 @@ impl Hash for ParamsBuilder {
 }
 
 impl ParamsBuilder {
+    /// Starts the building process with no parameters
     pub fn new() -> Self {
         Self {
             binding_layouts: HashMap::new(),
         }
     }
 
-    // right now, all we need to know is if the parameter is mutable
-    // in the future this param method might except more
+    /// Adds on a parameter with given mutability
     pub fn param(mut self, mutability: Mutability) -> Self {
         let new_binding_layout_idx = self.binding_layouts.len() as u32;
         self.binding_layouts.insert(
@@ -520,6 +575,7 @@ impl ParamsBuilder {
         self
     }
 
+    /// Builds a `DeviceFnMutParams`
     pub fn build(self) -> DeviceFnMutParams {
         let mut bind_group_layouts = HashMap::new();
         bind_group_layouts.insert(0, self.binding_layouts); // again, we usually don't need more than 1 set, so we default to just 1
@@ -528,7 +584,8 @@ impl ParamsBuilder {
     }
 }
 
-// a DeviceFnMutArgs holds the actual arguments to be passed into a DeviceFnMut
+/// Holds the actual arguments to be passed into a [`DeviceFnMut`](struct.DeviceFnMut.html)
+//
 // it should be cheap to construct and consist mainly of a bunch of wgpu::Binding's where a Binding represents an argument
 // it will also contain some extra information needed to construct a BindGroup
 #[derive(From, Into)]
@@ -543,6 +600,8 @@ pub struct DeviceFnMutArgs<'a> {
     // also, note the lifetime
     // a wgpu::Binding owns a reference to data (like a wgpu::Buffer owned by a DeviceBox)
     // we must ensure that DeviceFnMutArgs doesn't outlive the Buffer (and maybe DeviceBox) that it refers to
+    // 
+    // and technically there can't be more than 4 sets (I think) but we still just use a HashMap for convenience
     bind_groups: HashMap<
         u32,
         (
@@ -552,17 +611,21 @@ pub struct DeviceFnMutArgs<'a> {
     >, // (u32, u32) = (set number, binding number)
 }
 
+
+/// Helps with building a `DeviceFnMutArgs`
 pub struct ArgBuilder<'a> {
     bindings: HashMap<u32, wgpu::Binding<'a>>,
 }
 
 impl<'a> ArgBuilder<'a> {
+    /// Creates a new builder with no arguments
     pub fn new() -> Self {
         Self {
             bindings: HashMap::new(),
         }
     }
 
+    /// Declare a new arguments by passing in a `DeviceBox`
     pub fn arg<T: ?Sized>(mut self, device_obj: &'a DeviceBox<T>) -> Self {
         let new_binding_idx = self.bindings.len() as u32;
         self.bindings.insert(
@@ -579,8 +642,9 @@ impl<'a> ArgBuilder<'a> {
         self
     }
 
+    /// Builds the final `DeviceFnMutArgs`
     pub fn build(self) -> DeviceFnMutArgs<'a> {
-        let mut bind_groups = HashMap::new();
+        let mut bind_groups = HashMap::with_capacity(4);
         bind_groups.insert(0, (self.bindings, vec![])); // again, we usually don't need more than 1 set, so we default to just 1
 
         DeviceFnMutArgs { bind_groups }

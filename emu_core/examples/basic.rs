@@ -18,6 +18,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // that goes for both library users and application users
     futures::executor::block_on(assert_device_pool_initialized());
 
+    
+    println!("{:?}", take()?.lock().unwrap().info.as_ref().unwrap());
+
     // create some data on GPU
     // even mutate it once loaded to GPU
     let mut shapes: DeviceBox<[Shape]> = vec![Default::default(); 1024].as_device_boxed_mut()?;

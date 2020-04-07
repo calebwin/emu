@@ -1,84 +1,28 @@
+//! Tools for managing the device pool either implicitly or explicitly
+//!
+//! If you plan on not really delving into the WebGPU internals of Emu and just want to work from the other side of the abstraction,
+//! the only important thing here is [`assert_device_pool_initialized`](fn.assert_device_pool_initialized.html).
+
 use std::cell::{Cell, RefCell, RefMut};
-use std::collections::HashSet;
-use std::fmt;
-use std::ops::DerefMut;
-use std::sync::atomic::{AtomicBool, Ordering};
+
+
+
+
 use std::sync::Mutex;
 
-use core::future::Future;
-use core::pin::Pin;
-use core::task::Context;
-use core::task::Poll;
+
+
+
+
 
 use derive_more::{From, Into};
 
 use crate::device::*;
 use crate::error::*;
 
-// // thread local state
-// // used for selecting device for each thread
-// //
-// // the big assumption here and elsewhere is that Adapter::enumerate() is invariant
-// thread_local! {
-//     static ADAPTER_IDX: RefCell<Option<usize>> = RefCell::new(None); // the Option here is None when it isn't initialized
-// }
-
-// fn maybe_initialize_adapter_idx() {
-//     if ADAPTER_IDX.with(|idx| idx.borrow().is_none()) {
-//         ADAPTER_IDX.with(|idx| *idx.borrow_mut() = Some(0));
-//     }
-// }
-
-// pub async fn take() -> Device {
-//     maybe_initialize_adapter_idx();
-
-//     let adapter_idx = ADAPTER_IDX.with(|idx| idx.clone());
-//     let adapter =
-//         &wgpu::Adapter::enumerate(wgpu::BackendBit::PRIMARY)[adapter_idx.into_inner().unwrap()];
-//     let (device, queue) = adapter
-//         .request_device(&wgpu::DeviceDescriptor {
-//             extensions: wgpu::Extensions {
-//                 anisotropic_filtering: false,
-//             },
-//             limits: wgpu::Limits::default(),
-//         })
-//         .await;
-//     Device {
-//         device: device,
-//         queue: queue,
-//         info: Some(DeviceInfo(adapter.get_info())),
-//     }
-// }
-
-// // each DeviceInfo in returned Vec has same index of corresponding Device in pool
-// pub fn info_all() -> Vec<DeviceInfo> {
-//     maybe_initialize_adapter_idx();
-
-//     Adapter::enumerate().into_iter().map(|adapter| DeviceInfo(adapter.get_info())).collect::<Vec<DeviceInfo>>()
-// }
-
-// pub fn take() -> DeviceInfo {
-//     maybe_initialize_device_idx();
-
-//     let adapter_idx = ADAPTER_IDX.with(|idx| idx.clone());
-//     let adapter =
-//         &wgpu::Adapter::enumerate(wgpu::BackendBit::PRIMARY)[adapter_idx.into_inner().unwrap()];
-//     DeviceInfo(adapter.get_info())
-// }
-
-// pub fn select<F: FnMut(usize, DeviceInfo) -> bool>(
-//     mut selector: F,
-// ) -> Result<(), NoDeviceError> {
-//     for (i, device_info) in info_all().iter().enumerate() {
-//         if selector()
-//     }
-// }
-
-// these are some things a pool should let you do
-// - provide a custom pool once or just use a default pool
-// - mutate the wgpu internals in the pool (by blocking till an &mut Device is available) }
-// - use high-level functions like set/get/compile/launch (that block to get &mut Device) } both of these use a thread-local selected index
-
+/// Represents a member of the device pool
+///
+/// This holds both a mutex to a `Device` and information abou the device.
 #[derive(From, Into)]
 pub struct DevicePoolMember {
     device: Mutex<Device>, // this is a Mutex because we want to be able to mutate this from different threads
@@ -93,7 +37,7 @@ lazy_static! {
         if CUSTOM_DEVICE_POOL.lock().unwrap().is_some() {
             Some(CUSTOM_DEVICE_POOL.lock().unwrap().take().unwrap()) // we can unwrap since we know it is Some
         } else {
-            panic!("pool of devices has not been initialized with either pool or pool_init_default")
+            panic!("pool of devices has not been initialized with `assert_device_pool_initialized`")
         }
     };
 }
@@ -122,13 +66,13 @@ fn maybe_initialize_device_idx() {
     }
 }
 
-// this sets device pool
-// it can only be successfully called just once
-// it should also be followed by a select to select a device
+/// Sets the device pool to the given `Vec` of devices
+///
+// This can only be successfully called just once. Calling this multiple times will result in a panic at runtime.
 //
-// this function is useful if you want to work with the wgpu internals with take
-// you can call pool at the start of your application to initalize all the devices you plan on using
-// you can then do graphics stuff with take and compute stuff with high-level get/set/compile/launch
+// This function can be useful if you want to work with the WebGPU internals with [`take`](fn.take.html).
+// You can call `pool` at the start of your application to initalize all the devices you plan on using.
+// You can then do graphics stuff using `take` and all of [`wgpu-rs`](https://crates.io/crates/wgpu) and compute stuff with high-level `get`/`set`/`compile`/`spawn`.
 pub fn pool(new_device_pool: Vec<DevicePoolMember>) -> Result<(), PoolAlreadyInitializedError> {
     if CUSTOM_DEVICE_POOL.lock().unwrap().is_some() {
         Err(PoolAlreadyInitializedError)
@@ -140,11 +84,13 @@ pub fn pool(new_device_pool: Vec<DevicePoolMember>) -> Result<(), PoolAlreadyIni
     }
 }
 
-// this should always be the first thing you call
-// that is - unless you use pool function - then you should call that first and then pool_init
-//
-// so if you are an application, definitely call this before you use Emu do anything on a GPU device
-// and if you are a library, definitely make sure that you call this before every possible first time that you use Emu
+/// Asserts that the device pool has been initialized
+///
+/// This must be the first thing you call before using Emu for anything. The only thing you might call before this is [`pool`](fn.pool.html) if you are manually setting the pool of devices.
+///
+/// So if you are an application, definitely call this before you use Emu do anything on a GPU device.
+/// If you are a library, definitely make sure that you call this before every possible first time that you use Emu.
+/// You don't have to call it before _every_ API call of course - just before every time when it's possible that this is the first time you are using Emu.
 pub async fn assert_device_pool_initialized() {
     let devices = Device::all().await;
     pool(
@@ -161,9 +107,11 @@ pub async fn assert_device_pool_initialized() {
     );
 }
 
-// this function is the connection between the high-level pool-based interface and the low-level wgpu internals
-// with take, you can mutate the wgpu internals "hidden" behind the pool
-// as a result, you can have full control over each device in the pool if you want or use high-level get/set/compile/launch
+/// Takes the device currently selected out of the device pool and hands you a Mutex for mutating the device's sate
+///
+/// This function is the link between the high-level pool-based interface and the low-level WebGPU internals.
+/// With `take`, you can mutate the WebGPU internals "hidden" behind the device pool.
+/// Consequently, you can have full control over each device in the pool if you want or use high-level `get`/`set`/`compile`/`spawn`.
 pub fn take<'a>() -> Result<&'a Mutex<Device>, NoDeviceError> {
     maybe_initialize_device_pool();
     maybe_initialize_device_idx();
@@ -183,12 +131,16 @@ pub fn take<'a>() -> Result<&'a Mutex<Device>, NoDeviceError> {
     })
 }
 
-#[derive(Clone, Debug)]
+/// Holds information about a member of the device pool
+#[derive(Clone, Debug, PartialEq)]
 pub struct DevicePoolMemberInfo {
+    /// The index of the device in the pool
     pub index: usize,
+    /// The actual information wrapped by this structure
     pub info: Option<DeviceInfo>,
 }
 
+/// Returns information about all devices in the pool
 pub fn info_all() -> Vec<DevicePoolMemberInfo> {
     maybe_initialize_device_pool();
     maybe_initialize_device_idx();
@@ -205,6 +157,7 @@ pub fn info_all() -> Vec<DevicePoolMemberInfo> {
         .collect()
 }
 
+/// Returns information about the currently selected device
 pub fn info() -> Result<DevicePoolMemberInfo, NoDeviceError> {
     maybe_initialize_device_pool();
     maybe_initialize_device_idx();
@@ -228,6 +181,7 @@ pub fn info() -> Result<DevicePoolMemberInfo, NoDeviceError> {
     })
 }
 
+/// Selects a device from the pool using the given selector function
 pub fn select<F: FnMut(usize, Option<DeviceInfo>) -> bool>(
     mut selector: F,
 ) -> Result<(), NoDeviceError> {

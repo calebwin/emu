@@ -1,9 +1,9 @@
 use crate::device::*;
 
 use lazy_static::lazy_static;
-use std::collections::hash_map::{DefaultHasher, HashMap};
+use std::collections::hash_map::{HashMap};
 use std::collections::VecDeque;
-use std::hash::{Hash, Hasher};
+use std::hash::{Hasher};
 use std::io::{Cursor, Read, Seek};
 use std::sync::{Arc, RwLock};
 

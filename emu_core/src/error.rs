@@ -1,8 +1,13 @@
+//! Various error types
+
 use std::error::Error;
 use std::fmt;
 
 use derive_more::Display;
 
+// TOOD maybe there is a better approach to errors...
+
+/// An error for when there is no device to complete a certain operation
 pub struct NoDeviceError;
 
 impl Error for NoDeviceError {}
@@ -19,6 +24,7 @@ impl fmt::Display for NoDeviceError {
     }
 }
 
+/// An error when a device is there but not available for use
 pub struct UnavailableDeviceError;
 
 impl Error for UnavailableDeviceError {}
@@ -41,6 +47,7 @@ impl fmt::Display for UnavailableDeviceError {
     }
 }
 
+/// An error for compilation failiures
 pub struct CompileError;
 
 impl Error for CompileError {}
@@ -57,6 +64,7 @@ impl fmt::Display for CompileError {
     }
 }
 
+/// An error for failiure to complete data movement or computation
 pub struct CompletionError;
 
 impl Error for CompletionError {}
@@ -79,6 +87,7 @@ impl fmt::Display for CompletionError {
     }
 }
 
+/// An error that occurs when you attempt to initialize an already initialized pool of devices
 pub struct PoolAlreadyInitializedError;
 
 impl Error for PoolAlreadyInitializedError {}
@@ -95,7 +104,7 @@ impl fmt::Display for PoolAlreadyInitializedError {
     }
 }
 
-// TODO figure out if an enum is the best approach for this
+/// An error in getting data stored in a `DeviceBox`
 #[derive(Debug, Display)]
 pub enum GetError {
     Completion,
@@ -104,7 +113,7 @@ pub enum GetError {
 
 impl Error for GetError {}
 
-// TODO figure out if an enum is the best approach for this
+/// An error for capturing compilation fails or no device present
 #[derive(Debug, Display)]
 pub enum CompileOrNoDeviceError {
     Compile,
@@ -113,28 +122,8 @@ pub enum CompileOrNoDeviceError {
 
 impl Error for CompileOrNoDeviceError {}
 
-pub struct TooManyThreadsError;
 
-impl Error for TooManyThreadsError {}
-
-impl fmt::Debug for TooManyThreadsError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "threads can be spawned recursively up to 3 levels of recursion"
-        )
-    }
-}
-
-impl fmt::Display for TooManyThreadsError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "threads can be spawned recursively up to 3 levels of recursion"
-        )
-    }
-}
-
+/// A runtime error that occurs on the device
 pub struct RuntimeError;
 
 impl Error for RuntimeError {}
@@ -151,10 +140,9 @@ impl fmt::Display for RuntimeError {
     }
 }
 
-// TODO figure out if an enum is the best approach for this
+/// An error in launching kernels
 #[derive(Debug, Display)]
 pub enum LaunchError {
-    TooManyThreads,
     NoDevice,
     Runtime,
 }

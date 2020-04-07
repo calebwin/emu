@@ -1,8 +1,10 @@
+//! This exposes the functionality
+
 use crate::device::*;
 use crate::error::*;
 use crate::pool::*;
 
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc};
 
 pub fn spawn(num_threads: u32) -> Spawner {
     Spawner {
