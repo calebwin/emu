@@ -1,12 +1,10 @@
-//! The lowest-level, core functionality for controlling a device (GPU)
+//! The lowest-level, core functionality for controlling a GPU device
 //!
-//! The most important things in this module that are likely of interest to
+//! You can use this module in isolation from the rest of Emu for the most
+//! fine control over the internals of the library. The most important things
+//! in this module that are likely of interest to
 //! you are [`Device`](struct.Device.html), [`DeviceBox<T>`](stuct.DeviceBox.html)
-//! , and [`DeviceFnMut`](struct.DeviceFnMut.html). Also, some basic guides that
-//!  will be useful for this module and the other higher-level modules are the following.
-//! - [How to use CUDA](https://www.nvidia.com/docs/IO/116711/sc11-cuda-c-basics.pdf) - This explains the idea of launching kernels on a 3-dimensional space of threads, which Emu and CUDA share
-//! - [How to write GLSL compute shaders](https://www.khronos.org/opengl/wiki/Compute_Shader) - This explains some of the stuff that is specific to SPIR-V, which Emu uses as input
-
+//! , and [`DeviceFnMut`](struct.DeviceFnMut.html).
 
 use crate::error::*;
 
@@ -23,7 +21,6 @@ use std::marker::PhantomData;
 use zerocopy::*;
 
 // futures is for returning anything read from device as a future
-use futures::future::FutureExt;
 
 // derive_more allows us to easily derive interop with wgpu stuff
 use derive_more::{From, Into};
@@ -64,10 +61,10 @@ impl DeviceInfo {
     /// The device type (e.g. - Cpu)
     pub fn device_type(&self) -> DeviceType {
         match &self.0.device_type {
-            _Cpu => DeviceType::Cpu,
-            _IntegratedGpu => DeviceType::IntegratedGpu,
-            _DiscreteGpu => DeviceType::DiscreteGpu,
-            _VirtualGpu => DeviceType::VirtualGpu,
+            wgpu::DeviceType::Cpu => DeviceType::Cpu,
+            wgpu::DeviceType::IntegratedGpu => DeviceType::IntegratedGpu,
+            wgpu::DeviceType::DiscreteGpu => DeviceType::DiscreteGpu,
+            wgpu::DeviceType::VirtualGpu => DeviceType::VirtualGpu,
             _ => DeviceType::Other,
         }
     }
@@ -334,7 +331,6 @@ impl Device {
             .map_err(|_error| CompletionError)
     }
 
-
     /// Runs the given `DeviceFnMut` on a 3-dimensional space of threads to launch (with given dimensions) and arguments to pass to the launched kernel
     pub unsafe fn call<'a>(
         &mut self,
@@ -486,8 +482,8 @@ pub struct DeviceFnMut {
 }
 
 /// Describes the parameters that can be passed to a `DeviceFnMut`
-/// 
-/// This is cheap to construct and something you can safely clone multiple times. 
+///
+/// This is cheap to construct and something you can safely clone multiple times.
 #[derive(From, Into, Clone)]
 pub struct DeviceFnMutParams {
     bind_group_layouts: HashMap<u32, HashMap<u32, wgpu::BindGroupLayoutEntry>>, // (u32, u32) = (set number, binding number)
@@ -600,7 +596,7 @@ pub struct DeviceFnMutArgs<'a> {
     // also, note the lifetime
     // a wgpu::Binding owns a reference to data (like a wgpu::Buffer owned by a DeviceBox)
     // we must ensure that DeviceFnMutArgs doesn't outlive the Buffer (and maybe DeviceBox) that it refers to
-    // 
+    //
     // and technically there can't be more than 4 sets (I think) but we still just use a HashMap for convenience
     bind_groups: HashMap<
         u32,
@@ -610,7 +606,6 @@ pub struct DeviceFnMutArgs<'a> {
         ),
     >, // (u32, u32) = (set number, binding number)
 }
-
 
 /// Helps with building a `DeviceFnMutArgs`
 pub struct ArgBuilder<'a> {

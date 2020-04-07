@@ -1,15 +1,12 @@
+//! A few implemented source languages that can be compiled to SPIR-V
 
 use crate::compile::*;
 use crate::device::*;
 use crate::error::*;
 
-
 use std::borrow::BorrowMut;
 
-
-use std::hash::{Hash};
-
-
+use std::hash::Hash;
 
 //
 // Spirv made using SpirvBuilder
@@ -25,8 +22,10 @@ impl<P: Hash + BorrowMut<[u32]>> CompileToSpirv<Spirv<P>, P> for Spirv<P> {
 // Glsl
 //
 
+/// A shaderc-based compiler for GLSL to SPIR-V
 pub struct GlslCompile;
 
+/// A "builder" for GLSL code
 #[derive(Hash)]
 pub struct Glsl {
     name: String,
@@ -35,6 +34,7 @@ pub struct Glsl {
 }
 
 impl Glsl {
+    /// Creates a new GLSL builder
     pub fn new() -> Self {
         Glsl {
             name: String::from("main"),
@@ -43,21 +43,27 @@ impl Glsl {
         }
     }
 
+    /// Sets the name of the point in this chunk of GLSL where it should be entered
+    ///
+    /// For example, your code's entry point name might be "main" if you have a "void main" function.
     pub fn set_entry_point_name(mut self, name: String) -> Self {
         self.name = name;
         self
     }
 
+    /// Declares an additional parameter - that is constant - to the compute kernel in this GLSL
     pub fn add_param(mut self) -> Self {
         self.params_builder = self.params_builder.param(Mutability::Const);
         self
     }
 
+    /// Declares an additional parameter - that is mutable - to the compute kernel in this GLSL
     pub fn add_param_mut(mut self) -> Self {
         self.params_builder = self.params_builder.param(Mutability::Mut);
         self
     }
 
+    /// Use the given string as the GLSL source code
     pub fn set_code_with_glsl(mut self, code: impl Into<String>) -> Self {
         self.code = code.into();
         self
@@ -66,20 +72,18 @@ impl Glsl {
 
 #[cfg(feature = "glsl-compile")]
 impl CompileToSpirv<Glsl, Vec<u32>> for GlslCompile {
-    fn compile_to_spirv(mut src: Glsl) -> Result<Spirv<Vec<u32>>, CompileError> {
+    fn compile_to_spirv(src: Glsl) -> Result<Spirv<Vec<u32>>, CompileError> {
         // (6) compile to SPIR-V
-        let mut compiler = unsafe { shaderc::Compiler::new().unwrap() };
-        let binary_result = unsafe {
-            compiler
-                .compile_into_spirv(
-                    &src.code,
-                    shaderc::ShaderKind::Compute,
-                    "a compute shader",
-                    &src.name,
-                    None,
-                )
-                .unwrap()
-        };
+        let mut compiler = shaderc::Compiler::new().unwrap();
+        let binary_result = compiler
+            .compile_into_spirv(
+                &src.code,
+                shaderc::ShaderKind::Compute,
+                "a compute shader",
+                &src.name,
+                None,
+            )
+            .unwrap();
 
         // yes, copying the binary over into a vec is expensive
         // but it's necessary so that we can allow users to mutate binary later on
@@ -97,6 +101,7 @@ impl CompileToSpirv<Glsl, Vec<u32>> for GlslCompile {
 // GlslKernel
 //
 
+/// A convenience builder for GLSL compute kernels
 #[derive(Hash)]
 pub struct GlslKernel {
     code: String,
@@ -111,6 +116,7 @@ pub struct GlslKernel {
 }
 
 impl GlslKernel {
+    /// Initializes the builder
     pub fn new() -> Self {
         Self {
             code: String::from("#version 450\n"),
@@ -125,16 +131,22 @@ impl GlslKernel {
         }
     }
 
+    /// Spawns "local threads"
+    ///
+    /// This essentially adds on a new dimension of threads to each thread block with the given size.
+    /// The dimensions are "x", "y", and "z" in that order.
     pub fn spawn(mut self, num_threads: u32) -> Self {
         self.local_size.push(num_threads);
         self
     }
 
+    /// Appends a GLSL struct definition for the type which this function is generic over
     pub fn with_struct<T: GlslStruct>(mut self) -> Self {
         self.structs.push(T::as_glsl());
         self
     }
 
+    /// Appends a constant definition using the give left hand and right hand sides
     pub fn with_const(
         mut self,
         left_hand: impl Into<String>,
@@ -144,28 +156,37 @@ impl GlslKernel {
         self
     }
 
+    /// Creates a shared variable using the given code
     pub fn share(mut self, shared: impl Into<String>) -> Self {
         self.shared.push(shared.into());
         self
     }
 
+    /// Generates code for a buffer through which constant data can be passed into the kernel
     pub fn param(mut self, param: impl Into<String>) -> Self {
         self.params.push(param.into());
         self.params_mutability.push(Mutability::Const);
         self
     }
 
+    /// Generates code for a buffer through which mutable data can be passed into the kernel
     pub fn param_mut(mut self, param: impl Into<String>) -> Self {
         self.params.push(param.into());
         self.params_mutability.push(Mutability::Mut);
         self
     }
 
+    /// Adds the given helper code
+    ///
+    /// This helper code may include additional type or function definitions.
     pub fn with_helper_code(mut self, code: impl Into<String>) -> Self {
         self.helper_code = code.into();
         self
     }
 
+    /// Adds the body code for the kernel
+    ///
+    /// This body code is simply wrapped in a `void main` function.
     pub fn with_kernel_code(mut self, code: impl Into<String>) -> Self {
         self.kernel_code = code.into();
         self
@@ -177,8 +198,7 @@ pub struct GlslKernelCompile;
 #[cfg(feature = "glsl-compile")]
 impl CompileToSpirv<GlslKernel, Vec<u32>> for GlslKernelCompile {
     fn compile_to_spirv(mut src: GlslKernel) -> Result<Spirv<Vec<u32>>, CompileError> {
-        let mut num_params = src.params.len();
-        let mut kernel_name = String::from("main");
+        let kernel_name = String::from("main");
 
         // (1) local size
         if src.local_size.len() == 0 {
@@ -251,18 +271,16 @@ impl CompileToSpirv<GlslKernel, Vec<u32>> for GlslKernelCompile {
         src.code += "}\n";
 
         // (6) compile to SPIR-V
-        let mut compiler = unsafe { shaderc::Compiler::new().unwrap() };
-        let binary_result = unsafe {
-            compiler
-                .compile_into_spirv(
-                    &src.code,
-                    shaderc::ShaderKind::Compute,
-                    "a compute shader",
-                    "main",
-                    None,
-                )
-                .unwrap()
-        };
+        let mut compiler = shaderc::Compiler::new().unwrap();
+        let binary_result = compiler
+            .compile_into_spirv(
+                &src.code,
+                shaderc::ShaderKind::Compute,
+                "a compute shader",
+                "main",
+                None,
+            )
+            .unwrap();
 
         // yes, copying the binary over into a vec is expensive
         // but it's necessary so that we can allow users to mutate binary later on

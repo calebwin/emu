@@ -3,19 +3,9 @@
 //! If you plan on not really delving into the WebGPU internals of Emu and just want to work from the other side of the abstraction,
 //! the only important thing here is [`assert_device_pool_initialized`](fn.assert_device_pool_initialized.html).
 
-use std::cell::{Cell, RefCell, RefMut};
-
-
-
-
-use std::sync::Mutex;
-
-
-
-
-
-
 use derive_more::{From, Into};
+use std::cell::RefCell;
+use std::sync::Mutex;
 
 use crate::device::*;
 use crate::error::*;
@@ -104,7 +94,8 @@ pub async fn assert_device_pool_initialized() {
                 }
             })
             .collect::<Vec<DevicePoolMember>>(),
-    );
+    )
+    .unwrap();
 }
 
 /// Takes the device currently selected out of the device pool and hands you a Mutex for mutating the device's sate

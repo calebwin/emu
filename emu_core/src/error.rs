@@ -122,7 +122,6 @@ pub enum CompileOrNoDeviceError {
 
 impl Error for CompileOrNoDeviceError {}
 
-
 /// A runtime error that occurs on the device
 pub struct RuntimeError;
 

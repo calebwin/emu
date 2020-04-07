@@ -12,6 +12,9 @@ categories = ["science", "simulation", "concurrency", "computer-vision", "render
 license = "MIT"
 edition = "2018"
 
+[package.metadata.docs.rs]
+features = ["glsl-compile"]
+
 [features]
 default = []
 glsl-compile = ["shaderc"]
@@ -22,7 +25,6 @@ futures = "0.3.1"
 zerocopy = "0.2.0"
 lazy_static = "1.4.0"
 derive_more = "0.99.2"
-lru = "0.4.3"
 shaderc = { version = "0.6.2", optional = true }
 
 [dev-dependencies]

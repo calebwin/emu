@@ -1,14 +1,18 @@
+//! Infrastructure for caching kernels that are already JIT compiled
+
 use crate::device::*;
 
 use lazy_static::lazy_static;
-use std::collections::hash_map::{HashMap};
+use std::collections::hash_map::HashMap;
 use std::collections::VecDeque;
-use std::hash::{Hasher};
-use std::io::{Cursor, Read, Seek};
 use std::sync::{Arc, RwLock};
 
 // in the future, we may not need to use a cache because caching is done automatically by wgpu
 
+/// A trait to implement to create your own cache
+///
+/// The [`compile`](../compile/fn.compile.html) is generic over a `Cache` implementation.
+/// So you could, for example, implement `Cache` for a disk cache or in-memory cache customized for your needs.
 pub trait Cache {
     // key is derived from the source language
     // source language what is compiled to SPIR-V and then to machine code (stored in a DeviceFnMut)
@@ -30,6 +34,7 @@ fn maybe_initialize_global_kernel_cache() {
     }
 }
 
+/// A simple in-memory LRU cache for up to 32 JIT-ed kernels
 pub struct GlobalCache;
 
 impl GlobalCache {

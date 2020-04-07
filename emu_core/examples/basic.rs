@@ -12,13 +12,16 @@ struct Shape {
     r: [i32; 2],
 }
 
+#[cfg(not(feature = "glsl-compile"))]
+fn main() {}
+
+#[cfg(feature = "glsl-compile")]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // ensure that a device pool has been initialized
     // this should be called before every time when you assume you have devices to use
     // that goes for both library users and application users
     futures::executor::block_on(assert_device_pool_initialized());
 
-    
     println!("{:?}", take()?.lock().unwrap().info.as_ref().unwrap());
 
     // create some data on GPU
@@ -34,12 +37,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             r: [2, 9]
         };
         1024
-    ]);
+    ])?;
 
     // compile GslKernel to SPIR-V
     // then, we can either inspect the SPIR-V or finish the compilation by generating a DeviceFnMut
     // then, run the DeviceFnMut
-    let c = compile::<GlslKernel, GlslKernelCompile, _, GlobalCache>(
+    let c = compile::<GlslKernel, GlslKernelCompile, Vec<u32>, GlobalCache>(
         GlslKernel::new()
             .spawn(64)
             .share("float stuff[64]")
@@ -51,12 +54,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .with_helper_code(
                 r#"
 Shape flip(Shape s) {
-s.x = s.x + s.w;
-s.y = s.y + s.h;
-s.w *= -1;
-s.h *= -1;
-s.r = ivec2(5, 3);
-return s;
+    s.x = s.x + s.w;
+    s.y = s.y + s.h;
+    s.w *= -1;
+    s.h *= -1;
+    s.r = ivec2(5, 3);
+    return s;
 }
 "#,
     )

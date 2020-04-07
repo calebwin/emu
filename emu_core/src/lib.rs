@@ -4,23 +4,27 @@
 //! eventually even the web itself (through WebAssembly - API changes to
 //! support this should be minimal).
 //!
-//! You can see [the crate](https://crates.io/emu_core) for how to add Emu to 
+//! You can see [the crate](https://crates.io/emu_core) for how to add Emu to
 //! your project (`emu_core = "*"`) and [the examples](https://github.com/calebwin/emu/tree/master/emu_core/examples)
-//! for how to use Emu. The following link to documentation for the building 
+//! for how to use Emu. The following link to documentation of what are essentially the building
 //! blocks of Emu.
 //! - See [`Device`](device/struct.Device.html) and [`pool`](pool/index.html) for the lowest-level, core primitives abstracting directly over WebGPU
-//! - See [`DeviceBox<T>`](device/struct.DeviceBox.html), [`AsDeviceBoxed`](boxed/trait.AsDeviceBoxed.html), [`IntoDeviceBoxed`](boxed/trait.IntoDeviceBoxed.html) for 
+//! - See [`DeviceBox<T>`](device/struct.DeviceBox.html), [`AsDeviceBoxed`](boxed/trait.AsDeviceBoxed.html), [`IntoDeviceBoxed`](boxed/trait.IntoDeviceBoxed.html) for
 //! [boxing](https://en.wikipedia.org/wiki/Object_type_(object-oriented_programming)#Boxing) data on the GPU
 //! - See [`compile`](compile/fn.compile.html) for compiling some source language to `SpirvOrFinished` and then finishing to `DeviceFnMut`
-//! - See [`spawn`](spawn/struct.spawn.html) for spawning threads on GPU and launching compiled kernels (`DeviceFnMut`s)
+//! - See [`spawn`](spawn/fn.spawn.html) for spawning threads on GPU and launching compiled kernels (`DeviceFnMut`s)
 //!
 //! Note that `Device` and `pool` are the lowest-level building blocks for the
 //! rest of Emu and as such, you could technically use either just `Device` and
-//! `pool` or just the rest of Emu. In practice though, you will probably do 
+//! `pool` or just the rest of Emu. In practice though, you will probably do
 //! both. You will use the rest of Emu for most of your application/library and
 //! then drop down to low-level `Device`-and-`pool` usage in rare cases when
-//! you want to work with the underlying WebGPU data (maybe for interop with 
+//! you want to work with the underlying WebGPU data (maybe for interop with
 //! graphics) structures or to have finer control over certain parameters.
+//!
+//! Also, some basic guides that will likely be helpful in using Emu are the following.
+//! - [How to use CUDA](https://www.nvidia.com/docs/IO/116711/sc11-cuda-c-basics.pdf) - This explains the idea of launching kernels on a 3-dimensional space of threads, which Emu and CUDA share
+//! - [How to write GLSL compute shaders](https://www.khronos.org/opengl/wiki/Compute_Shader) - This explains some of the stuff that is specific to SPIR-V, which Emu uses as input
 
 #[macro_use]
 extern crate lazy_static; // we use lazy_static for global cache of JITed programs and pool of devices
@@ -30,7 +34,7 @@ pub mod cache; // includes the Cache trait for implementing disk/in-memory cache
 pub mod compile; // includes the Compile trait for implementing source language inputs to Emu (e.g. - XLA, Halide, GLSL, Swift SIL, Julia IR, etc.)
 pub mod compile_impls;
 pub mod spawn; // use for spawning threads and launching a DeviceFnMut
-                // a set of traits and functions for working with DeviceBox's
+               // a set of traits and functions for working with DeviceBox's
 pub mod boxed;
 // a pool of devices to reduce some boilerplate, use for a CUDA-ish API where a global device pool is shared by all Emu users
 pub mod pool;
@@ -44,7 +48,7 @@ macro_rules! pub_use {
 }
 
 pub mod prelude {
-    #[macro_use]
+	//! The module to import to import everything else
     pub use crate::call;
     pub_use! {compile, compile_impls, cache, spawn, boxed, device, error, pool}
 }
