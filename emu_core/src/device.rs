@@ -347,7 +347,7 @@ impl Device {
         self.queue.submit(&[encoder.finish()]);
     }
 
-    /// Downloads data from the given `DeviceBox<T>` asyncronously and returns a boxed slice of `T`
+    /// Downloads data from the given `DeviceBox<T>` asynchronously and returns a boxed slice of `T`
     ///
     /// This functions is asynchronous so you can either `.await` it in an asynchronous context (like an `async fn` or `async` block) or you can
     /// simply pass the returned future to an executor.

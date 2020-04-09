@@ -12,7 +12,7 @@ use crate::error::*;
 
 /// Represents a member of the device pool
 ///
-/// This holds both a mutex to a `Device` and information abou the device. You must create instances of `DevicePoolMember` to construct your own custom device pool using
+/// This holds both a mutex to a `Device` and information about the device. You must create instances of `DevicePoolMember` to construct your own custom device pool using
 /// [`pool`](fn.pool.html).
 #[derive(From, Into)]
 pub struct DevicePoolMember {
@@ -75,10 +75,10 @@ fn maybe_initialize_device_idx() {
 /// # Ok(())
 /// # }
 /// ```
-//
-// This function can be useful if you want to work with the WebGPU internals with [`take`](fn.take.html).
-// You can call `pool` at the start of your application to initalize all the devices you plan on using.
-// You can then do graphics stuff using `take` and all of [`wgpu-rs`](https://crates.io/crates/wgpu) and compute stuff with high-level `get`/`set`/`compile`/`spawn`.
+///
+/// This function can be useful if you want to work with the WebGPU internals with [`take`](fn.take.html).
+/// You can call `pool` at the start of your application to initialize all the devices you plan on using.
+/// You can then do graphics stuff using `take` and all of [`wgpu-rs`](https://crates.io/crates/wgpu) and compute stuff with high-level `get`/`set`/`compile`/`spawn`.
 pub fn pool(new_device_pool: Vec<DevicePoolMember>) -> Result<(), PoolAlreadyInitializedError> {
     if CUSTOM_DEVICE_POOL.lock().unwrap().is_some() {
         Err(PoolAlreadyInitializedError)
@@ -127,7 +127,7 @@ pub async fn assert_device_pool_initialized() {
     }
 }
 
-/// Takes the device currently selected out of the device pool and hands you a Mutex for mutating the device's sate
+/// Takes the device currently selected out of the device pool and hands you a mutex for mutating the device's sate
 ///
 /// This function is the link between the high-level pool-based interface and the low-level WebGPU internals.
 /// With `take`, you can mutate the WebGPU internals "hidden" behind the device pool.

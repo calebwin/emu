@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["GlobalCache","A simple in-memory LRU cache for up to 32 JIT-ed kernels"]],"trait":[["Cache","A trait to implement to create your own cache"]]});

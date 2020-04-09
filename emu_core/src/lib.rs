@@ -1,3 +1,5 @@
+#![doc(html_logo_url = "https://i.imgur.com/CZEkdK1.png")]
+
 //! `emu_core` is a library that serves as a compute-focused abstraction over
 //! [WebGPU](https://github.com/gfx-rs/wgpu-rs). Despite its name, WebGPU
 //! allows Emu to support most platforms (through Vulkan, Metal, DX) and
@@ -51,7 +53,7 @@ pub mod compile_impls;
 pub mod spawn; // use for spawning threads and launching a DeviceFnMut
                // a set of traits and functions for working with DeviceBox's
 pub mod boxed;
-// a pool of devices to reduce some boilerplate, use for a CUDA-ish API where a global device pool is shared by all Emu users
+// a pool of devices to reduce some boilerplate, use for a CUDA-esque API where a global device pool is shared by all Emu users
 pub mod pool;
 // a set of types for errors in device usage
 pub mod error;

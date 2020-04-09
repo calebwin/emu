@@ -120,7 +120,7 @@ impl Glsl {
     }
 }
 
-/// A shaderc-based compiler for [`Glsl`](struct.Glsl.html) to SPIR-V
+/// A `shaderc`-based compiler for [`Glsl`](struct.Glsl.html) to SPIR-V
 #[cfg(feature = "glsl-compile")]
 pub struct GlslCompile;
 
@@ -247,7 +247,7 @@ impl GlslKernel {
         self
     }
 
-    /// Appends a GLSL struct definition for the type which this function is generic over
+    /// Appends a GLSL structure definition for the type which this function is generic over
     ///
     /// This can be used for any type that implements [`GlslStruct`](../compile/trait.GlslStruct.html).
     /// ```
@@ -433,7 +433,7 @@ impl GlslKernel {
     }
 }
 
-/// Another shaderc-based compiler for compiling [`GlslKernel`](struct.GlslKernel.html)
+/// Another `shaderc`-based compiler for compiling [`GlslKernel`](struct.GlslKernel.html)
 #[cfg(feature = "glsl-compile")]
 pub struct GlslKernelCompile;
 

@@ -1,0 +1,25 @@
+cargo:rustc-link-lib=dl
+TARGET = Some("x86_64-unknown-linux-gnu")
+OPT_LEVEL = Some("0")
+HOST = Some("x86_64-unknown-linux-gnu")
+CC_x86_64-unknown-linux-gnu = None
+CC_x86_64_unknown_linux_gnu = None
+HOST_CC = None
+CC = None
+CFLAGS_x86_64-unknown-linux-gnu = None
+CFLAGS_x86_64_unknown_linux_gnu = None
+HOST_CFLAGS = None
+CFLAGS = None
+CRATE_CC_NO_DEFAULTS = None
+DEBUG = Some("true")
+CARGO_CFG_TARGET_FEATURE = Some("fxsr,mmx,sse,sse2")
+running: "cc" "cc" "-O0" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-fno-omit-frame-pointer" "-m64" "-Wall" "-Wextra" "-o" "/home/caleb/Projects/emu/emu_core/../docs/debug/build/libloading-256bb5a8e9a80eb5/out/src/os/unix/global_static.o" "-c" "src/os/unix/global_static.c"
+exit code: 0
+AR_x86_64-unknown-linux-gnu = None
+AR_x86_64_unknown_linux_gnu = None
+HOST_AR = None
+AR = None
+running: "ar" "ar" "crs" "/home/caleb/Projects/emu/emu_core/../docs/debug/build/libloading-256bb5a8e9a80eb5/out/libglobal_static.a" "/home/caleb/Projects/emu/emu_core/../docs/debug/build/libloading-256bb5a8e9a80eb5/out/src/os/unix/global_static.o"
+exit code: 0
+cargo:rustc-link-lib=static=global_static
+cargo:rustc-link-search=native=/home/caleb/Projects/emu/emu_core/../docs/debug/build/libloading-256bb5a8e9a80eb5/out

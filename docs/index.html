@@ -1,0 +1,55 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `emu_core` crate."><meta name="keywords" content="rust, rustlang, rust-lang, emu_core"><title>emu_core - Rust</title><link rel="stylesheet" type="text/css" href="doc/emu_core/../normalize.css"><link rel="stylesheet" type="text/css" href="doc/emu_core/../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="doc/emu_core/../dark.css"><link rel="stylesheet" type="text/css" href="doc/emu_core/../light.css" id="themeStyle"><script src="doc/emu_core/../storage.js"></script><noscript><link rel="stylesheet" href="doc/emu_core/../noscript.css"></noscript><link rel="shortcut icon" href="doc/emu_core/../favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='doc/emu_core/../emu_core/index.html'><div class='logo-container'><img src='https://i.imgur.com/CZEkdK1.png' alt='logo'></div></a><p class='location'>Crate emu_core</p><div class="sidebar-elems"><a id='all-types' href='doc/emu_core/all.html'><p>See all emu_core's items</p></a><div class="block items"><ul><li><a href="doc/emu_core/#modules">Modules</a></li><li><a href="doc/emu_core/#macros">Macros</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'emu_core', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="doc/emu_core/../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="doc/emu_core/../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="doc/emu_core/../settings.html"><img src="doc/emu_core/../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="doc/emu_core/javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='doc/emu_core/../src/emu_core/lib.rs.html#1-71' title='goto source code'>[src]</a></span><span class='in-band'>Crate <a class="mod" href='doc/emu_core/'>emu_core</a></span></h1><div class='docblock'><p><code>emu_core</code> is a library that serves as a compute-focused abstraction over
+<a href="https://github.com/gfx-rs/wgpu-rs">WebGPU</a>. Despite its name, WebGPU
+allows Emu to support most platforms (through Vulkan, Metal, DX) and
+eventually even the web itself (through WebAssembly - API changes to
+support this should be minimal).</p>
+<p>You can see <a href="https://crates.io/emu_core">the crate</a> for how to add Emu to
+your Rust project (<code>emu_core = &quot;*&quot;</code>) and <a href="https://github.com/calebwin/emu/tree/master/emu_core/examples">the examples</a>
+for how to use Emu. The following link to documentation of what are essentially the building
+blocks of Emu.</p>
+<ul>
+<li>See <a href="doc/emu_core/device/struct.Device.html"><code>Device</code></a> and <a href="doc/emu_core/pool/index.html"><code>pool</code></a> for the lowest-level, core primitives abstracting directly over WebGPU</li>
+<li>See <a href="doc/emu_core/device/struct.DeviceBox.html"><code>DeviceBox&lt;T&gt;</code></a>, <a href="doc/emu_core/boxed/trait.AsDeviceBoxed.html"><code>AsDeviceBoxed</code></a>, <a href="doc/emu_core/boxed/trait.IntoDeviceBoxed.html"><code>IntoDeviceBoxed</code></a> for
+<a href="https://en.wikipedia.org/wiki/Object_type_(object-oriented_programming)#Boxing">boxing</a> data on the GPU</li>
+<li>See <a href="doc/emu_core/compile/struct.SpirvBuilder.html"><code>SpirvBuilder</code></a>, <a href="doc/emu_core/compile_impls/struct.Glsl.html"><code>Glsl</code></a>, <a href="doc/emu_core/compile_impls/struct.GlslKernel.html"><code>GlslKernel</code></a> for simple source
+languages to use for writing compute kernels</li>
+<li>See <a href="doc/emu_core/compile/fn.compile.html"><code>compile</code></a> for compiling source language to <code>SpirvOrFinished</code> and then finishing to <code>DeviceFnMut</code></li>
+<li>See <a href="doc/emu_core/spawn/fn.spawn.html"><code>spawn</code></a> for spawning threads on GPU and launching compiled kernels (<code>DeviceFnMut</code>s)</li>
+<li>See <a href="doc/emu_core/pool/index.html"><code>pool</code></a>'s <a href="doc/emu_core/pool/fn.pool.html"><code>pool</code></a>/<a href="doc/emu_core/pool/fn.select.html"><code>select</code></a>/<a href="doc/emu_core/pool/fn.take.html"><code>take</code></a> for
+managing the global pool of devices</li>
+<li>See <a href="doc/emu_core/pool/fn.assert_device_pool_initialized.html"><code>assert_device_pool_initialized</code></a></li>
+</ul>
+<p>Note that <code>Device</code> and <code>pool</code> are the lowest-level building blocks for the
+rest of Emu and as such, you could technically use either just <code>Device</code> and
+<code>pool</code> or just the rest of Emu. In practice though, you will probably do
+both. You will use the rest of Emu for most of your application/library and
+then drop down to low-level <code>Device</code>-and-<code>pool</code> usage in rare cases when
+you want to work with the underlying WebGPU data (maybe to mix in graphics with your
+compute) structures or to have finer control over certain parameters.</p>
+<p>And about features - there is 1 feature that by default is switched off - <code>glsl-compile</code>.
+You should <a href="https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features">enable this feature</a> if you would like to use
+<a href="doc/emu_core/compile_impls/struct.Glsl.html"><code>Glsl</code></a> or <a href="doc/emu_core/compile_impls/struct.GlslKernel.html"><code>GlslKernel</code></a>. This feature has one important dependency -
+<a href="https://docs.rs/shaderc/0.6.2/shaderc/index.html"><code>shaderc</code></a>. In the future, when a Rust-based GLSL-to-SPIR-V compiler is finished (there is work going towards this),
+there will be a simpler pure-Rust dependency but until then, you should follow <a href="https://docs.rs/shaderc/0.6.2/shaderc/index.html">steps here</a> to ensure the platforms you
+target will have <code>shaderc</code>.
+Of course, if you really don't want to use <code>shaderc</code>, you could always <a href="https://crates.io/crates/glsl-to-spirv-macros">compile your code to SPIR-V at compile time</a> and
+then use SPIR-V as input to Emu.</p>
+<p>Also, some basic guides that will likely be helpful in using Emu are the following.</p>
+<ul>
+<li><a href="https://www.nvidia.com/docs/IO/116711/sc11-cuda-c-basics.pdf">How to use CUDA</a> - This explains the idea of launching kernels on a 3-dimensional space of threads, which Emu
+and CUDA share</li>
+<li><a href="https://www.khronos.org/opengl/wiki/Compute_Shader">How to write GLSL compute shaders</a> - This explains some of the stuff that is specific to SPIR-V, which Emu uses as input</li>
+</ul>
+</div><h2 id='modules' class='section-header'><a href="doc/emu_core/#modules">Modules</a></h2>
+<table><tr class='module-item'><td><a class="mod" href="doc/emu_core/boxed/index.html" title='emu_core::boxed mod'>boxed</a></td><td class='docblock-short'><p>Functions for working with <code>DeviceBox&lt;T&gt;</code> and the device pool</p>
+</td></tr><tr class='module-item'><td><a class="mod" href="doc/emu_core/cache/index.html" title='emu_core::cache mod'>cache</a></td><td class='docblock-short'><p>Infrastructure for caching kernels that are already JIT compiled</p>
+</td></tr><tr class='module-item'><td><a class="mod" href="doc/emu_core/compile/index.html" title='emu_core::compile mod'>compile</a></td><td class='docblock-short'><p>The whole source-to-<code>DeviceFnMut</code> compilation pipeline</p>
+</td></tr><tr class='module-item'><td><a class="mod" href="doc/emu_core/compile_impls/index.html" title='emu_core::compile_impls mod'>compile_impls</a></td><td class='docblock-short'><p>A few implemented source languages that can be compiled to SPIR-V</p>
+</td></tr><tr class='module-item'><td><a class="mod" href="doc/emu_core/device/index.html" title='emu_core::device mod'>device</a></td><td class='docblock-short'><p>The lowest-level, core functionality for controlling a GPU device</p>
+</td></tr><tr class='module-item'><td><a class="mod" href="doc/emu_core/error/index.html" title='emu_core::error mod'>error</a></td><td class='docblock-short'><p>Various error types</p>
+</td></tr><tr class='module-item'><td><a class="mod" href="doc/emu_core/pool/index.html" title='emu_core::pool mod'>pool</a></td><td class='docblock-short'><p>Tools for managing the device pool either implicitly or explicitly</p>
+</td></tr><tr class='module-item'><td><a class="mod" href="doc/emu_core/prelude/index.html" title='emu_core::prelude mod'>prelude</a></td><td class='docblock-short'><p>The module to import to import everything else</p>
+</td></tr><tr class='module-item'><td><a class="mod" href="doc/emu_core/spawn/index.html" title='emu_core::spawn mod'>spawn</a></td><td class='docblock-short'><p>Functions for spawning threads and launching compiled <code>DeviceFnMut</code>s</p>
+</td></tr></table><h2 id='macros' class='section-header'><a href="doc/emu_core/#macros">Macros</a></h2>
+<table><tr class='module-item'><td><a class="macro" href="doc/emu_core/macro.call.html" title='emu_core::call macro'>call</a></td><td class='docblock-short'><p>A macro which evaluates to something that can be passed into <a href="doc/emu_core/spawn/struct.Spawner.html#method.launch"><code>launch</code></a></p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../";window.currentCrate = "emu_core";</script><script src="doc/emu_core/../aliases.js"></script><script src="doc/emu_core/../main.js"></script><script defer src="doc/emu_core/../search-index.js"></script></body></html>

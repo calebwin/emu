@@ -94,13 +94,13 @@ impl Error for PoolAlreadyInitializedError {}
 
 impl fmt::Debug for PoolAlreadyInitializedError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "pool of devices is already intialized")
+        write!(f, "pool of devices is already initialized")
     }
 }
 
 impl fmt::Display for PoolAlreadyInitializedError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "pool of devices is already intialized")
+        write!(f, "pool of devices is already initialized")
     }
 }
 
@@ -129,13 +129,13 @@ impl Error for RuntimeError {}
 
 impl fmt::Debug for RuntimeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "runtime error ocurred")
+        write!(f, "runtime error occurred")
     }
 }
 
 impl fmt::Display for RuntimeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "runtime error ocurred")
+        write!(f, "runtime error occurred")
     }
 }
 
