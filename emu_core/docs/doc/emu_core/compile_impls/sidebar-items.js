@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["SpirvCompile","A SPIR-V-to-SPIR-V compiler!"]]});

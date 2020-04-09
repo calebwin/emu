@@ -1,1 +1,0 @@
-initSidebarItems({"trait":[["AsDeviceBoxed","A trait for creating a `DeviceBox<T>` from a reference to an object `T`"],["IntoDeviceBoxed","A trait for creating a `DeviceBox<T>` by consuming an object `T`"]]});

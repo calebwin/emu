@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["spawn","Constructs a `Spawner` with the given number of threads spawned"]],"struct":[["Spawner","A \"builder\" for a space of threads that are to be spawned"]]});
