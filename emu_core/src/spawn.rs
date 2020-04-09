@@ -103,7 +103,7 @@ impl Spawner {
 
 /// A macro which evaluates to something that can be passed into [`launch`](spawn/struct.Spawner.html#method.launch)
 ///
-/// For example usage, see [`spawn`](fn.spawn.html)
+/// For example usage, see [`spawn`](spawn/fn.spawn.html)
 #[macro_export]
 macro_rules! call {
 	($fn_mut:expr $( ,$fn_mut_arg:expr )*) => (

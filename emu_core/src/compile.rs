@@ -44,7 +44,7 @@ pub struct Spirv<P: BorrowMut<[u32]>> {
     pub code: P,
 }
 
-/// A builder for constructing a [`Spirv`](struct.spirv.html)
+/// A builder for constructing a [`Spirv`](struct.Spirv.html)
 ///
 /// You can use it in the case where you are starting from either `u8` bytes or 4-byte `u32` words.
 /// ```
