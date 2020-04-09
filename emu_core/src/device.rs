@@ -12,9 +12,8 @@ use crate::error::*;
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::fmt;
-
 use std::hash::{Hash, Hasher};
-
+use std::io::{Read, Seek};
 use std::marker::PhantomData;
 
 // zerocopy is used for serializing and deserializing data to/from devices
@@ -83,7 +82,10 @@ pub enum DeviceType {
 /// Represents a single device
 ///
 /// Since its fields are public, you can easily construct and mutate a `Device`'s
-/// WebGPU internals.
+/// WebGPU internals. To get a `Device` from an existing device pool, you will want to use [`take`](../pool/fn.take.html).
+///
+/// One thing to remember is that each `Device` owns its data. So even though the device pool lets you create `DeviceBox`s on different devices,
+/// you cannot use them together in the same kernel.
 pub struct Device {
     /// The WebGPU device wrapped by this data structure
     pub device: wgpu::Device,
@@ -107,7 +109,7 @@ impl Device {
     /// - If you are developing a library, select a device from the pool with [`select`](../pool/fn.select.html)/[`take`](../pool/fn.take.html)
     /// - If you are developing an application, construct a pool with [`pool`](../pool/fn.pool.html) or use the default pool
     ///
-    /// If you are using the default pool, don't forget to call [`assert_device_pool_initialized`](../pool/fn.assert_device_pool_initialized.html).
+    /// If you are using the default pool, don't forget to call [`assert_device_pool_initialized`](../pool/fn.assert_device_pool_initialized.html) before doing anthing with a device.
     pub async fn all() -> Vec<Self> {
         let adapters = wgpu::Adapter::enumerate(wgpu::BackendBit::PRIMARY);
 
@@ -145,6 +147,15 @@ impl Device {
     }
 
     /// Creates a constant `DeviceBox<T>` with size of given number of bytes
+    ///
+    /// ```
+    /// # use {emu_core::prelude::*, emu_glsl::*, zerocopy::*};
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut device = &mut futures::executor::block_on(Device::all())[0];
+    /// let pi: DeviceBox<f32> = device.create_with_size(std::mem::size_of::<f32>());
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn create_with_size<T>(&mut self, size: usize) -> DeviceBox<T>
     where
         T: ?Sized,
@@ -153,6 +164,15 @@ impl Device {
     }
 
     /// Creates a mutable `DeviceBox<T>` with size of given number of bytes
+    ///
+    /// ```
+    /// # use {emu_core::prelude::*, emu_glsl::*, zerocopy::*};
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut device = &mut futures::executor::block_on(Device::all())[0];
+    /// let mut data: DeviceBox<[f32]> = device.create_with_size(std::mem::size_of::<f32>() * 2048);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn create_with_size_mut<T>(&mut self, size: usize) -> DeviceBox<T>
     where
         T: ?Sized,
@@ -160,20 +180,39 @@ impl Device {
         self.create_with_size_as::<T>(size, Mutability::Mut)
     }
 
-    /// Creates a constant `DeviceBox<T>` from a reference to `T`
-    pub fn create_from_ref<T>(&mut self, host_obj: &T) -> DeviceBox<T>
+    /// Creates a constant `DeviceBox<T>` from a borrow of `T`
+    ///
+    /// ```
+    /// # use {emu_core::prelude::*, emu_glsl::*, zerocopy::*};
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut device = &mut futures::executor::block_on(Device::all())[0];
+    /// let pi: DeviceBox<f32> = device.create_from(&3.1415);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn create_from<T, B: Borrow<T>>(&mut self, host_obj: B) -> DeviceBox<T>
     where
         T: AsBytes + ?Sized,
     {
-        self.create_from_ref_as::<T>(host_obj, Mutability::Const)
+        self.create_from_as::<T, B>(host_obj, Mutability::Const)
     }
 
-    /// Creates a mutable `DeviceBox<T>` from a reference to `T`
-    pub fn create_from_ref_mut<T>(&mut self, host_obj: &T) -> DeviceBox<T>
+    /// Creates a mutable `DeviceBox<T>` from a borrow of `T`
+    ///
+    /// ```
+    /// # use {emu_core::prelude::*, emu_glsl::*, zerocopy::*};
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut device = &mut futures::executor::block_on(Device::all())[0];
+    /// let data = vec![0.0; 2048];
+    /// let mut data_on_gpu: DeviceBox<[f32]> = device.create_from(data.as_slice());
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn create_from_mut<T, B: Borrow<T>>(&mut self, host_obj: B) -> DeviceBox<T>
     where
         T: AsBytes + ?Sized,
     {
-        self.create_from_ref_as::<T>(host_obj, Mutability::Mut)
+        self.create_from_as::<T, B>(host_obj, Mutability::Mut)
     }
 
     fn create_with_size_as<T>(&mut self, size: usize, mutability: Mutability) -> DeviceBox<T>
@@ -204,16 +243,21 @@ impl Device {
             storage_buffer,
             size: size as u64,
             phantom: PhantomData,
+            mutability: Some(mutability),
         }
     }
 
-    fn create_from_ref_as<T>(&mut self, host_obj: &T, mutability: Mutability) -> DeviceBox<T>
+    fn create_from_as<T, B: Borrow<T>>(
+        &mut self,
+        host_obj: B,
+        mutability: Mutability,
+    ) -> DeviceBox<T>
     where
         T: AsBytes + ?Sized,
     {
         // serialize the data into bytes
         // these bytes can later be deserialized back into T
-        let host_obj_bytes = host_obj.as_bytes();
+        let host_obj_bytes = host_obj.borrow().as_bytes();
 
         // create a staging buffer with host_obj copied over
         // then create an empty storage buffer of appropriate size
@@ -252,18 +296,34 @@ impl Device {
             storage_buffer,
             size: host_obj_bytes.len() as u64,
             phantom: PhantomData,
+            mutability: Some(mutability),
         }
     }
 
     // TODO say what is blocking and what isn't in the comments
-    /// Uploads data from the given reference to `T` to the given `DeviceBox<T>` that lives on this (meaning `self`) device
-    pub fn set_from_ref<T>(&mut self, device_obj: &mut DeviceBox<T>, host_obj: &T)
+    /// Uploads data from the given borrow to `T` to the given `DeviceBox<T>` that lives on this (meaning `self`) device
+    ///
+    /// ```
+    /// # use {emu_core::prelude::*, emu_glsl::*, zerocopy::*};
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut device = &mut futures::executor::block_on(Device::all())[0];
+    /// let data = vec![0.0; 2048];
+    /// let mut data_on_gpu: DeviceBox<[f32]> = device.create_from_mut(data.as_slice());
+    /// device.set_from(&mut data_on_gpu, vec![0.5; 2048].as_slice());
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn set_from<T, B: Borrow<T>>(&mut self, device_obj: &mut DeviceBox<T>, host_obj: B)
     where
         T: AsBytes + ?Sized,
     {
+        if device_obj.mutability.is_some() {
+            assert_eq!(device_obj.mutability.unwrap(), Mutability::Mut, "expected the `DeviceBox` being set to be mutable (each `DeviceBox` constructor has a \"constant\" version and a \"mut\" version)");
+        }
+
         // serialize the data into bytes
         // these bytes can later be deserialized back into T
-        let host_obj_bytes = host_obj.as_bytes();
+        let host_obj_bytes = host_obj.borrow().as_bytes();
 
         // create a staging buffer with host_obj copied over
         // set this staging buffer as the new staging buffer for the device box
@@ -288,10 +348,37 @@ impl Device {
     }
 
     /// Downloads data from the given `DeviceBox<T>` asyncronously and returns a boxed slice of `T`
+    ///
+    /// This functions is asynchronous so you can either `.await` it in an asynchronous context (like an `async fn` or `async` block) or you can
+    /// simply pass the returned future to an executor.
+    /// ```
+    /// # use {emu_core::prelude::*, emu_glsl::*, zerocopy::*};
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// // get a device
+    /// let mut device = &mut futures::executor::block_on(Device::all())[0];
+    ///
+    /// // create some data on a GPU and mutate it in place
+    /// let data = vec![0.0; 2048];
+    /// let mut data_on_gpu: DeviceBox<[f32]> = device.create_from_mut(data.as_slice());
+    /// device.set_from(&mut data_on_gpu, vec![0.5; 2048].as_slice());
+    ///
+    /// // use `get` to download from the GPU
+    /// assert_eq!(futures::executor::block_on(device.get(&data_on_gpu))?,
+    ///     vec![0.5; 2048].into_boxed_slice());
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn get<T>(&mut self, device_obj: &DeviceBox<[T]>) -> Result<Box<[T]>, CompletionError>
     where
         T: FromBytes + Copy, // implicitly, T is also Sized which is necessary for us to be able to deserialize
     {
+        // assert that the data we're getting is mutable
+        // if it's constant, you shouldn't be getting it in the first place
+        // there is a possibility it has changed and its only safe to ensure that its marked as mutable
+        if device_obj.mutability.is_some() {
+            assert_eq!(device_obj.mutability.unwrap(), Mutability::Mut, "the `DeviceBox` from which you are downloading data from a device should be mutable, not constant");
+        }
+
         // first, we copy over data from the storage buffer to the staging buffer
         // the staging buffer is host visible so we can then work with it more easily
         let mut encoder = self
@@ -331,13 +418,77 @@ impl Device {
             .map_err(|_error| CompletionError)
     }
 
-    /// Runs the given `DeviceFnMut` on a 3-dimensional space of threads to launch (with given dimensions) and arguments to pass to the launched kernel
+    /// Runs the given `DeviceFnMut` on a multi-dimensional space of threads to launch and arguments to pass to the launched kernel
+    ///
+    /// This is unsafe because it runs arbitrary code on a device.
+    /// ```no_run
+    /// # use {emu_core::prelude::*, emu_glsl::*, zerocopy::*};
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let mut device = &mut futures::executor::block_on(Device::all())[0];
+    /// let data = vec![0.0; 2048];
+    /// let mut data_on_gpu: DeviceBox<[f32]> = device.create_from(data.as_slice());
+    ///
+    /// // these are bytes so we first convert to 4-byte words
+    /// let shader: Vec<u32> = convert_to_spirv(std::io::Cursor::new(vec![
+    ///     // Magic number.           Version number: 1.0.
+    ///     0x03, 0x02, 0x23, 0x07,    0x00, 0x00, 0x01, 0x00,
+    ///     // Generator number: 0.    Bound: 0.
+    ///     0x00, 0x00, 0x00, 0x00,    0x00, 0x00, 0x00, 0x00,
+    ///     // Reserved word: 0.
+    ///     0x00, 0x00, 0x00, 0x00,
+    ///     // OpMemoryModel.          Logical.
+    ///     0x0e, 0x00, 0x03, 0x00,    0x00, 0x00, 0x00, 0x00,
+    ///     // GLSL450.
+    ///     0x01, 0x00, 0x00, 0x00]))?;
+    ///
+    /// // then, we compile to a `DeviceFnMut`
+    /// // the compilation here will fail at runtime because the above shader
+    /// // doesn't have an entry point called main
+    /// let shader_compiled = device.compile(ParamsBuilder::new().build(), "main", shader)?;
+    ///
+    /// // run
+    /// unsafe { device.call(&shader_compiled, (1, 1, 1), ArgsBuilder::new().build())? };
+    /// # Ok(())
+    /// # }
+    /// ```
     pub unsafe fn call<'a>(
         &mut self,
         device_fn_mut: &DeviceFnMut,
         work_space_dim: (u32, u32, u32),
         args: DeviceFnMutArgs<'a>,
     ) -> Result<(), LaunchError> {
+        // check that params and args match in type
+        for (set_num, set) in &args.bind_groups {
+            for (binding_num, binding) in &set.0 {
+                let message = "the compiled `DeviceFnMut` does not have parameters that match the arguments being passed to it";
+                let arg_type = &binding.1;
+                let param_type = device_fn_mut
+                    .param_types
+                    .get(&set_num)
+                    .expect(message)
+                    .get(&binding_num)
+                    .expect(message);
+                if arg_type.type_name.is_some() && param_type.type_name.is_some() {
+                    assert_eq!(
+                        arg_type.type_name.as_ref().unwrap(),
+                        param_type.type_name.as_ref().unwrap(),
+                        "argument of type {:?} and parameter of type {:?} do not match in type",
+                        arg_type.type_name.as_ref().unwrap(),
+                        param_type.type_name.as_ref().unwrap()
+                    );
+                }
+                if arg_type.mutability.is_some() && param_type.mutability.is_some() {
+                    if param_type.mutability.unwrap() == Mutability::Mut {
+                        assert_eq!(
+                            arg_type.mutability.as_ref().unwrap(),
+                            &Mutability::Mut,
+                            "parameter is mutable so argument must also be mutable, not constant"
+                        );
+                    }
+                }
+            }
+        }
+
         // begin the encoder of command to send to device
         // then, generate command to do computation
         let mut encoder = self
@@ -352,10 +503,10 @@ impl Device {
                     layout: &device_fn_mut.bind_group_layouts[&set_num],
                     bindings: bind_group
                         .values()
-                        .map(|binding| binding.clone())
+                        .map(|binding| binding.0.clone())
                         .collect::<Vec<wgpu::Binding<'a>>>()
                         .as_slice(),
-                    // TODO ensure the above clone is okay, it should be only cloning the underlying reference to a buffer and not cloning the entire buffer
+                    // TODO ensure the above clone is okay, it should be only cloning the underlying borrow of a buffer and not cloning the entire buffer
                 }),
             );
         }
@@ -388,6 +539,32 @@ impl Device {
     /// The entry point is where in the SPIR-V program the compiled kernel should be entered upon execution.
     /// The entry point's name is anything implementing `Into<String>` including `&str` and `String` while
     /// the program itself is anything `Borrow<[u32]>` including `Vec<u32>` and `&[u32]`.
+    /// ```no_run
+    /// # use {emu_core::prelude::*, emu_glsl::*, zerocopy::*};
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// // get a device to use
+    /// let mut device = &mut futures::executor::block_on(Device::all())[0];
+    ///
+    /// // these are bytes so we first convert to 4-byte words
+    /// let shader: Vec<u32> = convert_to_spirv(std::io::Cursor::new(vec![
+    ///     // Magic number.           Version number: 1.0.
+    ///     0x03, 0x02, 0x23, 0x07,    0x00, 0x00, 0x01, 0x00,
+    ///     // Generator number: 0.    Bound: 0.
+    ///     0x00, 0x00, 0x00, 0x00,    0x00, 0x00, 0x00, 0x00,
+    ///     // Reserved word: 0.
+    ///     0x00, 0x00, 0x00, 0x00,
+    ///     // OpMemoryModel.          Logical.
+    ///     0x0e, 0x00, 0x03, 0x00,    0x00, 0x00, 0x00, 0x00,
+    ///     // GLSL450.
+    ///     0x01, 0x00, 0x00, 0x00]))?;
+    ///
+    /// // then, we compile to a `DeviceFnMut`
+    /// // the compilation here will fail at runtime because the above shader
+    /// // doesn't have an entry point called main
+    /// let shader_compiled = device.compile(ParamsBuilder::new().build(), "main", shader)?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn compile<T: Into<String>, P: Borrow<[u32]>>(
         &self,
         program_params: DeviceFnMutParams,
@@ -397,7 +574,19 @@ impl Device {
         // TODO return a Result with error for compile error
         // TODO use proper error types
         let mut bind_group_layouts: HashMap<u32, wgpu::BindGroupLayout> = HashMap::new();
+        let mut param_types = HashMap::new();
         for (set_num, set) in program_params.bind_group_layouts {
+            // update param_types
+            for (binding_num, binding) in &set {
+                if !param_types.contains_key(&set_num) {
+                    param_types.insert(set_num, HashMap::new());
+                }
+                param_types
+                    .get_mut(&set_num)
+                    .unwrap()
+                    .insert(*binding_num, binding.1.clone());
+            }
+            // update bind_group_layouts
             bind_group_layouts.insert(
                 set_num,
                 self.device
@@ -405,7 +594,7 @@ impl Device {
                         label: None,
                         bindings: set
                             .values()
-                            .map(|binding_layout| binding_layout.clone())
+                            .map(|binding_layout| binding_layout.0.clone())
                             .collect::<Vec<wgpu::BindGroupLayoutEntry>>()
                             .as_slice(),
                     }),
@@ -429,18 +618,123 @@ impl Device {
                     entry_point: program_entry.into().as_str(), // this will probably be something like "main" or the name of the main function
                 },
             });
-
         Ok(DeviceFnMut {
+            param_types,
             bind_group_layouts,
             compute_pipeline: pipeline,
         })
     }
 }
 
-/// A "box" type for storing stuff on a device
+/// Converts a slice of bytes to a slice of 4-byte words
+///
+/// Just as a quick example...
+/// ```
+/// # use {emu_core::prelude::*, emu_glsl::*, zerocopy::*};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// let shader: Vec<u32> = convert_to_spirv(std::io::Cursor::new(vec![
+///     // Magic number.           Version number: 1.0.
+///     0x03, 0x02, 0x23, 0x07,    0x00, 0x00, 0x01, 0x00,
+///     // Generator number: 0.    Bound: 0.
+///     0x00, 0x00, 0x00, 0x00,    0x00, 0x00, 0x00, 0x00,
+///     // Reserved word: 0.
+///     0x00, 0x00, 0x00, 0x00,
+///     // OpMemoryModel.          Logical.
+///     0x0e, 0x00, 0x03, 0x00,    0x00, 0x00, 0x00, 0x00,
+///     // GLSL450.
+///     0x01, 0x00, 0x00, 0x00]))?;
+/// # Ok(())
+/// # }
+/// ```
+pub fn convert_to_spirv<T: Read + Seek>(src: T) -> Result<Vec<u32>, std::io::Error> {
+    wgpu::read_spirv(src)
+}
+
+/// A type for [boxing](https://en.wikipedia.org/wiki/Object_type_(object-oriented_programming)#Boxing) stuff stored on a device
 ///
 /// It is generic over a type `T` so that we can safely transmute data from the
-/// GPU (`DeviceBox<T>`) to and from data from the CPU (`T`).
+/// GPU (`DeviceBox<T>`) to and from data from the CPU (`T`). There are many ways a `DeviceBox<T>` can be constructed.
+/// ```
+/// # use emu_core::prelude::*;
+/// # use emu_glsl::*;
+/// # use zerocopy::*;
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # futures::executor::block_on(assert_device_pool_initialized());
+/// // this is useful for passing arguments to kernels that are of primitive types
+/// let pi = DeviceBox::new(3.1415)?;
+/// let data: DeviceBox<[f32]> = DeviceBox::from_ref(&vec![1.0; 2048])?;
+/// let data: DeviceBox<[f32]> = DeviceBox::with_size(2048 * std::mem::size_of::<f32>())?;
+/// let pi = (3.1415).into_device_boxed()?;
+/// let numbers = (0..2048).into_device_boxed()?;
+/// let data = vec![0; 2048].into_iter().into_device_boxed()?;
+/// # Ok(())
+/// # }
+/// ```
+/// You can also construct a `DeviceBox<T>` from existing data.
+/// ```
+/// # use emu_core::prelude::*;
+/// # use emu_glsl::*;
+/// # use zerocopy::*;
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # futures::executor::block_on(assert_device_pool_initialized());
+/// let one_on_cpu = vec![1.0; 1024];
+/// let zero_on_cpu = vec![0.0; 1024];
+/// let data_on_cpu = vec![0.5; 1024];
+/// let data_on_gpu: DeviceBox<[f32]> = data_on_cpu.as_device_boxed()?;
+/// let zero_on_gpu: DeviceBox<[f32]> = zero_on_cpu.into_iter().into_device_boxed()?;
+/// // prefer as_device_boxed to avoid the unnecessary copy
+/// // that is unless, you really need to construct from an iterator
+/// let one_on_gpu: DeviceBox<[f32]> = one_on_cpu.into_iter().take(512).into_device_boxed()?;
+/// # Ok(())
+/// # }
+/// ```
+/// And you can also load custom structures onto the GPU.
+/// ```
+/// use {emu_core::prelude::*, emu_glsl::*, zerocopy::*};
+///
+/// #[repr(C)]
+/// #[derive(AsBytes, FromBytes, Copy, Clone, Default, Debug)]
+/// struct Shape {
+///     pos: [f32; 2],
+///     num_edges: u32,
+///     radius: f32
+/// }
+///
+/// fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     // `assert_device_pool_initialized` should be called before using any Emu API function
+///     // well, except for `pool` which you would only use to manually populate the device pool
+///     futures::executor::block_on(assert_device_pool_initialized());
+///
+///     // create data and move to the GPU
+///     let shapes = vec![Shape::default(); 512];
+///     let shapes_on_gpu: DeviceBox<[Shape]> = shapes.as_device_boxed()?;
+///
+///     Ok(())
+/// }
+/// ```
+/// If you want to make your own collections move-able to the GPU, you can implement either [`AsDeviceBoxed`](../boxed/trait.AsDeviceBoxed.html)
+/// or [`IntoDeviceBoxed`](../boxed/trait.IntoDeviceBoxed.html). Lastly, keep in mind that all of the above examples create _constant_ data.
+/// To allow GPU data to be mutated, for most of the above functions, their mutable equivalent has the same name but with a `mut` appended.
+/// ```
+/// # use {emu_core::prelude::*, emu_glsl::*, zerocopy::*};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # futures::executor::block_on(assert_device_pool_initialized());
+/// let one_on_cpu = vec![1.0; 1024];
+/// let zero_on_cpu = vec![0.0; 1024];
+/// let data_on_cpu = vec![0.5; 1024];
+/// let data_on_gpu: DeviceBox<[f32]> = data_on_cpu.as_device_boxed_mut()?;
+/// let mut zero_on_gpu: DeviceBox<[f32]> = zero_on_cpu.into_iter().into_device_boxed_mut()?;
+/// let one_on_gpu: DeviceBox<[f32]> = one_on_cpu.into_iter().take(512).into_device_boxed_mut()?;
+/// # Ok(())
+/// # }
+/// ```
+/// Emu keeps tracks of whether or not data is mutable as well as their type to ensure that data is safely passed back and forth to and from
+/// kernels running on a GPU.
+///
+/// Also, `DeviceBox` implements `From` and `Into` to help you switch between `DeviceBox` and its WebGPU internals if you want to.
+/// The WebGPU internals are encapsulated in a 4-tuple corresponding simply to the staging buffer, storage buffer, and size in bytes respectively (there is also an optional mutability marker).
+/// You should ignore the staging buffer for now since we are working towards replacing 1 staging buffer per `DeviceBox` with a global pool of staging buffers
+/// that is shared by all `DeviceBox`s..
 pub struct DeviceBox<T>
 where
     T: ?Sized,
@@ -449,44 +743,63 @@ where
     pub(crate) storage_buffer: wgpu::Buffer,
     pub(crate) size: u64, // inv: size being constant and equal to sizes of staging, storage buffers respectively
     pub(crate) phantom: PhantomData<T>,
+    pub(crate) mutability: Option<Mutability>, // TODO for now constant scalars are passed in as storage buffers
+                                               // this is fine for now but in the future we should allow a DeviceBox to potentially use a uniform for small sizes of constant data
+                                               // this optimization would make memory transfer faster (maybe)
 }
 
-impl<T: ?Sized> From<(wgpu::Buffer, wgpu::Buffer, u64)> for DeviceBox<T> {
-    fn from(wgpu_stuff: (wgpu::Buffer, wgpu::Buffer, u64)) -> Self {
+impl<T: ?Sized> From<(wgpu::Buffer, wgpu::Buffer, u64, Option<Mutability>)> for DeviceBox<T> {
+    fn from(wgpu_stuff: (wgpu::Buffer, wgpu::Buffer, u64, Option<Mutability>)) -> Self {
         Self {
             staging_buffer: wgpu_stuff.0,
             storage_buffer: wgpu_stuff.1,
             size: wgpu_stuff.2,
             phantom: PhantomData,
+            mutability: wgpu_stuff.3,
         }
     }
 }
 
-impl<T: ?Sized> Into<(wgpu::Buffer, wgpu::Buffer, u64)> for DeviceBox<T> {
-    fn into(self) -> (wgpu::Buffer, wgpu::Buffer, u64) {
-        (self.staging_buffer, self.storage_buffer, self.size)
+impl<T: ?Sized> Into<(wgpu::Buffer, wgpu::Buffer, u64, Option<Mutability>)> for DeviceBox<T> {
+    fn into(self) -> (wgpu::Buffer, wgpu::Buffer, u64, Option<Mutability>) {
+        (
+            self.staging_buffer,
+            self.storage_buffer,
+            self.size,
+            self.mutability,
+        )
     }
 }
 
 /// Represents a compiled kernel that can then be launched across spawned threads with [`Device::call`](struct.Device.html#method.call) or [`spawn`](../spawn/fn.spawn.html)
 ///
 /// While compiling a `DeviceFnMut` is expensive, running a `DeviceFnMut` with varying work space dimensions or arguments incurs no significant extra compilation.
+/// There isn't really much you will need to do with this. Just know that this is basically the final compiled kernel. It's the end of the compilation pipeline (it's generated
+/// from SPIR-V) and is the input to the execution of your kernel.
 #[derive(From, Into)]
 pub struct DeviceFnMut {
     // we really just need 2 things to define a function
     // 1. the layout of input buffers to be bound (think of this as declaring the parameters of the function)
     // 2. the shader module and its entry point (this is like the actual body of the function)
     // both of these can be used to produce the following
-    pub(crate) bind_group_layouts: HashMap<u32, wgpu::BindGroupLayout>, // u32 = set number
+    pub(crate) param_types: HashMap<u32, HashMap<u32, ArgAndParamInfo>>, // you can just set all types to None if you don't care about type checking
+    pub(crate) bind_group_layouts: HashMap<u32, wgpu::BindGroupLayout>,  // u32 = set number
     pub(crate) compute_pipeline: wgpu::ComputePipeline, // inv: has PipelineLayout consistent with above BindGroupLayout's
 }
 
 /// Describes the parameters that can be passed to a `DeviceFnMut`
 ///
 /// This is cheap to construct and something you can safely clone multiple times.
+/// See [`ParamsBuilder`](struct.ParamsBuilder.html) for a convenience builder of `DeviceFnMutParams`.
+/// `DeviceFnMutParams` encapsulates a map from each set number to a map from each binding in the set to
+/// a binding layout. The binding layout contains both the `wgpu::BindGroupLayoutEntry` and an `ArgAndParamInfo` storing information
+/// for each parameter.
+///
+/// Looking into WebGPU docs and Emu source code is probably the best way to figure out how to work with the WebGPU
+/// data structures encapsulated by `DeviceFnMutParams`.
 #[derive(From, Into, Clone)]
 pub struct DeviceFnMutParams {
-    bind_group_layouts: HashMap<u32, HashMap<u32, wgpu::BindGroupLayoutEntry>>, // (u32, u32) = (set number, binding number)
+    bind_group_layouts: HashMap<u32, HashMap<u32, (wgpu::BindGroupLayoutEntry, ArgAndParamInfo)>>, // (u32, u32) = (set number, binding number)
 }
 
 impl Hash for DeviceFnMutParams {
@@ -508,14 +821,17 @@ impl DeviceFnMutParams {
             let new_binding_layout_idx = binding_layouts.len() as u32;
             binding_layouts.insert(
                 new_binding_layout_idx,
-                wgpu::BindGroupLayoutEntry {
-                    binding: new_binding_layout_idx,
-                    visibility: wgpu::ShaderStage::COMPUTE,
-                    ty: wgpu::BindingType::StorageBuffer {
-                        dynamic: false, // we usually don't need dynamic for compute so we default to 0, of course if you need it you can provide your own Device...Params
-                        readonly: false, // for now, this is just always mutable bc I don't know if readonly is more performant
+                (
+                    wgpu::BindGroupLayoutEntry {
+                        binding: new_binding_layout_idx,
+                        visibility: wgpu::ShaderStage::COMPUTE,
+                        ty: wgpu::BindingType::StorageBuffer {
+                            dynamic: false, // we usually don't need dynamic for compute so we default to 0, of course if you need it you can provide your own Device...Params
+                            readonly: false, // for now, this is just always mutable bc I don't know if readonly is more performant
+                        },
                     },
-                },
+                    ArgAndParamInfo::default(),
+                ),
             );
         }
         bind_group_layouts.insert(0, binding_layouts);
@@ -532,9 +848,24 @@ pub enum Mutability {
 }
 
 /// Helps with building a `DeviceFnMutParams`
+///
+/// `ParamsBuilder` helps you build a `DeviceFnMutParams` by specifying whether or not each parameter is mutable.
+/// ```
+/// # use {emu_core::prelude::*, emu_glsl::*, zerocopy::*};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # futures::executor::block_on(assert_device_pool_initialized());
+/// let data: DeviceBox<[f32]> = vec![0.0; 4096].as_device_boxed_mut()?;
+/// let tau = DeviceBox::new(6.2832)?;
+/// let args = ParamsBuilder::new()
+///     .param::<[f32]>(Mutability::Mut)
+///     .param::<f32>(Mutability::Const)
+///     .build();
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Clone)]
 pub struct ParamsBuilder {
-    binding_layouts: HashMap<u32, wgpu::BindGroupLayoutEntry>,
+    binding_layouts: HashMap<u32, (wgpu::BindGroupLayoutEntry, ArgAndParamInfo)>,
 }
 
 impl Hash for ParamsBuilder {
@@ -554,18 +885,24 @@ impl ParamsBuilder {
     }
 
     /// Adds on a parameter with given mutability
-    pub fn param(mut self, mutability: Mutability) -> Self {
+    pub fn param<T: ?Sized>(mut self, mutability: Mutability) -> Self {
         let new_binding_layout_idx = self.binding_layouts.len() as u32;
         self.binding_layouts.insert(
             new_binding_layout_idx,
-            wgpu::BindGroupLayoutEntry {
-                binding: new_binding_layout_idx,
-                visibility: wgpu::ShaderStage::COMPUTE,
-                ty: wgpu::BindingType::StorageBuffer {
-                    dynamic: false, // we usually don't need dynamic for compute so we default to 0, of course if you need it you can provide your own Device...Params
-                    readonly: mutability == Mutability::Const,
+            (
+                wgpu::BindGroupLayoutEntry {
+                    binding: new_binding_layout_idx,
+                    visibility: wgpu::ShaderStage::COMPUTE,
+                    ty: wgpu::BindingType::StorageBuffer {
+                        dynamic: false, // we usually don't need dynamic for compute so we default to 0, of course if you need it you can provide your own Device...Params
+                        readonly: mutability == Mutability::Const,
+                    },
                 },
-            },
+                ArgAndParamInfo {
+                    type_name: Some(String::from(core::any::type_name::<T>())),
+                    mutability: Some(mutability),
+                },
+            ), // for now we use type name, in the future we will use something more unique like core::any::TypeID
         );
 
         self
@@ -580,10 +917,25 @@ impl ParamsBuilder {
     }
 }
 
+/// Information that is held by both arguments and by parameters
+///
+/// If its fields are `Some`, `ArgAndParamInfo` can be used to check whether or not
+/// arguments and parameters are compatible
+#[derive(Default, PartialEq, Hash, Clone)]
+pub struct ArgAndParamInfo {
+    type_name: Option<String>, // in the future, we should use core::any::TypeId
+    mutability: Option<Mutability>,
+}
+
 /// Holds the actual arguments to be passed into a [`DeviceFnMut`](struct.DeviceFnMut.html)
-//
-// it should be cheap to construct and consist mainly of a bunch of wgpu::Binding's where a Binding represents an argument
-// it will also contain some extra information needed to construct a BindGroup
+///
+/// See [`ArgsBuilder`](struct.ArgsBuilder.html) for a convenience builder of `DeviceFnMutArgs`.
+/// `DeviceFnMutArgs` encapsulates a map from set numbers to maps from binding numbers to bindings.
+/// Each binding stores both a `wgpu::Binding` and an `ArgAndParamInfo` for the argument being bound.
+/// Each set stores a `Vec<u32>` which can be empty as a reasonable default.
+///
+/// Looking into WebGPU docs and Emu source code is probably the best way to figure out how to work with the WebGPU
+/// data structures encapsulated by `DeviceFnMutArgs`.
 #[derive(From, Into)]
 pub struct DeviceFnMutArgs<'a> {
     // this contains information for each bind group (marked by a u32 set number)
@@ -594,25 +946,42 @@ pub struct DeviceFnMutArgs<'a> {
     // but we accept a full HashMap supporting multiple bind groups to facilitate nice interop with wgpu
     //
     // also, note the lifetime
-    // a wgpu::Binding owns a reference to data (like a wgpu::Buffer owned by a DeviceBox)
+    // a wgpu::Binding owns a borrow of data (like a wgpu::Buffer owned by a DeviceBox)
     // we must ensure that DeviceFnMutArgs doesn't outlive the Buffer (and maybe DeviceBox) that it refers to
     //
     // and technically there can't be more than 4 sets (I think) but we still just use a HashMap for convenience
     bind_groups: HashMap<
         u32,
         (
-            HashMap<u32, wgpu::Binding<'a>>,
+            HashMap<u32, (wgpu::Binding<'a>, ArgAndParamInfo)>,
             Vec</*wgpu::BufferAddress*/ u32>,
         ),
     >, // (u32, u32) = (set number, binding number)
 }
 
 /// Helps with building a `DeviceFnMutArgs`
-pub struct ArgBuilder<'a> {
-    bindings: HashMap<u32, wgpu::Binding<'a>>,
+///
+/// `ArgsBuilder` helps you build a `DeviceFnMutArgs` by providing references to each `DeviceBox` argument. It's perfectly safe to
+/// pass a reference to a mutable `DeviceBox`. If the kernel these arguments are being passed to only accepts mutable arguments, Emu
+/// will assert that they are at runtime.
+/// ```
+/// # use {emu_core::prelude::*, emu_glsl::*, zerocopy::*};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # futures::executor::block_on(assert_device_pool_initialized());
+/// let data: DeviceBox<[f32]> = vec![0.0; 4096].as_device_boxed()?;
+/// let tau = DeviceBox::new(6.2832)?;
+/// let args = ArgsBuilder::new()
+///     .arg(&data)
+///     .arg(&tau)
+///     .build();
+/// # Ok(())
+/// # }
+/// ```
+pub struct ArgsBuilder<'a> {
+    bindings: HashMap<u32, (wgpu::Binding<'a>, ArgAndParamInfo)>,
 }
 
-impl<'a> ArgBuilder<'a> {
+impl<'a> ArgsBuilder<'a> {
     /// Creates a new builder with no arguments
     pub fn new() -> Self {
         Self {
@@ -625,13 +994,19 @@ impl<'a> ArgBuilder<'a> {
         let new_binding_idx = self.bindings.len() as u32;
         self.bindings.insert(
             new_binding_idx,
-            wgpu::Binding {
-                binding: new_binding_idx,
-                resource: wgpu::BindingResource::Buffer {
-                    buffer: &device_obj.storage_buffer,
-                    range: 0..device_obj.size,
+            (
+                wgpu::Binding {
+                    binding: new_binding_idx,
+                    resource: wgpu::BindingResource::Buffer {
+                        buffer: &device_obj.storage_buffer,
+                        range: 0..device_obj.size,
+                    },
                 },
-            },
+                ArgAndParamInfo {
+                    type_name: Some(String::from(core::any::type_name::<T>())),
+                    mutability: device_obj.mutability,
+                },
+            ), // for now we use type name, in the future we will use something more unique like core::any::TypeID
         );
 
         self

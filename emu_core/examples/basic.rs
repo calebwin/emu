@@ -46,9 +46,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         GlslKernel::new()
             .spawn(64)
             .share("float stuff[64]")
-            .param_mut("Shape[] shapes")
-            .param_mut("int[] x")
-            .param("int scalar")
+            .param_mut::<[Shape], _>("Shape[] shapes")
+            .param_mut::<[i32], _>("int[] x")
+            .param::<i32, _>("int scalar")
             .with_struct::<Shape>()
             .with_const("int c", "7")
             .with_helper_code(

@@ -11,7 +11,7 @@ use std::sync::{Arc, RwLock};
 
 /// A trait to implement to create your own cache
 ///
-/// The [`compile`](../compile/fn.compile.html) is generic over a `Cache` implementation.
+/// The [`compile`](../compile/fn.compile.html) function is generic over a `Cache` implementation.
 /// So you could, for example, implement `Cache` for a disk cache or in-memory cache customized for your needs.
 pub trait Cache {
     // key is derived from the source language
@@ -38,6 +38,7 @@ fn maybe_initialize_global_kernel_cache() {
 pub struct GlobalCache;
 
 impl GlobalCache {
+    /// Reserves space for the given number of additional kernels
     pub fn reserve(additional: usize) {
         *GLOBAL_KERNEL_CACHE_CAPACITY.write().unwrap() += additional;
     }

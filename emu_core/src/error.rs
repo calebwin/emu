@@ -47,7 +47,7 @@ impl fmt::Display for UnavailableDeviceError {
     }
 }
 
-/// An error for compilation failiures
+/// An error for compilation failures
 pub struct CompileError;
 
 impl Error for CompileError {}
@@ -64,7 +64,7 @@ impl fmt::Display for CompileError {
     }
 }
 
-/// An error for failiure to complete data movement or computation
+/// An error for failure to complete data movement or computation
 pub struct CompletionError;
 
 impl Error for CompletionError {}
