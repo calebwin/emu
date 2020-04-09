@@ -24,7 +24,7 @@ heavy computations to the user's device, you can reduce system latency and impro
     
 - **Emu is transparent** - Emu is a fully transparent abstraction. This means, at any point, you can decide to remove the abstraction and work directly with WebGPU constructs with zero overhead. For example, if you want to mix Emu with WebGPU-based graphics, you can do that with zero overhead. You can also swap out the JIT compiler artifact cache with your own cache, manage the device pool if you wish, and define your own compile-to-SPIR-V compiler that interops with Emu.
 
-Here's a quick example of Emu. You can find more in `emu_core/examples`.
+Here's a quick example of Emu. You can find more in `emu_core/examples` and most recent documentation [here](https://calebwin.github.io/emu).
 
 First, we just import a bunch of stuff
 ```rust
