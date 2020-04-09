@@ -1,8 +1,8 @@
 [package]
 name = "emu_core"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Caleb Winston <calebhwin@gmail.com>"]
-description = "A low-level WebGPU-based compute library featuring cross-platform support and SPIR-V as input"
+description = "A low-level GPGPU compute library featuring cross-platform support and SPIR-V as input"
 homepage = "https://www.github.com/calebwin/emu"
 documentation = "https://calebwin.github.io/emu"
 repository = "https://www.github.com/calebwin/emu"
