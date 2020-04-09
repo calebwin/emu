@@ -2,7 +2,8 @@
 
 [![Discord Chat](https://img.shields.io/discord/308323056592486420.svg)](https://discord.gg/sKf6KCs)
 [![crates.io](https://img.shields.io/crates/v/emu_core.svg)](https://www.crates.io/crates/emu_core)
-[![docs.rs](https://docs.rs/emu_core/badge.svg)](https://www.docs.rs/emu_core)
+<!-- [![docs.rs](https://docs.rs/emu_core/badge.svg)](https://www.docs.rs/emu_core) -->
+[![docs.rs](https://docs.rs/emu_core/badge.svg)](https://calebwin.github.io/emu/)
 
 <p align="center">
 <!-- <img width="250px" src="https://i.imgur.com/kTap42K.png"/> -->
