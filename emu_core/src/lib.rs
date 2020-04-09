@@ -6,7 +6,7 @@
 //! eventually even the web itself (through WebAssembly - API changes to
 //! support this should be minimal).
 //!
-//! You can see [the crate](https://crates.io/emu_core) for how to add Emu to
+//! You can see [the crate](https://crates.io/crates/emu_core) for how to add Emu to
 //! your Rust project (`emu_core = "*"`) and [the examples](https://github.com/calebwin/emu/tree/master/emu_core/examples)
 //! for how to use Emu. The following link to documentation of what are essentially the building
 //! blocks of Emu.
