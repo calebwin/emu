@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["SpirvCompile","A SPIR-V-to-SPIR-V compiler!"]]});
+initSidebarItems({"struct":[["Glsl","A wrapper of GLSL code with methods to help progressively wrap your GLSL"],["GlslCompile","A `shaderc`-based compiler for `Glsl` to SPIR-V"],["GlslKernel","A convenience builder for GLSL compute kernels"],["GlslKernelCompile","Another `shaderc`-based compiler for compiling `GlslKernel`"],["SpirvCompile","A SPIR-V-to-SPIR-V compiler!"]]});

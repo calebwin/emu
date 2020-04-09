@@ -1,0 +1,2 @@
+/usr/bin/ar qc libSPIRV-Headers-example-1.1.a  CMakeFiles/SPIRV-Headers-example-1.1.dir/example-1.1.cpp.o
+/usr/bin/ranlib libSPIRV-Headers-example-1.1.a

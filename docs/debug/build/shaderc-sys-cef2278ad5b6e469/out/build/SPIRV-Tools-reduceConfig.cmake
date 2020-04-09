@@ -1,0 +1,5 @@
+include(CMakeFindDependencyMacro)
+find_dependency(SPIRV-Tools)
+include(${CMAKE_CURRENT_LIST_DIR}/SPIRV-Tools-reduceTargets.cmake)
+set(SPIRV-Tools-reduce_LIBRARIES SPIRV-Tools-reduce)
+get_target_property(SPIRV-Tools-reduce_INCLUDE_DIRS SPIRV-Tools-reduce INTERFACE_INCLUDE_DIRECTORIES)

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libshaderc_util.a  CMakeFiles/shaderc_util.dir/src/args.cc.o CMakeFiles/shaderc_util.dir/src/compiler.cc.o CMakeFiles/shaderc_util.dir/src/file_finder.cc.o CMakeFiles/shaderc_util.dir/src/io.cc.o CMakeFiles/shaderc_util.dir/src/message.cc.o CMakeFiles/shaderc_util.dir/src/resources.cc.o CMakeFiles/shaderc_util.dir/src/shader_stage.cc.o CMakeFiles/shaderc_util.dir/src/spirv_tools_wrapper.cc.o CMakeFiles/shaderc_util.dir/src/version_profile.cc.o
+/usr/bin/ranlib libshaderc_util.a

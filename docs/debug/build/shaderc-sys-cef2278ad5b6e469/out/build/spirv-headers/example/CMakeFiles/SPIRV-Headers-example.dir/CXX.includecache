@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/caleb/.cargo/registry/src/github.com-1ecc6299db9ec823/shaderc-sys-0.6.2/build/spirv-headers/example/example.cpp
+spirv/1.0/GLSL.std.450.h
+-
+spirv/1.0/OpenCL.std.h
+-
+spirv/1.0/spirv.hpp
+-
+
+/home/caleb/.cargo/registry/src/github.com-1ecc6299db9ec823/shaderc-sys-0.6.2/build/spirv-headers/include/spirv/1.0/GLSL.std.450.h
+
+/home/caleb/.cargo/registry/src/github.com-1ecc6299db9ec823/shaderc-sys-0.6.2/build/spirv-headers/include/spirv/1.0/OpenCL.std.h
+
+/home/caleb/.cargo/registry/src/github.com-1ecc6299db9ec823/shaderc-sys-0.6.2/build/spirv-headers/include/spirv/1.0/spirv.hpp
+

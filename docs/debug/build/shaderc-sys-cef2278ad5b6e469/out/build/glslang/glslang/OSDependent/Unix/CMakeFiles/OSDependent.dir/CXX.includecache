@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/caleb/.cargo/registry/src/github.com-1ecc6299db9ec823/shaderc-sys-0.6.2/build/glslang/OGLCompilersDLL/InitializeDll.h
+../glslang/OSDependent/osinclude.h
+/home/caleb/.cargo/registry/src/github.com-1ecc6299db9ec823/shaderc-sys-0.6.2/build/glslang/glslang/OSDependent/osinclude.h
+
+/home/caleb/.cargo/registry/src/github.com-1ecc6299db9ec823/shaderc-sys-0.6.2/build/glslang/glslang/OSDependent/Unix/ossource.cpp
+../osinclude.h
+/home/caleb/.cargo/registry/src/github.com-1ecc6299db9ec823/shaderc-sys-0.6.2/build/glslang/glslang/OSDependent/osinclude.h
+../../../OGLCompilersDLL/InitializeDll.h
+/home/caleb/.cargo/registry/src/github.com-1ecc6299db9ec823/shaderc-sys-0.6.2/build/glslang/OGLCompilersDLL/InitializeDll.h
+pthread.h
+-
+semaphore.h
+-
+assert.h
+-
+errno.h
+-
+stdint.h
+-
+cstdio
+-
+sys/time.h
+-
+sys/resource.h
+-
+
+/home/caleb/.cargo/registry/src/github.com-1ecc6299db9ec823/shaderc-sys-0.6.2/build/glslang/glslang/OSDependent/osinclude.h
+

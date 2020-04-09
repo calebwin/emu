@@ -1,0 +1,2 @@
+/usr/bin/ar qc libHLSL.a  CMakeFiles/HLSL.dir/hlslAttributes.cpp.o CMakeFiles/HLSL.dir/hlslParseHelper.cpp.o CMakeFiles/HLSL.dir/hlslScanContext.cpp.o CMakeFiles/HLSL.dir/hlslOpMap.cpp.o CMakeFiles/HLSL.dir/hlslTokenStream.cpp.o CMakeFiles/HLSL.dir/hlslGrammar.cpp.o CMakeFiles/HLSL.dir/hlslParseables.cpp.o
+/usr/bin/ranlib libHLSL.a

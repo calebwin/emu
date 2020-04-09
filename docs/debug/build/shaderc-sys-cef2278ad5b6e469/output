@@ -1,0 +1,701 @@
+cargo:warning=Checking for system installed libraries.  Use --features = build-from-source to disable this behavior
+cargo:warning=System installed library not found.  Falling back to build from source
+running: "cmake" "cmake" "/home/caleb/.cargo/registry/src/github.com-1ecc6299db9ec823/shaderc-sys-0.6.2/build" "-DCMAKE_POSITION_INDEPENDENT_CODE=ON" "-DSPIRV_SKIP_EXECUTABLES=ON" "-DSPIRV_WERROR=OFF" "-DSHADERC_SKIP_TESTS=ON" "-DCMAKE_INSTALL_LIBDIR=lib" "-DCMAKE_INSTALL_PREFIX=/home/caleb/Projects/emu/emu_core/../docs/debug/build/shaderc-sys-cef2278ad5b6e469/out" "-DCMAKE_C_FLAGS= -ffunction-sections -fdata-sections -fPIC -m64" "-DCMAKE_C_COMPILER=/usr/bin/cc" "-DCMAKE_CXX_FLAGS= -ffunction-sections -fdata-sections -fPIC -m64" "-DCMAKE_CXX_COMPILER=/usr/bin/c++" "-DCMAKE_BUILD_TYPE=Release"
+-- The C compiler identification is GNU 7.5.0
+-- The CXX compiler identification is GNU 7.5.0
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /usr/bin/c++
+-- Check for working CXX compiler: /usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Building SPIRV-Header examples
+-- Installing SPIRV-Header
+-- Found PythonInterp: /usr/bin/python3 (found suitable version "3.6.9", minimum required is "3") 
+-- Google Mock was not found - tests based on that will not build
+-- optimizer enabled
+-- Looking for pthread.h
+-- Looking for pthread.h - found
+-- Looking for pthread_create
+-- Looking for pthread_create - not found
+-- Check if compiler accepts -pthread
+-- Check if compiler accepts -pthread - yes
+-- Found Threads: TRUE  
+-- Shaderc: build type is "Release".
+-- Configuring Shaderc to avoid building tests.
+-- asciidoctor was not found - no documentation will be generated
+-- Performing Test COMPILER_SUPPORTS_FALLTHROUGH_WARNING
+-- Performing Test COMPILER_SUPPORTS_FALLTHROUGH_WARNING - Success
+-- Performing Test COMPILER_SUPPORTS_EXTRA_SEMI_WARNING
+-- Performing Test COMPILER_SUPPORTS_EXTRA_SEMI_WARNING - Failed
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/build
+running: "cmake" "cmake" "--build" "." "--target" "install" "--config" "Release" "--"
+Scanning dependencies of target spirv-tools-shared-pkg-config
+Scanning dependencies of target spv-tools-cldi100
+Scanning dependencies of target spirv-tools-pkg-config
+Scanning dependencies of target spirv-tools-header-OpenCLDebugInfo100
+Scanning dependencies of target spv-tools-debuginfo
+Scanning dependencies of target spv-tools-spv-amd-gs
+Scanning dependencies of target SPIRV-Headers-example-1.1
+Scanning dependencies of target SPIRV-Headers-example
+[  0%] Generate extended instruction tables for spv-amd-gcn-shader.
+[  0%] Generate extended instruction tables for debuginfo.
+[  0%] Generate extended instruction tables for opencl.debuginfo.100.
+[  0%] Building CXX object spirv-headers/example/CMakeFiles/SPIRV-Headers-example.dir/example.cpp.o
+[  0%] Building CXX object spirv-headers/example/CMakeFiles/SPIRV-Headers-example-1.1.dir/example-1.1.cpp.o
+[  0%] Generate language specific header for OpenCLDebugInfo100.
+[  0%] Built target spirv-tools-shared-pkg-config
+[  0%] Built target spirv-tools-pkg-config
+[  1%] Linking CXX static library libSPIRV-Headers-example-1.1.a
+Scanning dependencies of target spv-tools-spv-amd-sb
+Scanning dependencies of target spv-tools-spv-amd-sevp
+[  1%] Linking CXX static library libSPIRV-Headers-example.a
+[  2%] Generate extended instruction tables for spv-amd-shader-ballot.
+[  2%] Generate extended instruction tables for spv-amd-shader-explicit-vertex-parameter.
+[  2%] Built target spv-tools-spv-amd-gs
+[  2%] Built target spirv-tools-header-OpenCLDebugInfo100
+[  2%] Built target spv-tools-debuginfo
+[  2%] Built target spv-tools-cldi100
+Scanning dependencies of target core_tables
+Scanning dependencies of target spv-tools-spv-amd-stm
+Scanning dependencies of target spirv-tools-header-DebugInfo
+[  2%] Built target SPIRV-Headers-example-1.1
+Scanning dependencies of target enum_string_mapping
+[  2%] Built target SPIRV-Headers-example
+[  2%] Generate extended instruction tables for spv-amd-shader-trinary-minmax.
+[  2%] Generate language specific header for DebugInfo.
+[  2%] Generate info tables for SPIR-V vunified1 core instructions and operands.
+[  2%] Generate tables based on the SPIR-V XML registry.
+[  2%] Generate enum-string mapping for SPIR-V vunified1.
+[  2%] Built target spv-tools-spv-amd-sb
+[  2%] Built target spv-tools-spv-amd-sevp
+Scanning dependencies of target OGLCompiler
+Scanning dependencies of target OSDependent
+Scanning dependencies of target HLSL
+[  2%] Built target spirv-tools-header-DebugInfo
+[  2%] Building CXX object glslang/glslang/OSDependent/Unix/CMakeFiles/OSDependent.dir/ossource.cpp.o
+[  2%] Building CXX object glslang/OGLCompilersDLL/CMakeFiles/OGLCompiler.dir/InitializeDll.cpp.o
+[  2%] Built target spv-tools-spv-amd-stm
+[  2%] Building CXX object glslang/hlsl/CMakeFiles/HLSL.dir/hlslAttributes.cpp.o
+Scanning dependencies of target glslang-default-resource-limits
+[  2%] Building CXX object glslang/hlsl/CMakeFiles/HLSL.dir/hlslParseHelper.cpp.o
+[  2%] Building CXX object glslang/hlsl/CMakeFiles/HLSL.dir/hlslScanContext.cpp.o
+[  2%] Building CXX object glslang/StandAlone/CMakeFiles/glslang-default-resource-limits.dir/ResourceLimits.cpp.o
+[  2%] Built target enum_string_mapping
+[  3%] Building CXX object glslang/hlsl/CMakeFiles/HLSL.dir/hlslOpMap.cpp.o
+[  3%] Built target core_tables
+[  3%] Building CXX object glslang/hlsl/CMakeFiles/HLSL.dir/hlslTokenStream.cpp.o
+[  4%] Linking CXX static library libOSDependent.a
+[  4%] Built target OSDependent
+Scanning dependencies of target SPVRemapper
+[  4%] Building CXX object glslang/SPIRV/CMakeFiles/SPVRemapper.dir/SPVRemapper.cpp.o
+[  4%] Linking CXX static library libOGLCompiler.a
+[  4%] Built target OGLCompiler
+Scanning dependencies of target shaderc_static-pkg-config
+[  4%] Built target shaderc_static-pkg-config
+Scanning dependencies of target shaderc-pkg-config
+[  4%] Built target shaderc-pkg-config
+Scanning dependencies of target check-copyright
+[  5%] Check copyright
+[  5%] Built target check-copyright
+Scanning dependencies of target shaderc_combined-pkg-config
+[  5%] Built target shaderc_combined-pkg-config
+Scanning dependencies of target build-version
+[  5%] Update build-version.inc in the Shaderc build directory (if necessary).
+[  5%] Built target build-version
+Scanning dependencies of target extinst_tables
+[  6%] Generate info tables for OpenCL extended instructions and operands vunified1.
+[  6%] Generate info tables for GLSL extended instructions and operands vunified1.
+[  7%] Linking CXX static library libglslang-default-resource-limits.a
+[  7%] Built target extinst_tables
+[  7%] Update build-version.inc in the SPIRV-Tools build directory (if necessary).
+[  7%] Built target glslang-default-resource-limits
+[  7%] Update build-version.inc in the SPIRV-Tools build directory (if necessary).
+[  7%] Building CXX object glslang/hlsl/CMakeFiles/HLSL.dir/hlslGrammar.cpp.o
+Scanning dependencies of target SPIRV-Tools-shared
+Scanning dependencies of target SPIRV-Tools
+[  7%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/util/bit_vector.cpp.o
+[  8%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/util/bit_vector.cpp.o
+[  9%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/util/parse_number.cpp.o
+[  9%] Building CXX object glslang/hlsl/CMakeFiles/HLSL.dir/hlslParseables.cpp.o
+[  9%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/util/string_utils.cpp.o
+[  9%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/util/parse_number.cpp.o
+[  9%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/util/string_utils.cpp.o
+[  9%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/assembly_grammar.cpp.o
+[  9%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/assembly_grammar.cpp.o
+[ 10%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/binary.cpp.o
+[ 10%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/diagnostic.cpp.o
+[ 10%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/binary.cpp.o
+[ 11%] Building CXX object glslang/SPIRV/CMakeFiles/SPVRemapper.dir/doc.cpp.o
+[ 11%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/disassemble.cpp.o
+[ 11%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/enum_string_mapping.cpp.o
+[ 12%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/ext_inst.cpp.o
+[ 12%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/extensions.cpp.o
+[ 12%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/libspirv.cpp.o
+[ 13%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/opcode.cpp.o
+[ 13%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/name_mapper.cpp.o
+[ 13%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/operand.cpp.o
+[ 13%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/parsed_operand.cpp.o
+[ 14%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/print.cpp.o
+[ 15%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/diagnostic.cpp.o
+[ 15%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/software_version.cpp.o
+[ 15%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/spirv_endian.cpp.o
+[ 15%] Linking CXX static library libSPVRemapper.a
+[ 15%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/spirv_fuzzer_options.cpp.o
+[ 16%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/spirv_optimizer_options.cpp.o
+[ 16%] Built target SPVRemapper
+[ 16%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/spirv_reducer_options.cpp.o
+[ 16%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/disassemble.cpp.o
+[ 16%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/spirv_target_env.cpp.o
+[ 16%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/spirv_validator_options.cpp.o
+[ 17%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/table.cpp.o
+[ 17%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/text.cpp.o
+[ 17%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/text_handler.cpp.o
+[ 17%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate.cpp.o
+[ 17%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/enum_string_mapping.cpp.o
+[ 18%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_adjacency.cpp.o
+[ 18%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_annotation.cpp.o
+[ 19%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/ext_inst.cpp.o
+[ 19%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/extensions.cpp.o
+[ 19%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/libspirv.cpp.o
+[ 19%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_arithmetics.cpp.o
+[ 19%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/name_mapper.cpp.o
+[ 20%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_atomics.cpp.o
+[ 21%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/opcode.cpp.o
+[ 21%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_barriers.cpp.o
+[ 21%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_bitwise.cpp.o
+[ 21%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/operand.cpp.o
+[ 21%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/parsed_operand.cpp.o
+[ 21%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_builtins.cpp.o
+[ 22%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_capability.cpp.o
+[ 22%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_cfg.cpp.o
+[ 22%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/print.cpp.o
+[ 22%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_composites.cpp.o
+[ 23%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/software_version.cpp.o
+[ 23%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/spirv_endian.cpp.o
+[ 23%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_constants.cpp.o
+[ 23%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/spirv_fuzzer_options.cpp.o
+[ 23%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/spirv_optimizer_options.cpp.o
+[ 24%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/spirv_reducer_options.cpp.o
+[ 24%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/spirv_target_env.cpp.o
+[ 24%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/spirv_validator_options.cpp.o
+[ 24%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/table.cpp.o
+[ 25%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/text.cpp.o
+[ 25%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/text_handler.cpp.o
+[ 26%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_conversion.cpp.o
+[ 26%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_debug.cpp.o
+[ 26%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_decorations.cpp.o
+[ 26%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_derivatives.cpp.o
+[ 26%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate.cpp.o
+[ 27%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_extensions.cpp.o
+[ 28%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_adjacency.cpp.o
+[ 28%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_execution_limitations.cpp.o
+[ 28%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_function.cpp.o
+[ 29%] Linking CXX static library libHLSL.a
+[ 29%] Built target HLSL
+[ 29%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_id.cpp.o
+Scanning dependencies of target glslang
+[ 29%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/glslang_tab.cpp.o
+[ 29%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_annotation.cpp.o
+[ 30%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_image.cpp.o
+[ 30%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_interfaces.cpp.o
+[ 30%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_instruction.cpp.o
+[ 31%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_layout.cpp.o
+[ 31%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_arithmetics.cpp.o
+[ 31%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_atomics.cpp.o
+[ 31%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_literals.cpp.o
+[ 31%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_logicals.cpp.o
+[ 31%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_memory.cpp.o
+[ 32%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_memory_semantics.cpp.o
+[ 32%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_misc.cpp.o
+[ 33%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_barriers.cpp.o
+[ 33%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_mode_setting.cpp.o
+[ 33%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_bitwise.cpp.o
+[ 33%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_non_uniform.cpp.o
+[ 34%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_primitives.cpp.o
+[ 34%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_builtins.cpp.o
+[ 34%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_scopes.cpp.o
+[ 34%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_capability.cpp.o
+[ 34%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_small_type_uses.cpp.o
+[ 34%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validate_type.cpp.o
+[ 35%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/basic_block.cpp.o
+[ 35%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/construct.cpp.o
+[ 35%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/function.cpp.o
+[ 36%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/instruction.cpp.o
+[ 36%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/val/validation_state.cpp.o
+[ 37%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_cfg.cpp.o
+[ 37%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools.dir/util/timer.cpp.o
+[ 38%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/attribute.cpp.o
+[ 38%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/Constant.cpp.o
+[ 38%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/iomapper.cpp.o
+[ 38%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/InfoSink.cpp.o
+[ 39%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/Initialize.cpp.o
+[ 39%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/IntermTraverse.cpp.o
+[ 39%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_composites.cpp.o
+[ 39%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/Intermediate.cpp.o
+[ 39%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/ParseContextBase.cpp.o
+[ 39%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_constants.cpp.o
+[ 39%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_conversion.cpp.o
+[ 40%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/ParseHelper.cpp.o
+[ 40%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/PoolAlloc.cpp.o
+[ 40%] Linking CXX static library libSPIRV-Tools.a
+[ 40%] Built target SPIRV-Tools
+[ 40%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/RemoveTree.cpp.o
+Scanning dependencies of target SPIRV-Tools-opt
+[ 40%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/aggressive_dead_code_elim_pass.cpp.o
+[ 41%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_debug.cpp.o
+[ 41%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_decorations.cpp.o
+[ 41%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_derivatives.cpp.o
+[ 41%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/Scan.cpp.o
+[ 42%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/ShaderLang.cpp.o
+[ 42%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_extensions.cpp.o
+[ 43%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_execution_limitations.cpp.o
+[ 43%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/SymbolTable.cpp.o
+[ 43%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_function.cpp.o
+[ 43%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/Versions.cpp.o
+[ 43%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_id.cpp.o
+[ 43%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/intermOut.cpp.o
+[ 44%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_image.cpp.o
+[ 45%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/limits.cpp.o
+[ 45%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_interfaces.cpp.o
+[ 45%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_instruction.cpp.o
+[ 45%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/linkValidate.cpp.o
+[ 45%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/parseConst.cpp.o
+[ 45%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/preprocessor/Pp.cpp.o
+[ 46%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/reflection.cpp.o
+[ 46%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_layout.cpp.o
+[ 46%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/amd_ext_to_khr.cpp.o
+[ 47%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_literals.cpp.o
+[ 47%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/preprocessor/PpAtom.cpp.o
+[ 47%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_logicals.cpp.o
+[ 47%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_memory.cpp.o
+[ 47%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/preprocessor/PpContext.cpp.o
+[ 48%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/preprocessor/PpScanner.cpp.o
+[ 48%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/preprocessor/PpTokens.cpp.o
+[ 48%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_memory_semantics.cpp.o
+[ 48%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/MachineIndependent/propagateNoContraction.cpp.o
+[ 48%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/GenericCodeGen/CodeGen.cpp.o
+[ 50%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/GenericCodeGen/Link.cpp.o
+[ 51%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_misc.cpp.o
+[ 51%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_mode_setting.cpp.o
+[ 51%] Building CXX object glslang/glslang/CMakeFiles/glslang.dir/CInterface/glslang_c_interface.cpp.o
+[ 52%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/basic_block.cpp.o
+[ 52%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/block_merge_pass.cpp.o
+[ 52%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/block_merge_util.cpp.o
+[ 52%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/build_module.cpp.o
+[ 52%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_non_uniform.cpp.o
+[ 52%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_primitives.cpp.o
+[ 52%] Linking CXX static library libglslang.a
+[ 52%] Built target glslang
+[ 53%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/ccp_pass.cpp.o
+[ 53%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/cfg_cleanup_pass.cpp.o
+[ 54%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_scopes.cpp.o
+[ 54%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_small_type_uses.cpp.o
+[ 54%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/cfg.cpp.o
+[ 54%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validate_type.cpp.o
+[ 54%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/code_sink.cpp.o
+[ 55%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/combine_access_chains.cpp.o
+[ 55%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/compact_ids_pass.cpp.o
+[ 55%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/composite.cpp.o
+[ 55%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/basic_block.cpp.o
+[ 56%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/construct.cpp.o
+[ 57%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/const_folding_rules.cpp.o
+[ 57%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/function.cpp.o
+[ 57%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/constants.cpp.o
+[ 57%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/convert_to_half_pass.cpp.o
+[ 57%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/copy_prop_arrays.cpp.o
+[ 58%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/dead_branch_elim_pass.cpp.o
+[ 58%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/instruction.cpp.o
+[ 58%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/dead_insert_elim_pass.cpp.o
+[ 58%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/dead_variable_elimination.cpp.o
+[ 59%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/val/validation_state.cpp.o
+[ 59%] Building CXX object spirv-tools/source/CMakeFiles/SPIRV-Tools-shared.dir/util/timer.cpp.o
+[ 59%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/decompose_initialized_variables_pass.cpp.o
+[ 60%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/decoration_manager.cpp.o
+[ 60%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/def_use_manager.cpp.o
+[ 60%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/desc_sroa.cpp.o
+[ 60%] Linking CXX shared library libSPIRV-Tools-shared.so
+[ 60%] Built target SPIRV-Tools-shared
+[ 60%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/dominator_analysis.cpp.o
+[ 61%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/dominator_tree.cpp.o
+[ 61%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/eliminate_dead_constant_pass.cpp.o
+[ 61%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/eliminate_dead_functions_pass.cpp.o
+[ 61%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/eliminate_dead_functions_util.cpp.o
+[ 62%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/eliminate_dead_members_pass.cpp.o
+[ 62%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/feature_manager.cpp.o
+[ 62%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/fix_storage_class.cpp.o
+[ 63%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/flatten_decoration_pass.cpp.o
+[ 63%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/fold.cpp.o
+[ 63%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/folding_rules.cpp.o
+[ 63%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/fold_spec_constant_op_and_composite_pass.cpp.o
+[ 64%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/freeze_spec_constant_value_pass.cpp.o
+[ 64%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/function.cpp.o
+[ 64%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/graphics_robust_access_pass.cpp.o
+[ 64%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/generate_webgpu_initializers_pass.cpp.o
+[ 65%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/if_conversion.cpp.o
+[ 65%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/inline_exhaustive_pass.cpp.o
+[ 65%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/inline_opaque_pass.cpp.o
+[ 65%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/inline_pass.cpp.o
+[ 66%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/inst_bindless_check_pass.cpp.o
+[ 66%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/inst_buff_addr_check_pass.cpp.o
+[ 66%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/instruction.cpp.o
+[ 66%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/instruction_list.cpp.o
+[ 67%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/instrument_pass.cpp.o
+[ 67%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/ir_context.cpp.o
+[ 67%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/ir_loader.cpp.o
+[ 68%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/legalize_vector_shuffle_pass.cpp.o
+[ 68%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/licm_pass.cpp.o
+[ 68%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/local_access_chain_convert_pass.cpp.o
+[ 68%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/local_redundancy_elimination.cpp.o
+[ 69%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/local_single_block_elim_pass.cpp.o
+[ 69%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/local_single_store_elim_pass.cpp.o
+[ 69%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/loop_dependence.cpp.o
+[ 69%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/loop_dependence_helpers.cpp.o
+[ 70%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/loop_descriptor.cpp.o
+[ 70%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/loop_fission.cpp.o
+[ 70%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/loop_fusion.cpp.o
+[ 70%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/loop_fusion_pass.cpp.o
+[ 71%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/loop_peeling.cpp.o
+[ 71%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/loop_utils.cpp.o
+[ 71%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/loop_unroller.cpp.o
+[ 72%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/loop_unswitch_pass.cpp.o
+[ 72%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/mem_pass.cpp.o
+[ 72%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/merge_return_pass.cpp.o
+[ 72%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/module.cpp.o
+[ 73%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/optimizer.cpp.o
+[ 73%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/pass.cpp.o
+[ 73%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/pass_manager.cpp.o
+[ 73%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/private_to_local_pass.cpp.o
+[ 74%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/process_lines_pass.cpp.o
+[ 74%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/propagator.cpp.o
+[ 74%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/reduce_load_size.cpp.o
+[ 74%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/redundancy_elimination.cpp.o
+[ 75%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/register_pressure.cpp.o
+[ 75%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/relax_float_ops_pass.cpp.o
+[ 75%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/remove_duplicates_pass.cpp.o
+[ 75%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/replace_invalid_opc.cpp.o
+[ 76%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/scalar_analysis.cpp.o
+[ 76%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/scalar_analysis_simplification.cpp.o
+[ 76%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/scalar_replacement_pass.cpp.o
+[ 77%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/set_spec_constant_default_value_pass.cpp.o
+[ 77%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/simplification_pass.cpp.o
+[ 77%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/split_invalid_unreachable_pass.cpp.o
+[ 77%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/ssa_rewrite_pass.cpp.o
+[ 78%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/strength_reduction_pass.cpp.o
+[ 78%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/strip_atomic_counter_memory_pass.cpp.o
+[ 78%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/strip_debug_info_pass.cpp.o
+[ 78%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/strip_reflect_info_pass.cpp.o
+[ 79%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/struct_cfg_analysis.cpp.o
+[ 79%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/type_manager.cpp.o
+[ 79%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/types.cpp.o
+[ 79%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/unify_const_pass.cpp.o
+[ 80%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/upgrade_memory_model.cpp.o
+[ 80%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/value_number_table.cpp.o
+[ 80%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/vector_dce.cpp.o
+[ 80%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/workaround1209.cpp.o
+[ 81%] Building CXX object spirv-tools/source/opt/CMakeFiles/SPIRV-Tools-opt.dir/wrap_opkill.cpp.o
+[ 81%] Linking CXX static library libSPIRV-Tools-opt.a
+[ 81%] Built target SPIRV-Tools-opt
+Scanning dependencies of target SPIRV-Tools-link
+Scanning dependencies of target SPIRV
+[ 82%] Building CXX object spirv-tools/source/link/CMakeFiles/SPIRV-Tools-link.dir/linker.cpp.o
+[ 83%] Building CXX object glslang/SPIRV/CMakeFiles/SPIRV.dir/SpvBuilder.cpp.o
+[ 83%] Building CXX object glslang/SPIRV/CMakeFiles/SPIRV.dir/GlslangToSpv.cpp.o
+[ 83%] Building CXX object glslang/SPIRV/CMakeFiles/SPIRV.dir/InReadableOrder.cpp.o
+[ 83%] Building CXX object glslang/SPIRV/CMakeFiles/SPIRV.dir/Logger.cpp.o
+[ 83%] Building CXX object glslang/SPIRV/CMakeFiles/SPIRV.dir/SpvPostProcess.cpp.o
+[ 83%] Building CXX object glslang/SPIRV/CMakeFiles/SPIRV.dir/doc.cpp.o
+Scanning dependencies of target SPIRV-Tools-reduce
+[ 83%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/change_operand_reduction_opportunity.cpp.o
+[ 84%] Building CXX object glslang/SPIRV/CMakeFiles/SPIRV.dir/SpvTools.cpp.o
+[ 85%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/change_operand_to_undef_reduction_opportunity.cpp.o
+[ 85%] Building CXX object glslang/SPIRV/CMakeFiles/SPIRV.dir/disassemble.cpp.o
+[ 85%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/merge_blocks_reduction_opportunity.cpp.o
+[ 85%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/merge_blocks_reduction_opportunity_finder.cpp.o
+[ 85%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/operand_to_const_reduction_opportunity_finder.cpp.o
+[ 86%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/operand_to_undef_reduction_opportunity_finder.cpp.o
+[ 86%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/operand_to_dominating_id_reduction_opportunity_finder.cpp.o
+[ 86%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/reducer.cpp.o
+[ 86%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/reduction_opportunity.cpp.o
+[ 87%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/reduction_pass.cpp.o
+[ 87%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/reduction_util.cpp.o
+[ 87%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/remove_block_reduction_opportunity.cpp.o
+[ 87%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/remove_block_reduction_opportunity_finder.cpp.o
+[ 88%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/remove_function_reduction_opportunity.cpp.o
+[ 88%] Linking CXX static library libSPIRV-Tools-link.a
+[ 88%] Built target SPIRV-Tools-link
+[ 88%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/remove_function_reduction_opportunity_finder.cpp.o
+[ 88%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/remove_instruction_reduction_opportunity.cpp.o
+[ 88%] Linking CXX static library libSPIRV.a
+[ 88%] Built target SPIRV
+Scanning dependencies of target glslangValidator
+[ 88%] Building CXX object glslang/StandAlone/CMakeFiles/glslangValidator.dir/StandAlone.cpp.o
+[ 88%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/remove_selection_reduction_opportunity.cpp.o
+[ 89%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/remove_selection_reduction_opportunity_finder.cpp.o
+[ 89%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/remove_unreferenced_instruction_reduction_opportunity_finder.cpp.o
+[ 89%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/structured_loop_to_selection_reduction_opportunity.cpp.o
+[ 90%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/structured_loop_to_selection_reduction_opportunity_finder.cpp.o
+[ 90%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/conditional_branch_to_simple_conditional_branch_opportunity_finder.cpp.o
+[ 90%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/conditional_branch_to_simple_conditional_branch_reduction_opportunity.cpp.o
+[ 90%] Linking CXX executable glslangValidator
+[ 90%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/simple_conditional_branch_to_branch_opportunity_finder.cpp.o
+[ 90%] Built target glslangValidator
+Scanning dependencies of target spirv-remap
+[ 90%] Building CXX object glslang/StandAlone/CMakeFiles/spirv-remap.dir/spirv-remap.cpp.o
+[ 91%] Building CXX object spirv-tools/source/reduce/CMakeFiles/SPIRV-Tools-reduce.dir/simple_conditional_branch_to_branch_reduction_opportunity.cpp.o
+Scanning dependencies of target shaderc_util
+[ 92%] Building CXX object shaderc/libshaderc_util/CMakeFiles/shaderc_util.dir/src/args.cc.o
+[ 93%] Linking CXX executable spirv-remap
+[ 93%] Building CXX object shaderc/libshaderc_util/CMakeFiles/shaderc_util.dir/src/compiler.cc.o
+[ 93%] Building CXX object shaderc/libshaderc_util/CMakeFiles/shaderc_util.dir/src/file_finder.cc.o
+[ 93%] Building CXX object shaderc/libshaderc_util/CMakeFiles/shaderc_util.dir/src/io.cc.o
+[ 93%] Built target spirv-remap
+[ 94%] Building CXX object shaderc/libshaderc_util/CMakeFiles/shaderc_util.dir/src/message.cc.o
+[ 94%] Building CXX object shaderc/libshaderc_util/CMakeFiles/shaderc_util.dir/src/resources.cc.o
+[ 94%] Building CXX object shaderc/libshaderc_util/CMakeFiles/shaderc_util.dir/src/shader_stage.cc.o
+[ 95%] Building CXX object shaderc/libshaderc_util/CMakeFiles/shaderc_util.dir/src/spirv_tools_wrapper.cc.o
+[ 95%] Building CXX object shaderc/libshaderc_util/CMakeFiles/shaderc_util.dir/src/version_profile.cc.o
+[ 95%] Linking CXX static library libSPIRV-Tools-reduce.a
+[ 95%] Built target SPIRV-Tools-reduce
+[ 95%] Linking CXX static library libshaderc_util.a
+[ 95%] Built target shaderc_util
+Scanning dependencies of target shaderc
+Scanning dependencies of target shaderc_shared
+[ 95%] Building CXX object shaderc/libshaderc/CMakeFiles/shaderc_shared.dir/src/shaderc.cc.o
+[ 95%] Building CXX object shaderc/libshaderc/CMakeFiles/shaderc.dir/src/shaderc.cc.o
+[ 95%] Linking CXX shared library libshaderc_shared.so
+[ 95%] Linking CXX static library libshaderc.a
+[ 95%] Built target shaderc
+Scanning dependencies of target shaderc_combined_genfile
+Scanning dependencies of target shaderc-online-compile
+Scanning dependencies of target glslc
+[ 95%] Generating libshaderc_combined.a
+[ 95%] Building CXX object shaderc/examples/online-compile/CMakeFiles/shaderc-online-compile.dir/main.cc.o
+[ 95%] Building CXX object shaderc/glslc/CMakeFiles/glslc.dir/src/file_compiler.cc.o
+[ 95%] Building CXX object shaderc/glslc/CMakeFiles/glslc.dir/src/file_includer.cc.o
+[ 96%] Building CXX object shaderc/glslc/CMakeFiles/glslc.dir/src/shader_stage.cc.o
+[ 96%] Building CXX object shaderc/glslc/CMakeFiles/glslc.dir/src/resource_parse.cc.o
+[ 97%] Building CXX object shaderc/glslc/CMakeFiles/glslc.dir/src/file.cc.o
+[ 97%] Built target shaderc_combined_genfile
+[ 97%] Building CXX object shaderc/glslc/CMakeFiles/glslc.dir/src/dependency_info.cc.o
+[ 97%] Built target shaderc_shared
+[ 98%] Linking CXX executable shaderc-online-compile
+[ 98%] Linking CXX static library libglslc.a
+[ 98%] Built target glslc
+Scanning dependencies of target glslc_exe
+[ 98%] Building CXX object shaderc/glslc/CMakeFiles/glslc_exe.dir/src/main.cc.o
+[ 98%] Built target shaderc-online-compile
+[100%] Linking CXX executable glslc
+[100%] Built target glslc_exe
+Install the project...
+-- Install configuration: "Release"
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/spir-v.xml
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.2
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.2/extinst.glsl.std.450.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.2/OpenCL.std.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.2/spirv.lua
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.2/extinst.opencl.std.100.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.2/spirv.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.2/spirv.core.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.2/GLSL.std.450.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.2/spirv.py
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.2/spirv.hpp11
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.2/spirv.hpp
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.2/spirv.cs
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.2/spirv.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/AMD_shader_ballot.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/extinst.glsl.std.450.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/DebugInfo.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/OpenCL.std.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/OpenCLDebugInfo100.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/spirv.lua
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/extinst.opencl.std.100.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/spirv.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/spirv.core.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/AMD_shader_explicit_vertex_parameter.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/extinst.debuginfo.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/extinst.spv-amd-shader-ballot.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/extinst.spv-amd-shader-explicit-vertex-parameter.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/AMD_gcn_shader.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/GLSL.std.450.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/extinst.spv-amd-gcn-shader.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/extinst.opencl.debuginfo.100.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/spirv.py
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/spirv.hpp11
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/spirv.hpp
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/spirv.cs
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/spv.d
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/spirv.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/AMD_shader_trinary_minmax.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/unified1/extinst.spv-amd-shader-trinary-minmax.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.0
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.0/extinst.glsl.std.450.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.0/OpenCL.std.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.0/spirv.lua
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.0/extinst.opencl.std.100.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.0/spirv.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.0/spirv.core.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.0/GLSL.std.450.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.0/spirv.py
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.0/spirv.hpp11
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.0/spirv.hpp
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.0/spirv.cs
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.0/spirv.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.1
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.1/extinst.glsl.std.450.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.1/OpenCL.std.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.1/spirv.lua
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.1/extinst.opencl.std.100.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.1/spirv.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.1/spirv.core.grammar.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.1/GLSL.std.450.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.1/spirv.py
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.1/spirv.hpp11
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.1/spirv.hpp
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.1/spirv.cs
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv/1.1/spirv.json
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Headers/SPIRV-HeadersConfig.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Headers/SPIRV-HeadersConfigVersion.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Headers/SPIRV-HeadersTargets.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv-tools/libspirv.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv-tools/libspirv.hpp
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv-tools/optimizer.hpp
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv-tools/linker.hpp
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/spirv-tools/instrument.hpp
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/pkgconfig/SPIRV-Tools.pc
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/pkgconfig/SPIRV-Tools-shared.pc
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libSPIRV-Tools.a
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libSPIRV-Tools-shared.so
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Tools/SPIRV-ToolsTarget.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Tools/SPIRV-ToolsTarget-release.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Tools/SPIRV-ToolsConfig.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libSPIRV-Tools-opt.a
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Tools-opt/SPIRV-Tools-optTargets.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Tools-opt/SPIRV-Tools-optTargets-release.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Tools-opt/SPIRV-Tools-optConfig.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libSPIRV-Tools-reduce.a
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Tools-reduce/SPIRV-Tools-reduceTarget.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Tools-reduce/SPIRV-Tools-reduceTarget-release.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Tools-reduce/SPIRV-Tools-reduceConfig.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libSPIRV-Tools-link.a
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Tools-link/SPIRV-Tools-linkTargets.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Tools-link/SPIRV-Tools-linkTargets-release.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRV-Tools-link/SPIRV-Tools-linkConfig.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libglslang.a
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/glslangTargets.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/glslangTargets-release.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Public/ShaderLang.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Include/arrays.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Include/BaseTypes.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Include/Common.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Include/ConstantUnion.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Include/glslang_c_interface.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Include/glslang_c_shader_types.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Include/InfoSink.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Include/InitializeGlobals.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Include/intermediate.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Include/PoolAlloc.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Include/ResourceLimits.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Include/revision.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Include/ShHandle.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/Include/Types.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/attribute.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/glslang_tab.cpp.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/gl_types.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/Initialize.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/iomapper.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/LiveTraverser.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/localintermediate.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/ParseHelper.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/reflection.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/RemoveTree.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/Scan.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/ScanContext.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/SymbolTable.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/Versions.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/parseVersions.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/propagateNoContraction.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/preprocessor/PpContext.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/MachineIndependent/preprocessor/PpTokens.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libOSDependent.a
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/OSDependentTargets.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/OSDependentTargets-release.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libOGLCompiler.a
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/OGLCompilerTargets.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/OGLCompilerTargets-release.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/bin/glslangValidator
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/glslangValidatorTargets.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/glslangValidatorTargets-release.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/bin/spirv-remap
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/spirv-remapTargets.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/spirv-remapTargets-release.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libSPVRemapper.a
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libSPIRV.a
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPVRemapperTargets.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPVRemapperTargets-release.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRVTargets.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/SPIRVTargets-release.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/bitutils.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/spirv.hpp
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/GLSL.std.450.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/GLSL.ext.EXT.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/GLSL.ext.KHR.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/GlslangToSpv.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/hex_float.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/Logger.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/SpvBuilder.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/spvIR.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/doc.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/SpvTools.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/disassemble.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/GLSL.ext.AMD.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/GLSL.ext.NV.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/SPVRemapper.h
+-- Up-to-date: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/SPIRV/doc.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/bitutils.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/spirv.hpp
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/GLSL.std.450.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/GLSL.ext.EXT.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/GLSL.ext.KHR.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/GlslangToSpv.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/hex_float.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/Logger.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/SpvBuilder.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/spvIR.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/doc.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/SpvTools.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/disassemble.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/GLSL.ext.AMD.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/GLSL.ext.NV.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/SPVRemapper.h
+-- Up-to-date: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/glslang/SPIRV/doc.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libHLSL.a
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/HLSLTargets.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/cmake/HLSLTargets-release.cmake
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/pkgconfig/shaderc.pc
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/pkgconfig/shaderc_static.pc
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/pkgconfig/shaderc_combined.pc
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/shaderc/env.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/shaderc/status.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/shaderc/visibility.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/shaderc/shaderc.h
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/include/shaderc/shaderc.hpp
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libshaderc.a
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libshaderc_shared.so.1
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libshaderc_shared.so
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib/libshaderc_combined.a
+-- Installing: /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/bin/glslc
+cargo:root=/home/caleb/Projects/emu/emu_core/../docs/debug/build/shaderc-sys-cef2278ad5b6e469/out
+cargo:rustc-link-search=native=/home/caleb/Projects/emu/emu_core/../docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/lib
+cargo:rustc-link-lib=static=shaderc_combined
+cargo:rustc-link-lib=dylib=stdc++

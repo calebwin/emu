@@ -1,0 +1,12 @@
+prefix=/home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: shaderc
+Description: Tools and libraries for Vulkan shader compilation
+Version: 2020.0.0
+URL: https://github.com/google/shaderc
+
+Libs: -L${libdir} -lshaderc_combined
+Cflags: -I${includedir}

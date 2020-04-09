@@ -1,0 +1,2 @@
+/usr/bin/ar qc libglslc.a  CMakeFiles/glslc.dir/src/file_compiler.cc.o CMakeFiles/glslc.dir/src/file.cc.o CMakeFiles/glslc.dir/src/file_includer.cc.o CMakeFiles/glslc.dir/src/resource_parse.cc.o CMakeFiles/glslc.dir/src/shader_stage.cc.o CMakeFiles/glslc.dir/src/dependency_info.cc.o
+/usr/bin/ranlib libglslc.a

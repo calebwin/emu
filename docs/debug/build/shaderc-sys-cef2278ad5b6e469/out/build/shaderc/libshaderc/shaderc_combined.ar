@@ -1,0 +1,12 @@
+create /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/build/shaderc/libshaderc/./libshaderc_combined.a
+addlib /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/build/spirv-tools/source/libSPIRV-Tools.a 
+addlib /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/build/spirv-tools/source/opt/libSPIRV-Tools-opt.a 
+addlib /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/build/glslang/hlsl/libHLSL.a 
+addlib /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/build/glslang/glslang/OSDependent/Unix/libOSDependent.a 
+addlib /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/build/glslang/OGLCompilersDLL/libOGLCompiler.a 
+addlib /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/build/glslang/glslang/libglslang.a 
+addlib /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/build/glslang/SPIRV/libSPIRV.a 
+addlib /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/build/shaderc/libshaderc_util/libshaderc_util.a 
+addlib /home/caleb/Projects/emu/docs/debug/build/shaderc-sys-cef2278ad5b6e469/out/build/shaderc/libshaderc/libshaderc.a
+save
+end
