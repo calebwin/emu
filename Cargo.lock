@@ -243,7 +243,7 @@ dependencies = [
 
 [[package]]
 name = "emu_core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "derive_more 0.99.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "emu_glsl 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
