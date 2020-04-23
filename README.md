@@ -116,3 +116,10 @@ fn main() {
 The latest version is not yet published (just waiting for `wgpu-rs` to get its 0.5.0 version released) but you can definitely clone the repository if you want to check things out for now.
 
 If you have any questions, please [ask in the Discord](https://discord.gg/sKf6KCs).
+
+A few things that have yet to be implemented are the following. None of these will break the API.
+- Eliminate unnecessary creation of staging buffers
+- Use uniforms for `DeviceBox<T>` when `T` is small (maybe)
+- Enusre that polling is done correctly in `DeviceBox::get`
+- Add WASM support in `Cargo.toml`
+- Benchmarks comparing to CUDA, OpenCL, etc. (potentially with internal changes to optimize for peformance)
