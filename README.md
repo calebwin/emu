@@ -141,10 +141,10 @@ If you have any questions, please [ask in the Discord](https://discord.gg/sKf6KC
 # Contributing
 
 Feedback, discussion, PRs would all very much be appreciated. Some relatively high-priority, non-API-breaking things that have yet to be implemented are the following.
-[ ] Enusre that WebGPU polling is done correctly in `DeviceBox::get
-[ ] Add WASM support in `Cargo.toml`
-[ ] Add benchmarks`
-[ ] Reuse staging buffers between different `DeviceBox`es
-[ ] Maybe use uniforms for `DeviceBox<T>` when `T` is small (maybe)
+- [ ] Enusre that WebGPU polling is done correctly in `DeviceBox::get
+- [ ] Add WASM support in `Cargo.toml`
+- [ ] Add benchmarks`
+- [ ] Reuse staging buffers between different `DeviceBox`es
+- [ ] Maybe use uniforms for `DeviceBox<T>` when `T` is small (maybe)
 
 If you are interested in any of these or anything else, please don't hesitate to open an issue on GitHub or discuss more [on Discord](https://discord.gg/sKf6KCs).
