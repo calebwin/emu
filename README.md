@@ -140,8 +140,9 @@ If you have any questions, please [ask in the Discord](https://discord.gg/sKf6KC
 
 # Contributing
 
-Feedback, discussion, PRs would all very much be appreciated. Some relatively high-priority, non-API-breaking things that have yet to be implemented are the following.
+Feedback, discussion, PRs would all very much be appreciated. Some relatively high-priority, non-API-breaking things that have yet to be implemented are the following in rough order of priority.
 - [ ] Enusre that WebGPU polling is done correctly in `DeviceBox::get
+- [ ] Add support for WGLSL as input, use [Naga](https://github.com/gfx-rs/naga) for shader compilation
 - [ ] Add WASM support in `Cargo.toml`
 - [ ] Add benchmarks`
 - [ ] Reuse staging buffers between different `DeviceBox`es
