@@ -1,4 +1,4 @@
-> The old version of Emu (which used macros and stuff) is [here](https://github.com/calebwin/emu/tree/master/em).
+> The old version of Emu (which used macros) is [here](https://github.com/calebwin/emu/tree/master/em).
 
 [![Discord Chat](https://img.shields.io/discord/308323056592486420.svg)](https://discord.gg/sKf6KCs)
 [![crates.io](https://img.shields.io/crates/v/emu_core.svg)](https://www.crates.io/crates/emu_core)
@@ -10,7 +10,9 @@
     <img width="250px" src="https://i.imgur.com/CZEkdK1.png"/>
 </p>
 
-Emu is a GPGPU library with a focus on portability, modularity, and performance. 
+# Overview
+
+Emu is a GPGPU library for Rust with a focus on portability, modularity, and performance. 
 
 It's a CUDA-esque compute-specific abstraction over [WebGPU](https://github.com/gfx-rs/wgpu-rs) providing specific functionality to make WebGPU feel more like CUDA. Here's a quick run-down of highlight features...
 
@@ -23,6 +25,10 @@ heavy computations to the user's device, you can reduce system latency and impro
     - `trait Cache` - a no-setup-required LRU cache of JITed compute kernels.
     
 - **Emu is transparent** - Emu is a fully transparent abstraction. This means, at any point, you can decide to remove the abstraction and work directly with WebGPU constructs with zero overhead. For example, if you want to mix Emu with WebGPU-based graphics, you can do that with zero overhead. You can also swap out the JIT compiler artifact cache with your own cache, manage the device pool if you wish, and define your own compile-to-SPIR-V compiler that interops with Emu.
+
+- **Emu is asynchronous** - Emu is fully asynchronous. Most API calls will be non-blocking and can be synchronized by calls to `DeviceBox::get` when data is read back from device.
+
+# An example
 
 Here's a quick example of Emu. You can find more in `emu_core/examples` and most recent documentation [here](https://calebwin.github.io/emu).
 
@@ -113,13 +119,32 @@ fn main() {
 }
 ```
 
-The latest version is not yet published (just waiting for `wgpu-rs` to get its 0.5.0 version released) but you can definitely clone the repository if you want to check things out for now.
+# Built with Emu
+
+Emu is relatively new but has already been used for GPU acceleration in a variety of projects.
+
+- Used in [toil](https://github.com/vadixidav/toil) for GPU-accelerated linear algebra
+- Used in [ipl3hasher](https://github.com/awygle/ipl3hasher) for hash collision finding
+- Used in [bigbang](https://github.com/sezna/bigbang) for simulating gravitational acceleration (used older version of Emu)
+
+# Getting started
+
+The latest stable version is [on Crates.io](https://crates.io/crates/emu_core). To start using Emu, simply add the following line to your `Cargo.toml`.
+
+```toml
+[dependencies]
+emu_core = "0.1.1"
+```
 
 If you have any questions, please [ask in the Discord](https://discord.gg/sKf6KCs).
 
-A few things that have yet to be implemented are the following. None of these will break the API.
-- Eliminate unnecessary creation of staging buffers
-- Use uniforms for `DeviceBox<T>` when `T` is small (maybe)
-- Enusre that polling is done correctly in `DeviceBox::get`
-- Add WASM support in `Cargo.toml`
-- Benchmarks comparing to CUDA, OpenCL, etc. (potentially with internal changes to optimize for peformance)
+# Contributing
+
+Feedback, discussion, PRs would all very much be appreciated. Some relatively high-priority, non-API-breaking things that have yet to be implemented are the following.
+[ ] Enusre that WebGPU polling is done correctly in `DeviceBox::get
+[ ] Add WASM support in `Cargo.toml`
+[ ] Add benchmarks`
+[ ] Reuse staging buffers between different `DeviceBox`es
+[ ] Maybe use uniforms for `DeviceBox<T>` when `T` is small (maybe)
+
+If you are interested in any of these or anything else, please don't hesitate to open an issue on GitHub or discuss more [on Discord](https://discord.gg/sKf6KCs).
