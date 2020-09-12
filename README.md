@@ -136,7 +136,7 @@ The latest stable version is [on Crates.io](https://crates.io/crates/emu_core). 
 emu_core = "0.1.1"
 ```
 
-If you have any questions, please [ask in the Discord](https://discord.gg/sKf6KCs).
+To understand how to start using Emu, check out [the docs](https://calebwin.github.io/emu/). If you have any questions, please [ask in the Discord](https://discord.gg/sKf6KCs).
 
 # Contributing
 
