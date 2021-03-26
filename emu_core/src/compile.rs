@@ -12,8 +12,6 @@ use std::hash::{Hash, Hasher};
 use std::io::{Read, Seek};
 use std::sync::Arc;
 
-use wgpu::read_spirv;
-
 // TODO in the future, generalize this to other types, not just struct
 /// A trait for structures that can exist in both Rust and GLSL
 pub trait GlslStruct {
@@ -134,7 +132,7 @@ impl<P: BorrowMut<[u32]>> SpirvBuilder<P> {
 impl SpirvBuilder<Vec<u32>> {
     /// Set the actual code itself using an owned `Vec<u32>``
     pub fn set_code_with_u8(mut self, code: impl Read + Seek) -> Result<Self, std::io::Error> {
-        self.code = Some(read_spirv(code)?);
+        self.code = Some(gfx_auxil::read_spirv(code)?);
         Ok(self)
     }
 }

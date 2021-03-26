@@ -9,13 +9,18 @@
 use crate::error::*;
 
 // some std stuff...
-use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::io::{Read, Seek};
 use std::marker::PhantomData;
+use std::{
+    borrow::{Borrow, Cow},
+    num::NonZeroU64,
+};
 
+use futures::TryFutureExt;
+use wgpu::{util::DeviceExt, ComputePassDescriptor};
 // zerocopy is used for serializing and deserializing data to/from devices
 use zerocopy::*;
 
@@ -111,7 +116,8 @@ impl Device {
     ///
     /// If you are using the default pool, don't forget to call [`assert_device_pool_initialized`](../pool/fn.assert_device_pool_initialized.html) before doing anthing with a device.
     pub async fn all() -> Vec<Self> {
-        let adapters = wgpu::Adapter::enumerate(wgpu::BackendBit::PRIMARY);
+        let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+        let adapters = instance.enumerate_adapters(wgpu::BackendBit::PRIMARY);
 
         futures::future::join_all(adapters.into_iter().map(|adapter| {
             async move {
@@ -125,17 +131,23 @@ impl Device {
                 // it takes barely any time and should really only be the first thing Emu is used to do
                 // also, it's a one-time thing
                 let (device, queue) = adapter
-                    .request_device(&wgpu::DeviceDescriptor {
-                        extensions: wgpu::Extensions {
-                            anisotropic_filtering: false,
+                    .request_device(
+                        &wgpu::DeviceDescriptor {
+                            label: None,
+                            features: wgpu::Features::empty(),
+                            limits: wgpu::Limits::default(),
                         },
-                        limits: wgpu::Limits::default(),
-                    })
-                    .await;
+                        None,
+                    )
+                    .await
+                    .unwrap();
 
                 // return the constructed device
                 // there is no cost to returning device info so we just do it
                 // it might be useful for making an iterator over devices
+
+                println!("{:#?}", device.limits());
+
                 Device {
                     device: device,
                     queue: queue,
@@ -219,24 +231,22 @@ impl Device {
     where
         T: ?Sized,
     {
-        let staging_buffer = {
-            let mapped = self.device.create_buffer_mapped(&wgpu::BufferDescriptor {
-                label: None,
-                size: size as u64,
-                usage: wgpu::BufferUsage::MAP_READ
-                    | wgpu::BufferUsage::COPY_DST
-                    | wgpu::BufferUsage::COPY_SRC,
-            });
-            mapped.finish()
-        };
+        let staging_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: None,
+            size: size as u64,
+            usage: wgpu::BufferUsage::MAP_READ | wgpu::BufferUsage::COPY_DST,
+            mapped_at_creation: false,
+        });
+
         let storage_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
             label: None,
             size: size as u64, // casting usize to u64 is safe since usize is subtype of u64
             usage: match mutability {
                 Mutability::Mut => wgpu::BufferUsage::STORAGE,
-                Mutability::Const => wgpu::BufferUsage::STORAGE_READ,
+                Mutability::Const => wgpu::BufferUsage::STORAGE,
             } | wgpu::BufferUsage::COPY_DST
                 | wgpu::BufferUsage::COPY_SRC,
+            mapped_at_creation: false,
         });
         DeviceBox {
             staging_buffer,
@@ -260,33 +270,24 @@ impl Device {
         let host_obj_bytes = host_obj.borrow().as_bytes();
 
         // create a staging buffer with host_obj copied over
-        // then create an empty storage buffer of appropriate size
-        let staging_buffer = self.device.create_buffer_with_data(
-            host_obj_bytes,
-            wgpu::BufferUsage::MAP_READ | wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::COPY_SRC,
-        );
-        let storage_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+        let staging_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
             label: None,
-            size: host_obj_bytes.len() as u64, // casting usize to u64 is safe since usize is subtype of u64
-            usage: match mutability {
-                Mutability::Mut => wgpu::BufferUsage::STORAGE,
-                Mutability::Const => wgpu::BufferUsage::STORAGE_READ,
-            } | wgpu::BufferUsage::COPY_DST
-                | wgpu::BufferUsage::COPY_SRC,
+            size: host_obj_bytes.len() as u64,
+            usage: wgpu::BufferUsage::MAP_READ | wgpu::BufferUsage::COPY_DST,
+            mapped_at_creation: false,
         });
-
-        // now copy over the staging buffer to the storage buffer
-        let mut encoder = self
+        // then create an initialized storage buffer of appropriate size
+        let storage_buffer = self
             .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-        encoder.copy_buffer_to_buffer(
-            &staging_buffer,
-            0,
-            &storage_buffer,
-            0,
-            host_obj_bytes.len() as u64,
-        );
-        self.queue.submit(&[encoder.finish()]);
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: None,
+                usage: match mutability {
+                    Mutability::Mut => wgpu::BufferUsage::STORAGE,
+                    Mutability::Const => wgpu::BufferUsage::STORAGE,
+                } | wgpu::BufferUsage::COPY_SRC
+                    | wgpu::BufferUsage::COPY_DST,
+                contents: host_obj_bytes,
+            });
 
         // return the final DeviceBox
         // note that we keep both the storage buffer and the staging buffer
@@ -327,10 +328,13 @@ impl Device {
 
         // create a staging buffer with host_obj copied over
         // set this staging buffer as the new staging buffer for the device box
-        let staging_buffer = self.device.create_buffer_with_data(
-            host_obj_bytes,
-            wgpu::BufferUsage::MAP_READ | wgpu::BufferUsage::COPY_DST | wgpu::BufferUsage::COPY_SRC,
-        );
+        let staging_buffer = self
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: None,
+                contents: host_obj_bytes,
+                usage: wgpu::BufferUsage::COPY_SRC,
+            });
         device_obj.staging_buffer = staging_buffer;
 
         // now copy over the staging buffer to the storage buffer
@@ -344,7 +348,7 @@ impl Device {
             0,
             device_obj.size,
         );
-        self.queue.submit(&[encoder.finish()]);
+        self.queue.submit(vec![encoder.finish()]);
     }
 
     /// Downloads data from the given `DeviceBox<T>` asynchronously and returns a boxed slice of `T`
@@ -391,31 +395,36 @@ impl Device {
             0,
             device_obj.size,
         );
-        self.queue.submit(&[encoder.finish()]);
+        self.queue.submit(vec![encoder.finish()]);
 
         // now we can return a future for data read from staging buffer
         // this does a kind of complicated deserialization procedure
         // basically it does staging_buffer -> [T]
-        let result = device_obj.staging_buffer.map_read(0u64, device_obj.size); // this gets a GpuFuture<Result<BufferReadMapping, ()>>
+        let result = device_obj
+            .staging_buffer
+            .slice(..)
+            .map_async(wgpu::MapMode::Read);
+
+        //.map_read(0u64, device_obj.size); // this gets a GpuFuture<Result<BufferReadMapping, ()>>
 
         // poll the device
         // TODO this should not be blocking (since this is async) we need to find some way to poll a
         self.device.poll(wgpu::Maintain::Wait);
 
-        result
-            .await
-            .map(|buffer_read_mapping| {
-                buffer_read_mapping
-                    .as_slice() // this gets the &[u8] held by BufferReadMapping
-                    .chunks_exact(std::mem::size_of::<T>()) // this creates an iterator over each item of size = size_of(T)
-                    .map(|item| {
-                        let layout_verified: LayoutVerified<_, T> =
-                            LayoutVerified::new(item).unwrap(); // TODO ensure this unwrap makes sense
-                        *layout_verified
-                    }) // this deserializes each size_of(T) item
-                    .collect() // this collects it all into a [T]
-            }) // this transforms the inner BufferReadMapping
-            .map_err(|_error| CompletionError)
+        //result.map_err(|_error| CompletionError).await?;
+
+        result.map_err(|_| CompletionError).await?;
+
+        Ok(device_obj
+            .staging_buffer
+            .slice(..)
+            .get_mapped_range()
+            .chunks_exact(std::mem::size_of::<T>()) // this creates an iterator over each item of size = size_of(T)
+            .map(|item| {
+                let layout_verified: LayoutVerified<_, T> = LayoutVerified::new(item).unwrap(); // TODO ensure this unwrap makes sense
+                *layout_verified
+            }) // this deserializes each size_of(T) item
+            .collect()) // this collects it all into a [T]
     }
 
     /// Runs the given `DeviceFnMut` on a multi-dimensional space of threads to launch and arguments to pass to the launched kernel
@@ -501,10 +510,10 @@ impl Device {
                 self.device.create_bind_group(&wgpu::BindGroupDescriptor {
                     label: None, // TODO maybe in all these label fields, we should actually use a label
                     layout: &device_fn_mut.bind_group_layouts[&set_num],
-                    bindings: bind_group
+                    entries: bind_group
                         .values()
                         .map(|binding| binding.0.clone())
-                        .collect::<Vec<wgpu::Binding<'a>>>()
+                        .collect::<Vec<wgpu::BindGroupEntry<'a>>>()
                         .as_slice(),
                     // TODO ensure the above clone is okay, it should be only cloning the underlying borrow of a buffer and not cloning the entire buffer
                 }),
@@ -514,7 +523,7 @@ impl Device {
             // our compute pass will have 2 parts
             // 1. the pipeline, using the device_fn_mut
             // 2. the bind group, using the args
-            let mut cpass = encoder.begin_compute_pass();
+            let mut cpass = encoder.begin_compute_pass(&ComputePassDescriptor { label: None });
             // first we set the pipeline
             cpass.set_pipeline(&device_fn_mut.compute_pipeline);
             // then we apply the bind groups, binding all the arguments
@@ -529,7 +538,7 @@ impl Device {
         }
 
         // finally, send the command
-        self.queue.submit(&[encoder.finish()]);
+        self.queue.submit(vec![encoder.finish()]);
 
         Ok(())
     }
@@ -592,7 +601,7 @@ impl Device {
                 self.device
                     .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                         label: None,
-                        bindings: set
+                        entries: set
                             .values()
                             .map(|binding_layout| binding_layout.0.clone())
                             .collect::<Vec<wgpu::BindGroupLayoutEntry>>()
@@ -603,20 +612,27 @@ impl Device {
         let pipeline_layout = self
             .device
             .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: None,
                 bind_group_layouts: bind_group_layouts
                     .values()
                     .collect::<Vec<&wgpu::BindGroupLayout>>()
                     .as_slice(),
+                push_constant_ranges: &[],
             });
         let pipeline = self
             .device
             .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                layout: &pipeline_layout,
-                compute_stage: wgpu::ProgrammableStageDescriptor {
-                    // TODO use a Result for this function instead of unwrap_or hack
-                    module: &self.device.create_shader_module(program.borrow()), // this is where we compile the bytecode program itself
-                    entry_point: program_entry.into().as_str(), // this will probably be something like "main" or the name of the main function
-                },
+                label: None,
+                layout: Some(&pipeline_layout),
+                // TODO use a Result for this function instead of unwrap_or hack
+                module: &self
+                    .device
+                    .create_shader_module(&wgpu::ShaderModuleDescriptor {
+                        label: None,
+                        source: wgpu::ShaderSource::SpirV(Cow::Borrowed(program.borrow())),
+                        flags: wgpu::ShaderFlags::VALIDATION,
+                    }), // this is where we compile the bytecode program itself
+                entry_point: program_entry.into().as_str(), // this will probably be something like "main" or the name of the main function
             });
         Ok(DeviceFnMut {
             param_types,
@@ -647,7 +663,7 @@ impl Device {
 /// # }
 /// ```
 pub fn convert_to_spirv<T: Read + Seek>(src: T) -> Result<Vec<u32>, std::io::Error> {
-    wgpu::read_spirv(src)
+    gfx_auxil::read_spirv(src)
 }
 
 /// A type for [boxing](https://en.wikipedia.org/wiki/Object_type_(object-oriented_programming)#Boxing) stuff stored on a device
@@ -825,10 +841,12 @@ impl DeviceFnMutParams {
                     wgpu::BindGroupLayoutEntry {
                         binding: new_binding_layout_idx,
                         visibility: wgpu::ShaderStage::COMPUTE,
-                        ty: wgpu::BindingType::StorageBuffer {
-                            dynamic: false, // we usually don't need dynamic for compute so we default to 0, of course if you need it you can provide your own Device...Params
-                            readonly: false, // for now, this is just always mutable bc I don't know if readonly is more performant
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Storage { read_only: false },
+                            has_dynamic_offset: false,
+                            min_binding_size: None, // for now, this is just always mutable bc I don't know if readonly is more performant
                         },
+                        count: None,
                     },
                     ArgAndParamInfo::default(),
                 ),
@@ -893,10 +911,15 @@ impl ParamsBuilder {
                 wgpu::BindGroupLayoutEntry {
                     binding: new_binding_layout_idx,
                     visibility: wgpu::ShaderStage::COMPUTE,
-                    ty: wgpu::BindingType::StorageBuffer {
-                        dynamic: false, // we usually don't need dynamic for compute so we default to 0, of course if you need it you can provide your own Device...Params
-                        readonly: mutability == Mutability::Const,
+                    ty: wgpu::BindingType::Buffer {
+                        has_dynamic_offset: false, // we usually don't need dynamic for compute so we default to 0, of course if you need it you can provide your own Device...Params
+                        ty: wgpu::BufferBindingType::Storage {
+                            read_only: mutability == Mutability::Const,
+                        },
+                        //min_binding_size: std::mem::size_of::<T>(),
+                        min_binding_size: None,
                     },
+                    count: None,
                 },
                 ArgAndParamInfo {
                     type_name: Some(String::from(core::any::type_name::<T>())),
@@ -953,7 +976,7 @@ pub struct DeviceFnMutArgs<'a> {
     bind_groups: HashMap<
         u32,
         (
-            HashMap<u32, (wgpu::Binding<'a>, ArgAndParamInfo)>,
+            HashMap<u32, (wgpu::BindGroupEntry<'a>, ArgAndParamInfo)>,
             Vec</*wgpu::BufferAddress*/ u32>,
         ),
     >, // (u32, u32) = (set number, binding number)
@@ -978,7 +1001,7 @@ pub struct DeviceFnMutArgs<'a> {
 /// # }
 /// ```
 pub struct ArgsBuilder<'a> {
-    bindings: HashMap<u32, (wgpu::Binding<'a>, ArgAndParamInfo)>,
+    bindings: HashMap<u32, (wgpu::BindGroupEntry<'a>, ArgAndParamInfo)>,
 }
 
 impl<'a> ArgsBuilder<'a> {
@@ -995,11 +1018,12 @@ impl<'a> ArgsBuilder<'a> {
         self.bindings.insert(
             new_binding_idx,
             (
-                wgpu::Binding {
+                wgpu::BindGroupEntry {
                     binding: new_binding_idx,
                     resource: wgpu::BindingResource::Buffer {
                         buffer: &device_obj.storage_buffer,
-                        range: 0..device_obj.size,
+                        offset: 0,
+                        size: Some(NonZeroU64::new(device_obj.size).unwrap()),
                     },
                 },
                 ArgAndParamInfo {

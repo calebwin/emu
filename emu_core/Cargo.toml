@@ -23,14 +23,15 @@ default = []
 glsl-compile = ["shaderc"]
 
 [dependencies]
-wgpu = "0.5.0"
-futures = "0.3.1"
-zerocopy = "0.2.0"
+wgpu = "0.7.0"
+futures = "0.3.12"
+zerocopy = "0.3.0"
 lazy_static = "1.4.0"
-derive_more = "0.99.2"
-shaderc = { version = "0.6.2", optional = true }
+derive_more = "0.99.11"
+shaderc = { version = "0.7.1", optional = true }
+gfx-auxil = "0.8.0"
 
 [dev-dependencies]
-futures = "0.3"
+futures = "0.3.12"
 timeit = "0.1.2"
 emu_glsl = "0.1.0"
