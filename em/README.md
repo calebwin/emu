@@ -53,7 +53,7 @@ fn main() {
 
 You can use Emu in your Rust projects by doing the following-
 
-1. Add `em = 0.3.0` to `Cargo.toml`
+1. Add `em = "0.3.0"` to `Cargo.toml`
 2. Confirm that an OpenCL library [is installed]() for your platform
 
 Learn how to get started with Emu by looking at [the documentation](https://docs.rs/em).
