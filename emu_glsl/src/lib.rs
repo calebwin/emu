@@ -66,27 +66,19 @@ pub fn glsl_struct(input: TokenStream) -> TokenStream {
                         rust_to_glsl(type_path.path.get_ident().unwrap().to_string())
                     }
                     Type::Array(type_array) => {
-                        let mut type_prefix = rust_to_glsl(type_array.elem.to_token_stream().to_string())
-                                    .chars()
-                                    .next()
-                                    .unwrap()
-                                    .to_string();
+                        let mut type_prefix =
+                            rust_to_glsl(type_array.elem.to_token_stream().to_string())
+                                .chars()
+                                .next()
+                                .unwrap()
+                                .to_string();
                         if type_prefix == String::from("f") {
                             type_prefix.clear();
                         }
                         match type_array.len.to_token_stream().to_string().as_str() {
-                            "2" => {
-                                type_prefix
-                                    + "vec2"
-                            }
-                            "3" => {
-                                type_prefix
-                                    + "vec3"
-                            }
-                            "4" => {
-                                type_prefix
-                                    + "vec4"
-                            }
+                            "2" => type_prefix + "vec2",
+                            "3" => type_prefix + "vec3",
+                            "4" => type_prefix + "vec4",
                             _ => rust_to_glsl(field.ty.to_token_stream().to_string()),
                         }
                     }

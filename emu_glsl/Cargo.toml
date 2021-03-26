@@ -13,8 +13,8 @@ license = "MIT"
 edition = "2018"
 
 [dependencies]
-syn = "1.0.17"
-quote = "1.0.3"
+syn = "1.0.60"
+quote = "1.0.9"
 
 [lib]
 proc-macro = true
