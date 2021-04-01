@@ -120,7 +120,7 @@ impl Fold for Accelerator {
                         // is it load? read? launch?
                         if path
                             .path
-                            .is_ident(&Ident::new("load", quote::__rt::Span::call_site()))
+                            .is_ident(&Ident::new("load", quote::__private::Span::call_site()))
                         {
                             let new_code = quote! {
                                 {
@@ -166,7 +166,7 @@ impl Fold for Accelerator {
                             new_ast
                         } else if path
                             .path
-                            .is_ident(&Ident::new("read", quote::__rt::Span::call_site()))
+                            .is_ident(&Ident::new("read", quote::__private::Span::call_site()))
                         {
                             let new_code = quote! {
                                 {
@@ -190,7 +190,7 @@ impl Fold for Accelerator {
                             new_ast
                         } else if path
                             .path
-                            .is_ident(&Ident::new("launch", quote::__rt::Span::call_site()))
+                            .is_ident(&Ident::new("launch", quote::__private::Span::call_site()))
                         {
                             self.ready_to_launch = true;
 
@@ -256,7 +256,7 @@ impl Fold for Accelerator {
 
                 // (b) generate arguments
                 let args = code_generator.params.iter().map(|param| {
-                    let ident = Ident::new(&param.name, quote::__rt::Span::call_site());
+                    let ident = Ident::new(&param.name, quote::__private::Span::call_site());
                     let ident_literal = ident.to_string().clone();
 
                     if param.is_array {
